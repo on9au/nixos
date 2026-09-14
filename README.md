@@ -1,6 +1,6 @@
-# dotfiles
+# nixos
 
-its *my* dotfiels
+its  ~~claude's~~ *my* nixos conf
 
 NixOS, nix-darwin and home-manager, one flake. This used to be a chezmoi repo
 ([on9au/dotfiles](https://github.com/on9au/dotfiles), branch `hyprland`, has
