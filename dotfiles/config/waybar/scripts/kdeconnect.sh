@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # custom/kdeconnect -- the paired phone: whether it is reachable, and its
 # battery. Prints one JSON object per run; waybar re-runs it on the interval in
 # config.jsonc and on RTMIN+9, which the actions below raise so a ring or a

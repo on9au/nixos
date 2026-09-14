@@ -1,5 +1,5 @@
 // Waybar -- status bar. Appears on every monitor.
-// Reload after editing:  killall -SIGUSR2 waybar
+// Reload after editing:  pkill -SIGUSR2 waybar
 // Module reference:      https://github.com/Alexays/Waybar/wiki/Configuration
 {
   "layer": "top",
