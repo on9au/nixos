@@ -9,7 +9,10 @@ in
   imports = [ ./hardware-configuration.nix ];
 
   nixpkgs.config.allowUnfreePredicate = pkg:
-    builtins.elem (lib.getName pkg) [ "posy-cursors" ];
+    builtins.elem (lib.getName pkg) [ 
+      "posy-cursors"
+      "claude-code"
+    ];
 
   # Bootloader — ESP is shared with EndeavourOS
   boot.loader.systemd-boot.enable = lib.mkForce false;
@@ -72,6 +75,7 @@ in
     imagemagick ghostscript tectonic mermaid-cli
     firefox
     nautilus
+    claude-code
   ];
 
   i18n.inputMethod = {
@@ -100,7 +104,6 @@ in
     enable = true;
 
     font = { name = "Noto Sans"; size = 12; };
-    # cursorTheme = { package = pkgs.posy-cursors; name = "Posy_Cursor_Black"; };
     theme = { package = pkgs.kdePackages.breeze-gtk; name = "Breeze"; };
 
 
@@ -108,8 +111,6 @@ in
       background = { path = ./assets/regreet-wallpaper.jpg; fit = "Cover"; };
       GTK = {
         application_prefer_dark_theme = true;
-        font_name = "Noto Sans 12";
-        theme_name = "Breeze";
       };
       commands = {
         reboot = [ "systemctl" "reboot" ];
