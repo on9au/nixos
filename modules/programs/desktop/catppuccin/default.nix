@@ -1,0 +1,5 @@
+{...}: {
+  homeManagerModules = [
+    ./home.nix
+  ];
+}
