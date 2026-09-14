@@ -45,8 +45,6 @@ fi
 
 GPG_TTY=$(tty)
 
-alias vencord='sh -c "$(curl -sS https://vencord.dev/install.sh)"'
-
 export CDGIT_ROOT="$HOME/Projects"
 export WINAPPS_SRC_DIR="$HOME/.local/bin/winapps-src"
 

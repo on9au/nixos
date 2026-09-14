@@ -20,6 +20,7 @@ that history — including the old GlazeWM config, `git log -- dot_glzr`).
 | `hosts/<host>/` | one machine |
 | `modules/nixos/common.nix` | every NixOS machine |
 | `modules/nixos/desktop.nix` | the Hyprland desktop: greetd, portals, keyring, ssh agent, fcitx5 |
+| `modules/nixos/apps.nix` | apps and games, each with what it is for (desktop only for now) |
 | `modules/common/` | shared by NixOS and nix-darwin |
 | `home/default.nix` | shell half, every machine: zsh, tmux, git, nvim, CLI tools |
 | `home/desktop.nix` | Hyprland half |
@@ -833,8 +834,8 @@ be on GitHub and in every `authorized_keys`.
 The file itself is not in this repo (it names hosts that need not be public,
 and lives next to private keys).
 
-Not in play on this machine: `pcscd` stays off (FIDO2 goes over hidraw; only
-the PIV and OpenPGP applets need a smartcard daemon), commit signing is still
+`pcscd` is on, but only for Yubico Authenticator's OATH codes — FIDO2 goes over
+hidraw and does not need it. Commit signing is still
 GPG key `3FCF1E93FFC208B5` rather than the YubiKey.
 
 ### Idle, locking and suspend

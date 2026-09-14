@@ -41,8 +41,10 @@ in
       neovim tree-sitter ripgrep fd lazygit sqlite
       fnm nodejs
       claude-code
+      yazi zoxide fastfetch tldr tree duf glances smartmontools iperf3
+      _7zz zip unrar exiftool dnsutils upx cbonsai sl
     ]
-    ++ lib.optionals stdenv.hostPlatform.isLinux [ wl-clipboard ]
+    ++ lib.optionals stdenv.hostPlatform.isLinux [ wl-clipboard inxi hwinfo whois ]
     ++ lib.optionals cfg.inlineImages [ imagemagick ghostscript tectonic mermaid-cli ];
 
     xdg.configFile = {

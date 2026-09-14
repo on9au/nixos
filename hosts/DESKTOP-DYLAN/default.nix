@@ -5,6 +5,7 @@
     ./hardware-configuration.nix
     inputs.lanzaboote.nixosModules.lanzaboote
     ../../modules/nixos/desktop.nix
+    ../../modules/nixos/apps.nix
   ];
 
   networking.hostName = "DESKTOP-DYLAN";
@@ -35,8 +36,6 @@
 
   desktop.greeterWallpaper = ./regreet-wallpaper.jpg;
 
-  unfree.allow = [ "steam" "steam-unwrapped" ];
-  programs.steam.enable = true;
 
   environment.systemPackages = with pkgs; [ sbctl ];
 
