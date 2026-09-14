@@ -1,0 +1,135 @@
+#!/bin/bash
+# SketchyBar -- macOS-only status bar, the closest analog to waybar here.
+# See ../waybar/config.jsonc for what this is ported from.
+#
+# Modules dropped rather than ported, because there's no macOS equivalent
+# behind them: hyprland/submap, temperature (no stable sensor path),
+# power-profiles-daemon, idle_inhibitor/custom/nolock (no hypridle),
+# custom/fcitx5, tray (SketchyBar has no systray), custom/notification (no
+# swaync -- click the menu-bar clock for Notification Centre instead).
+
+PLUGIN_DIR="$CONFIG_DIR/plugins"
+
+# Catppuccin Mocha, same hex values as ../hypr/colors.lua and
+# ../kitty/current-theme.conf. SketchyBar colors are 0xAARRGGBB.
+BASE=0xe61e1e2e
+MANTLE=0xff181825
+SURFACE0=0xff313244
+SURFACE1=0xff45475a
+TEXT=0xffcdd6f4
+SUBTEXT1=0xffbac2de
+MAUVE=0xffcba6f7
+BLUE=0xff89b4fa
+RED=0xfff38ba8
+YELLOW=0xfff9e2af
+GREEN=0xffa6e3a1
+PEACH=0xfffab387
+
+##### Bar Appearance #####
+# Flush and edge-to-edge, like the real menu bar it replaces -- margin=0,
+# corner_radius=0. A floating inset pill (waybar's own look, and this bar's
+# first draft) puts a rectangular corner near the screen's physically rounded
+# one and needs its own margin, which then has nothing to do with
+# aerospace.toml's window gaps. Matching the real bar's flush style sidesteps
+# both problems at once: this machine's actual corner curve is left to the
+# glass, and gaps.outer.top in aerospace.toml can just be the same 12 the
+# other three edges use, instead of an independently-tuned number.
+#
+# Note "the same 12", not "bar height + 12" -- this comment claimed the
+# latter until the notch/gap rework. AeroSpace tiles inside visibleFrame,
+# which has already subtracted the strip this bar sits in, so adding the
+# height back double-counts it. See the long comment on gaps.outer.top.
+#
+# notch_width/notch_display_height are measured from this exact display via
+# NSScreen.main.safeAreaInsets (top=32) and auxiliaryTopLeftArea/
+# auxiliaryTopRightArea (notch spans x=665..850 -> 185pt wide) -- see the
+# swift snippet in the commit message if this ever needs re-measuring for a
+# different machine. topmost=window: without it, whichever app is focused
+# (Ghostty, a maximized Orion) draws in front of the bar, not behind it.
+sketchybar --bar position=top height=32 margin=0 y_offset=0 \
+  notch_width=185 notch_display_height=32 notch_offset=0 \
+  topmost=window \
+  color="$BASE" border_width=0 blur_radius=30 \
+  padding_left=8 padding_right=8 corner_radius=0
+
+##### Defaults #####
+default=(
+  padding_left=6
+  padding_right=6
+  icon.font="FiraCode Nerd Font Mono:Bold:14.0"
+  label.font="FiraCode Nerd Font Mono:Regular:13.0"
+  icon.color="$TEXT"
+  label.color="$TEXT"
+  icon.padding_left=4
+  icon.padding_right=4
+  label.padding_left=4
+  label.padding_right=4
+)
+sketchybar --default "${default[@]}"
+
+##### Workspaces -- hyprland/workspaces equivalent #####
+# All ten always shown, matching "rules.lua marks them persistent" in
+# waybar/config.jsonc. aerospace.toml's exec-on-workspace-change triggers
+# this event on every switch instead of polling.
+sketchybar --add event aerospace_workspace_change
+
+for i in $(seq 1 10); do
+  sketchybar --add item space.$i left \
+    --subscribe space.$i aerospace_workspace_change \
+    --set space.$i \
+    icon="$i" \
+    icon.padding_left=7 \
+    icon.padding_right=7 \
+    background.color="$SURFACE0" \
+    background.corner_radius=6 \
+    background.height=24 \
+    background.drawing=off \
+    label.drawing=off \
+    click_script="aerospace workspace $i" \
+    script="$PLUGIN_DIR/aerospace_workspace.sh"
+done
+
+##### Front app -- hyprland/window equivalent #####
+sketchybar --add item front_app left \
+  --set front_app icon.drawing=off label.color="$SUBTEXT1" \
+  script="$PLUGIN_DIR/front_app.sh" \
+  --subscribe front_app front_app_switched
+
+##### Right side #####
+# Clock is not position=center: true screen centre (x~756 of 1512pt) sits
+# inside the notch's excluded x=665..850 range, so a centered item renders
+# directly behind the physical cutout and never appears at all -- this is
+# what "the time doesn't exist" was.
+#
+# It's added FIRST in this chain on purpose, landing farthest right (the
+# outer screen edge) -- a right-aligned group in SketchyBar stacks inward
+# from the edge as items are added, so whatever --add's first here is
+# whatever ends up rightmost.
+sketchybar --add item clock right \
+  --set clock update_freq=10 icon.color="$YELLOW" icon=󰅐 \
+  script="$PLUGIN_DIR/clock.sh" \
+  --add item cpu right \
+  --set cpu update_freq=2 icon=󰍛 icon.color="$GREEN" \
+  script="$PLUGIN_DIR/cpu.sh" \
+  --add item memory right \
+  --set memory update_freq=5 icon= icon.color="$PEACH" \
+  script="$PLUGIN_DIR/memory.sh" \
+  --add item network right \
+  --set network update_freq=5 icon.color="$BLUE" \
+  script="$PLUGIN_DIR/network.sh" \
+  --add item volume right \
+  --set volume icon.color="$MAUVE" script="$PLUGIN_DIR/volume.sh" \
+  --subscribe volume volume_change \
+  --add item battery right \
+  --set battery update_freq=120 script="$PLUGIN_DIR/battery.sh" \
+  --subscribe battery system_woke power_source_change
+
+##### Force everything to run once (never do this inside a script) #####
+sketchybar --update
+
+# --update's own trigger isn't aerospace_workspace_change, so the space.N
+# scripts don't see $FOCUSED_WORKSPACE from it -- every space would start
+# unhighlighted until the next real switch. Sync it explicitly whenever
+# SketchyBar (re)starts on its own, independent of aerospace.toml's own
+# after-startup-command (which only runs when AeroSpace itself starts).
+sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE="$(aerospace list-workspaces --focused 2>/dev/null)"

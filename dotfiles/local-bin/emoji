@@ -1,0 +1,39 @@
+#!/bin/sh
+# Emoji picker, drawn with fuzzel. Bound to SUPER + Shift + E.
+#
+# A thin wrapper around bemoji, which has no config file of
+# its own -- everything it can be told is an environment variable, so this
+# script is where that configuration lives.
+
+set -eu
+
+# bemoji looks for a picker in a fixed order -- bemenu, wofi, rofi, dmenu,
+# wmenu, ilia, then fuzzel -- so it only lands on fuzzel here by virtue of
+# nothing else being installed. Pinning it means installing any of those for
+# something else does not silently move the emoji picker onto it.
+#
+# No --lines or --width: the picker inherits fuzzel.ini, so it comes up the
+# same size and colours as the launcher, and stays that way if that file
+# changes. Escape leaves fuzzel with exit 1 and bemoji copies nothing.
+BEMOJI_PICKER_CMD="fuzzel --dmenu --prompt='😀  '"
+export BEMOJI_PICKER_CMD
+
+# Inside the picker, fuzzel's own custom-1 / custom-2 binds (Alt+1 and Alt+2 by
+# default) exit with codes 10 and 11, which are exactly the codes bemoji reads
+# as "clipboard only" and "type only". So Alt+1/Alt+2 override the default
+# below per-pick, for free, with nothing to configure.
+
+# -c copies, -t types into the focused window. Both, because the clipboard
+# copy is what makes the pick survive a window that ignores synthetic key
+# events, and typing is what makes it land without a second keystroke.
+#
+# Typing needs wtype. Without it bemoji would still copy and
+# *then* fail with "No suitable typing tool found", so the emoji arrives and an
+# error follows it -- the check keeps that off the screen.
+#
+# -n drops the trailing newline, so pasting does not also press Enter.
+if command -v wtype >/dev/null 2>&1; then
+  exec bemoji -n -c -t
+fi
+
+exec bemoji -n -c

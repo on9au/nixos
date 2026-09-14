@@ -1,0 +1,65 @@
+#!/bin/sh
+# nolock -- hold off the idle *lock* without holding off the idle timers.
+#
+# The waybar coffee cup (idle_inhibitor) stops hypridle doing anything at all:
+# no dim, no lock, no screen off, no suspend. That is the right tool for a long
+# build or a film, and the wrong one for "I am stepping away from my own desk
+# and would rather not type a password when I sit back down" -- there the screen
+# should still dim, blank and suspend, it just should not lock.
+#
+# So this is a second, weaker switch. It sets a flag file, and the two places in
+# hypridle.conf that would otherwise lock the session call `nolock lock`
+# instead of `loginctl lock-session`, which checks the flag first.
+#
+# The flag lives in $XDG_RUNTIME_DIR -- tmpfs, wiped when the session ends -- so
+# it cannot survive a reboot and the machine always comes back up locking
+# normally. Manual locks are untouched: SUPER + Escape, the power menu and any
+# other `loginctl lock-session` still lock immediately. This gates only the
+# *idle* path.
+#
+# Bound to right-click on the waybar coffee cup; the open padlock that appears
+# beside it is this module, and clicking that padlock turns the flag back off.
+
+set -eu
+
+flag="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/nolock"
+
+# waybar redraws custom/nolock on RTMIN+8 -- "signal": 8 in config.jsonc.
+# Failure here just means waybar is not running, which is not our problem.
+refresh() {
+  pkill -RTMIN+8 waybar || true
+}
+
+case "${1:-status}" in
+on)
+  : >"$flag"
+  refresh
+  ;;
+off)
+  rm -f "$flag"
+  refresh
+  ;;
+toggle)
+  if [ -e "$flag" ]; then
+    rm -f "$flag"
+  else
+    : >"$flag"
+  fi
+  refresh
+  ;;
+status)
+  # Empty output hides a custom module, so the padlock exists only while it
+  # means something.
+  [ -e "$flag" ] || exit 0
+  printf '{"text":"󰍀","tooltip":"idle lock disabled\\nthe screen will still dim, blank and suspend -- it just will not lock\\nclick to re-enable"}\n'
+  ;;
+lock)
+  # The gate itself. Called from hypridle.conf in place of loginctl.
+  [ -e "$flag" ] && exit 0
+  loginctl lock-session
+  ;;
+*)
+  echo "usage: nolock [on|off|toggle|status|lock]" >&2
+  exit 2
+  ;;
+esac

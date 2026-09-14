@@ -1,0 +1,18 @@
+# font
+font_family Fira Code Nerd Font Ret
+font_size 12.0
+
+# transparency and blur
+background_opacity 0.85
+dynamic_background_opacity yes
+background_blur 1
+
+# window settings
+remember_window_size  yes
+initial_window_width  800
+initial_window_height 500
+window_padding_width 10
+
+# cursor
+cursor_shape block
+shell_integration disabled

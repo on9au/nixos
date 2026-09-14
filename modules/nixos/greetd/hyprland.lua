@@ -1,4 +1,5 @@
--- Compositor for the login screen. Installed to /etc/greetd/hyprland.lua.
+-- Compositor for the login screen. modules/nixos/desktop.nix substitutes the
+-- regreet path into it and hands the result to greetd's default_session.
 --
 -- Lua, not hyprlang. Hyprland 0.56 treats a .conf as "legacy config" and says
 -- so on screen -- which on a greeter means the login prompt comes up with a
@@ -8,13 +9,12 @@
 -- extends across every output, which built one ~7680px space across both 4K
 -- panels and put the prompt across the bezel seam.
 --
--- Keep the monitor blocks in sync with ~/.config/hypr/hosts/<host>/monitors.lua.
+-- Keep the monitor blocks in sync with dotfiles/config/hypr/hosts/<host>/monitors.lua.
 --
--- ONE FILE, TWO MACHINES. Unlike the session config, this one is not templated
--- by chezmoi: it lives in /etc, which chezmoi does not manage, and gets there
--- through install.sh. It does not need to be templated, because a monitor
--- block for an output that is not connected is simply inert -- so every
--- machine's block can sit here at once and only the matching one takes effect.
+-- ONE FILE, TWO MACHINES. It is not per-host, and does not need to be: a
+-- monitor block for an output that is not connected is simply inert -- so
+-- every machine's block can sit here at once and only the matching one takes
+-- effect.
 
 ------------------
 ---- MONITORS ----
@@ -178,8 +178,9 @@ hl.config({
 ---- CURSOR   ----
 ------------------
 
--- Copied to /usr/share/icons by install.sh, since the greeter user cannot read
--- /home/djpro. Without this the login screen uses the default X cursor and
--- then visibly changes once the session starts.
+-- Installed system-wide by regreet.cursorTheme in modules/nixos/desktop.nix,
+-- since the greeter user cannot read /home/djpro. Without this the login
+-- screen uses the default X cursor and then visibly changes once the session
+-- starts.
 hl.env("XCURSOR_THEME", "Posy_Cursor_Black")
 hl.env("XCURSOR_SIZE", "32")
