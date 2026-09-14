@@ -1,0 +1,157 @@
+# Sourced by uwsm into the graphical session environment, before the
+# compositor and before anything XDG-autostarted.
+#
+# This is the right place for input-method variables rather than hl.env() in
+# hypr/env.lua: hl.env only reaches processes Hyprland itself spawns, and
+# fcitx5 is not one of them -- it is started by the session, either by D-Bus
+# activation when the first app asks for the org.fcitx.Fcitx5 name or from the
+# XDG autostart entry its own package ships.
+#
+# Shell syntax. Applied at login -- edits need a re-login to take effect.
+#
+# Two of the variables at the bottom are per-machine, and one of them,
+# AQ_DRM_DEVICES, would stop the compositor starting at all on the wrong
+# machine. That block picks the machine at login, from the hostname.
+
+# ---- password and FIDO2 PIN prompts outside a terminal ----
+#
+# sudo and ssh both read their secret from the terminal when there is one, and
+# fall back to $SUDO_ASKPASS / $SSH_ASKPASS when there is not -- a GUI app, a
+# script run from a launcher, a command sent by a tool with no tty attached.
+# Without them those simply fail: sudo with "a terminal is required", ssh with
+# the thoroughly misleading "incorrect passphrase supplied to decrypt private
+# key" for a YubiKey PIN it never managed to ask for. (ssh's own fallback is
+# /usr/lib/ssh/ssh-askpass, which Arch ships only in x11-ssh-askpass, so the
+# prompt never appears at all.)
+#
+# Resolved here, at login, instead of written out as a literal path. This used
+# to say /usr/bin/ksshaskpass in both variables, which is an Arch path and an
+# Arch package -- on any other layout it names a helper that does not exist,
+# and the prompt it was meant to raise silently never happens. `command -v`
+# finds whatever this machine actually has, and yields an absolute path for
+# it, which is the form both variables want.
+#
+# The list is a preference, not a requirement. `ssh-askpass` here is seahorse's
+# GTK helper, put on PATH by programs/services/ssh-agent.
+#
+# Not SSH_ASKPASS_REQUIRE=force: that would route prompts to a dialog even in
+# a terminal, where typing the PIN inline is fine. This only fills the gap.
+#
+# Note this means anything running in your session can raise a password prompt
+# on screen; that is the same trade-off polkit already makes, but it is a real
+# one. Comment the loop out to go back to terminal-only prompts.
+for _askpass in ssh-askpass ksshaskpass lxqt-openssh-askpass; do
+    _askpass_path=$(command -v "$_askpass" 2>/dev/null) || continue
+    export SUDO_ASKPASS="$_askpass_path"
+    export SSH_ASKPASS="$_askpass_path"
+    break
+done
+unset _askpass _askpass_path
+
+# ---- Qt apps (KDE Connect, fcitx5's config tool) ----
+#
+# Follow the GTK theme and use GTK dialogs. Never `kde`: outside Plasma it
+# breaks opening files (empty "Open With" dialog).
+export QT_QPA_PLATFORMTHEME=gtk3
+
+# ---- Input method (fcitx5, with mozc + pinyin) ----
+#
+# Note: /etc/environment already exports QT_IM_MODULE=fcitx system-wide, which
+# is why it shows up in the session despite not being set here.
+#
+# Hyprland implements text-input-v3, so Wayland-native GTK and Qt apps talk to
+# fcitx5 through the compositor and need no *_IM_MODULE variables. Setting
+# GTK_IM_MODULE/QT_IM_MODULE here would force the older module path and is a
+# common cause of doubled or dead-key input on Wayland.
+#
+# XWayland apps have no such protocol, so they still need XMODIFIERS.
+export XMODIFIERS=@im=fcitx
+
+# SDL and GLFW games/apps do their own thing; both want to be told explicitly.
+# GLFW speaks the ibus protocol, which fcitx5 also implements.
+export SDL_IM_MODULE=fcitx
+export GLFW_IM_MODULE=ibus
+
+# If some specific XWayland GTK or Qt app refuses to compose, uncomment the
+# matching line below -- but expect Wayland-native apps to get worse, not
+# better, so prefer fixing it per-app:
+# export GTK_IM_MODULE=fcitx
+# export QT_IM_MODULE=fcitx
+
+# ---- Per-machine ----
+#
+# Everything above is the same on every machine. Unknown hostnames get the
+# desktop's block, like hypr/host.lua.
+case "$(cat /proc/sys/kernel/hostname 2>/dev/null)" in
+LAPTOP-ON9AU)
+# ---- Hybrid graphics: run the compositor on the iGPU only ----
+#
+# This laptop has an Intel Arc 140T (PCI 00:02.0) and an NVIDIA RTX PRO 2000
+# (PCI 01:00.0). Every display connector -- the panel, HDMI, USB-C -- is wired
+# to the Intel side; the NVIDIA card has no outputs at all and exists for
+# render offload. Listing only the iGPU here means the compositor never opens
+# the NVIDIA card, so it can runtime-suspend to D3cold instead of idling at a
+# few watts all session. Check it is actually asleep with:
+#
+#   cat /sys/bus/pci/devices/0000:01:00.0/power/runtime_status   # -> suspended
+#
+# Use `prime-run <program>` for anything that wants the NVIDIA card; that wakes
+# it on demand.
+#
+# This has to be set before the compositor starts, which is why it is here and
+# not in hypr/env.lua -- hl.env() only reaches processes Hyprland itself spawns,
+# and by then aquamarine has already picked its devices.
+#
+# WHY THE readlink, AND NOT THE by-path SYMLINK WRITTEN OUT DIRECTLY:
+#
+# AQ_DRM_DEVICES is a COLON-SEPARATED LIST of devices, the same convention as
+# WLR_DRM_DEVICES. Every by-path name contains a PCI address, and every PCI
+# address contains colons -- so passing the symlink literally does not name one
+# device, it names three that do not exist:
+#
+#   drm: Explicit device list /dev/dri/by-path/pci-0000:00:02.0-card
+#   ERR drm: Failed to canonicalize path /dev/dri/by-path/pci-0000
+#   ERR drm: Failed to canonicalize path 00
+#   ERR drm: Failed to canonicalize path 02.0-card
+#   ERR drm: Found no gpus to use, cannot continue
+#
+# Hyprland then aborts in CBackend::create() before it reads a single line of
+# monitor config, and the session drops straight back to the greeter. There is
+# no escaping that helps; the character is the delimiter.
+#
+# So the symlink is resolved here instead, at login, into the colon-free
+# /dev/dri/cardN it currently points at. That is exactly as stable as using the
+# symlink would have been -- the resolution happens fresh every session, so a
+# card number that moves between boots is picked up on the next login -- while
+# what reaches aquamarine is a single path it can actually open.
+#
+# Guarded, because an empty AQ_DRM_DEVICES is not "use everything", it is "use
+# nothing", which fails the same way. If the iGPU is ever not at 00:02.0 the
+# variable is simply not set and the compositor opens both cards, which costs
+# battery but still logs you in.
+#
+# Do NOT add GBM_BACKEND or __GLX_VENDOR_LIBRARY_NAME here. Those are for the
+# opposite arrangement -- NVIDIA driving the display -- and would break this
+# one.
+    _igpu=$(readlink -f /dev/dri/by-path/pci-0000:00:02.0-card 2>/dev/null || true)
+    if [ -c "$_igpu" ]; then
+        export AQ_DRM_DEVICES="$_igpu"
+    fi
+    unset _igpu
+
+# Steam is not installed on this machine. Kept so that installing it does not
+# come with a mystery: with xwayland.force_zero_scaling (see hypr/xwayland.lua)
+# Steam renders at the native 3840x2400 and stays sharp but draws its UI at
+# 1:1, so it needs telling to scale itself by the same 2 the panel uses.
+    export STEAM_FORCE_DESKTOPUI_SCALING=2
+    ;;
+*)
+# Single-GPU machine: no AQ_DRM_DEVICES needed, aquamarine picks the only card.
+
+# Steam is X11-only and has no Wayland backend. With
+# xwayland.force_zero_scaling (see hypr/xwayland.lua) it renders at native 4K
+# and stays sharp, but draws its UI at 1:1 and so comes out small -- this tells
+# it to scale itself, matching the 1.25 scale of the primary monitor.
+    export STEAM_FORCE_DESKTOPUI_SCALING=1.25
+    ;;
+esac

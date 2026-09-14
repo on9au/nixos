@@ -1,0 +1,325 @@
+// Waybar -- status bar. Appears on every monitor.
+// Reload after editing:  pkill -SIGUSR2 waybar
+// Module reference:      https://github.com/Alexays/Waybar/wiki/Configuration
+{
+  "layer": "top",
+  "position": "top",
+  "height": 34,
+  "spacing": 4,
+  "margin-top": 6,
+  "margin-left": 12,
+  "margin-right": 12,
+  "modules-left": [
+    "hyprland/workspaces",
+    "hyprland/submap",
+    "hyprland/window"
+  ],
+  "modules-center": [
+    "clock"
+  ],
+  // One bar for both machines. The four laptop modules -- backlight, battery,
+  // power-profiles-daemon and idle_inhibitor -- are listed unconditionally:
+  // waybar hides a module whose hardware it cannot find, so on the desktop the
+  // backlight and battery simply do not draw rather than showing zeros.
+  "modules-right": [
+    "tray",
+    "custom/fcitx5",
+    "idle_inhibitor",
+    "custom/nolock",
+    "cpu",
+    "memory",
+    "temperature",
+    "backlight",
+    "pulseaudio",
+    "network",
+    "custom/kdeconnect",
+    "power-profiles-daemon",
+    "battery",
+    "custom/notification"
+  ],
+  // All ten always show because rules.lua marks them persistent.
+  //
+  // Clicking a number needs waybar git HEAD (../home.nix), not the 0.15.0 release: release
+  // builds send `dispatch workspace name:<n>`, which is a parse error under a
+  // Lua Hyprland config, so clicks silently did nothing. Upstream now emits
+  // `hl.dsp.focus({ workspace = "..." })`. See the README.
+  //
+  // Still no "on-click" here on purpose -- setting one replaces waybar's own
+  // click handler with a shell command and breaks clicking again.
+  "hyprland/workspaces": {
+    "format": "{name}",
+    // Scroll over the workspace list to move through them.
+    "on-scroll-up": "hyprctl dispatch 'hl.dsp.focus({workspace = \"e+1\"})'",
+    "on-scroll-down": "hyprctl dispatch 'hl.dsp.focus({workspace = \"e-1\"})'"
+  },
+  "hyprland/submap": {
+    "format": "󰌌 {}",
+    "tooltip": false
+  },
+  "hyprland/window": {
+    "format": "{title}",
+    "max-length": 70,
+    "separate-outputs": true,
+    "rewrite": {
+      "(.*) — Mozilla Firefox": "$1",
+      "(.*) - Chromium": "$1",
+      "(.*) - Visual Studio Code": "$1"
+    }
+  },
+  "clock": {
+    "format": "{:%a %d %b  %H:%M}",
+    "format-alt": "{:%Y-%m-%d %H:%M:%S}",
+    "interval": 1,
+    "tooltip-format": "<tt><small>{calendar}</small></tt>",
+    "calendar": {
+      "mode": "month",
+      "on-scroll": 1,
+      "format": {
+        "months": "<span color='#f9e2af'><b>{}</b></span>",
+        "days": "<span color='#cdd6f4'>{}</span>",
+        "weekdays": "<span color='#89b4fa'><b>{}</b></span>",
+        "today": "<span color='#f38ba8'><b>{}</b></span>"
+      }
+    },
+    "actions": {
+      "on-click-right": "mode",
+      "on-scroll-up": "shift_up",
+      "on-scroll-down": "shift_down"
+    }
+  },
+  "cpu": {
+    "format": " {usage}%",
+    "interval": 2,
+    "on-click": "kitty -e htop"
+  },
+  "memory": {
+    "format": " {percentage}%",
+    "interval": 5,
+    "tooltip-format": "{used:0.1f}G / {total:0.1f}G",
+    "on-click": "kitty -e htop"
+  },
+  // Package-id CPU temperature. hwmon numbering is not stable across boots, so
+  // this points at the coretemp platform device instead of
+  // /sys/class/hwmon/hwmonN. Resolves on both machines -- the laptop's Core
+  // Ultra 9 285H registers coretemp.0 with a "Package id 0" sensor just as the
+  // desktop's chip does.
+  "temperature": {
+    "hwmon-path-abs": "/sys/devices/platform/coretemp.0/hwmon",
+    "input-filename": "temp1_input",
+    "critical-threshold": 85,
+    "format": "{icon} {temperatureC}°C",
+    "format-critical": "󰸁 {temperatureC}°C",
+    "format-icons": [
+      "󰔑",
+      "󰔏",
+      "󰔐"
+    ],
+    "interval": 5
+  },
+  "pulseaudio": {
+    "format": "{icon} {volume}%",
+    "format-muted": "󰝟 muted",
+    "format-icons": {
+      "headphone": "󰋋",
+      "headset": "󰋎",
+      "default": [
+        "󰕿",
+        "󰖀",
+        "󰕾"
+      ]
+    },
+    "scroll-step": 5,
+    "on-click": "pavucontrol",
+    "on-click-right": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
+  },
+  // No "interface" set on purpose: the desktop has ethernet, wifi and
+  // tailscale, the laptop has wlan0 and CloudflareWARP, and waybar picks
+  // whichever is actually carrying traffic. Pinning one would be wrong on both.
+  "network": {
+    "format-ethernet": "󰈀 {bandwidthDownBits}",
+    "format-wifi": "󰖩  {signalStrength}%",
+    "format-linked": "󰈀 no IP",
+    "format-disconnected": "󰖪 offline",
+    "tooltip-format": "{ifname}  {ipaddr}/{cidr}",
+    "tooltip-format-wifi": "{essid} ({signalStrength}%)\n{ifname}  {ipaddr}",
+    "interval": 5,
+    "on-click": "kitty -e nmtui"
+  },
+  // The paired phone -- reachable or not, and its battery. Waybar has no
+  // kdeconnect module of its own, so this is a custom one; scripts/kdeconnect.sh
+  // explains why it reads D-Bus directly instead of shelling out to
+  // kdeconnect-cli.
+  //
+  // It disappears in two different ways on purpose. "exec-if" drops it on a
+  // machine without kdeconnect installed (same guard as custom/notification
+  // uses for swaync), and the script prints nothing when no device is paired,
+  // which hides it on a machine that has kdeconnect but has never been paired
+  // to a phone.
+  //
+  // The interval is a poll rather than a D-Bus subscription: battery updates
+  // arrive from the phone every couple of minutes anyway, so watching for the
+  // signal would buy nothing. The click actions raise RTMIN+9 themselves so
+  // the bar does not sit stale for ten seconds after one of them.
+  "custom/kdeconnect": {
+    // "{text}", not "{}": waybar-git's fmt refuses a format that mixes a named
+    // field with a positional one, and logs "mixing manual and automatic
+    // argument indexing" rather than drawing the module at all. custom/nolock
+    // gets away with a bare "{}" because it has no {icon} beside it.
+    "format": "{icon} {text}",
+    "return-type": "json",
+    "exec-if": "which kdeconnect-cli",
+    "exec": "$HOME/.config/waybar/scripts/kdeconnect.sh status",
+    "interval": 10,
+    "signal": 9,
+    "format-icons": {
+      "connected": "󰄡",
+      "disconnected": "󰄢"
+    },
+    "on-click": "kdeconnect-app",
+    "on-click-middle": "$HOME/.config/waybar/scripts/kdeconnect.sh clipboard",
+    "on-click-right": "$HOME/.config/waybar/scripts/kdeconnect.sh ring"
+  },
+  // "device" is not optional here. The laptop has TWO entries in
+  // /sys/class/backlight -- intel_backlight (the panel) and nvidia_0 (the
+  // discrete GPU, which has no display wired to it). Left unset, waybar takes
+  // the first one it finds, which is nvidia_0: the module then shows a
+  // percentage that never matches the screen and scrolling it does nothing.
+  // Same trap as the brightnessctl calls in the laptop's hypr binds.
+  "backlight": {
+    "device": "intel_backlight",
+    "format": "{icon} {percent}%",
+    "format-icons": [
+      "󰃞",
+      "󰃟",
+      "󰃠"
+    ],
+    "scroll-step": 5,
+    "tooltip-format": "backlight {percent}%"
+  },
+  // states drive the CSS classes (#battery.warning, #battery.critical) in
+  // style.css; the numbers are capacity percentages.
+  "battery": {
+    "bat": "BAT0",
+    "adapter": "AC",
+    "states": {
+      "warning": 30,
+      "critical": 15
+    },
+    "format": "{icon} {capacity}%",
+    "format-charging": "󰂄 {capacity}%",
+    "format-plugged": "󰚥 {capacity}%",
+    "format-icons": [
+      "󰂎",
+      "󰁺",
+      "󰁻",
+      "󰁼",
+      "󰁽",
+      "󰁾",
+      "󰁿",
+      "󰂀",
+      "󰂁",
+      "󰂂",
+      "󰁹"
+    ],
+    "tooltip-format": "{capacity}%  {timeTo}\n{power:0.1f}W"
+  },
+  // power-profiles-daemon is enabled as a system service; this module talks to
+  // it over D-Bus. Click to cycle performance / balanced / power-saver.
+  "power-profiles-daemon": {
+    "format": "{icon}",
+    "tooltip-format": "power profile: {profile}\ndriver: {driver}",
+    "tooltip": true,
+    "format-icons": {
+      "default": "󰓅",
+      "performance": "󰓅",
+      "balanced": "󰾅",
+      "power-saver": "󰾆"
+    }
+  },
+  // Left-click to hold the session awake -- stops hypridle dimming, locking
+  // and suspending under a long build or a film. The coffee cup is lit while
+  // the inhibitor is on.
+  //
+  // Right-click is the weaker version of the same idea: leave every idle
+  // timer running but skip the lock, for stepping away from a machine you are
+  // not worried about. See ~/.local/bin/nolock. There is deliberately no
+  // second button for it -- the padlock in custom/nolock below draws only
+  // while it is on, so the bar stays as it was the rest of the time.
+  //
+  // Right-click reaching a command at all depends on waybar passing button 3
+  // through to ALabel::handleToggle, which it does as long as
+  // "dynamic-timeouts" is off -- with that enabled, button 3 is taken by the
+  // module itself to clear the inhibitor.
+  "idle_inhibitor": {
+    "format": "{icon}",
+    "format-icons": {
+      "activated": "󰅶",
+      "deactivated": "󰾪"
+    },
+    "tooltip-format-activated": "idle inhibited\nright-click: disable the idle lock only",
+    "tooltip-format-deactivated": "idle not inhibited\nright-click: disable the idle lock only",
+    "on-click-right": "$HOME/.local/bin/nolock toggle"
+  },
+  // The open padlock, shown only while the idle lock is off. The script emits
+  // nothing when the flag is clear and waybar hides a custom module with empty
+  // text, so this occupies no space in the normal case.
+  //
+  // "once" plus "signal" rather than an interval: nothing changes the flag
+  // except the script itself, and it sends RTMIN+8 when it does.
+  "custom/nolock": {
+    "format": "{}",
+    "return-type": "json",
+    "exec": "$HOME/.local/bin/nolock status",
+    "interval": "once",
+    "signal": 8,
+    "on-click": "$HOME/.local/bin/nolock off"
+  },
+  "tray": {
+    "icon-size": 18,
+    "spacing": 10,
+    // fcitx5's language icon. custom/fcitx5 sits immediately right of the
+    // tray and says the same thing in two characters, so the tray item is
+    // pure duplication.
+    //
+    // This used to be switched off at the source instead, by forcing
+    // --disable=notificationitem into two hand-written files -- a D-Bus
+    // service override and an XDG autostart entry -- both of which hardcoded
+    // Exec=/usr/bin/fcitx5. That is an Arch path: anywhere else it names a
+    // binary that does not exist, and since the D-Bus one *overrides* the
+    // packaged service, it would not have cost the icon, it would have cost
+    // the input method. Both files are gone; this replaces them.
+    //
+    // ignore-list hides an item when any string here appears as a substring
+    // of its bus name, category, icon name, id or title. Both spellings,
+    // because the match is case-sensitive and fcitx5 uses "Fcitx" in the id
+    // and title but "fcitx" in the icon name.
+    "ignore-list": ["Fcitx", "fcitx"]
+  },
+  "custom/fcitx5": {
+    "exec": "$HOME/.config/waybar/scripts/fcitx5-layout.sh",
+    "restart-interval": 2,
+    "format": "  {}",
+    "tooltip": false,
+    "on-click": "fcitx5-remote -t"
+  },
+  "custom/notification": {
+    "tooltip": false,
+    "format": "{icon}",
+    "format-icons": {
+      "notification": "󰂚",
+      "none": "󰂜",
+      "dnd-notification": "󰂛",
+      "dnd-none": "󰂛",
+      "inhibited-notification": "󰂚",
+      "inhibited-none": "󰂜",
+      "dnd-inhibited-notification": "󰂛",
+      "dnd-inhibited-none": "󰂛"
+    },
+    "return-type": "json",
+    "exec-if": "which swaync-client",
+    "exec": "swaync-client -swb",
+    "on-click": "swaync-client -t -sw",
+    "on-click-right": "swaync-client -d -sw",
+    "escape": true
+  }
+}
