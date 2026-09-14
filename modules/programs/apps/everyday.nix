@@ -7,7 +7,6 @@
     meld # side-by-side diffs and merge conflicts
     mpv # default video player (mimeapps.list)
     obsidian # Markdown notes
-    spotatui # Spotify from the terminal
     vlc # fallback for videos and discs mpv won't play
     vscode # GUI editor for projects that want its debuggers/extensions
   ];
