@@ -94,6 +94,12 @@ in
 
     programs.starship.enable = true;
 
+    # Per-project toolchains: `use flake` in .envrc loads that project's dev shell on cd.
+    programs.direnv = {
+      enable = true;
+      nix-direnv.enable = true;
+    };
+
     programs.tmux = {
       enable = true;
       sensibleOnTop = false;
