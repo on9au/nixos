@@ -15,6 +15,7 @@
     ../../programs/development/toolchain
     ../../programs/tools
     ../../programs/tools/git
+    ../../programs/tools/nh
     ../../programs/tools/tmux
     ../../programs/tools/zsh
   ];

@@ -57,6 +57,7 @@
     ../../programs/tools
     ../../programs/tools/git
     ../../programs/tools/kitty
+    ../../programs/tools/nh
     ../../programs/tools/tmux
     ../../programs/tools/zsh
   ];
