@@ -44,6 +44,10 @@ Clone to `~/nixos` first — the config links point there.
 | WSL | import the NixOS-WSL tarball, then the NixOS command with `#G3JC7G4` |
 | laptop | during the install, write `modules/hosts/laptop/hardware.nix` and `git add` it — the output does not exist until then |
 
+After the first switch, rebuild with `nh os switch` (NixOS) or `nh darwin switch`
+(Mac). nh already knows the flake is at `~/nixos`, and `nh clean` runs weekly,
+keeping the last 30 days and at least 5 generations.
+
 ### Coming from chezmoi
 
 On a machine chezmoi set up, the first switch finds real files where
