@@ -32,6 +32,8 @@ in
     waybar swaynotificationcenter fuzzel hypridle hyprshot hyprpicker
     cliphist wtype bemoji awww playerctl brightnessctl
     pavucontrol htop
+    # gdbus, for waybar/scripts/kdeconnect.sh.
+    glib
     kitty firefox nautilus
     papers loupe
     seahorse

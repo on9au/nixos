@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Long-running: Waybar reads a line each time we print one. We poll fcitx5 but
 # only emit on an actual change, so Waybar re-renders on switches rather than
