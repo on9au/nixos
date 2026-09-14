@@ -1,0 +1,179 @@
+# AeroSpace -- macOS-only tiling WM, the closest analog to Hyprland here.
+# See ../hypr/binds.lua and ../hypr/looknfeel.lua for what this is ported
+# from.
+#
+# Mod key is hyper: LEFT OPTION, held. See ../karabiner/README.md for how that
+# is built and why the binds below still work without it.
+#
+# Getting here took two steps. cmd is claimed system-wide (Cmd+Q, Cmd+W,
+# Cmd+Tab, and every app's own shortcuts), so an i3/Hyprland-style single-mod
+# scheme on cmd fights the OS constantly. Bare alt -- AeroSpace's own default,
+# and what this file used to use -- is no better, just less obviously so:
+# macOS reserves Option as a *text* modifier everywhere, so a global grab on
+# it swallows word-wise arrows, Option+Shift selection, and every Option+key
+# symbol in every text field on the system.
+#
+# That left ctrl-alt-cmd, which macOS claims nothing on. Three modifiers is a
+# lot to hold, so Karabiner maps one key to exactly that chord -- the way
+# SUPER is one key in binds.lua. shift is deliberately NOT part of it, so it
+# stays free to pair with hyper the way SUPER+SHIFT does on Linux.
+#
+# Which key: left Option, because the bottom rows do not line up and muscle
+# memory is positional. PC is [Ctrl][Super][Alt], Mac is [Ctrl][Opt][Cmd] --
+# the key where SUPER lives on a PC *is* Option. Grabbing only the left one
+# leaves right Option intact for the text-modifier duty described above.
+# (Caps Lock held was the earlier answer here; it is now plain Escape.)
+#
+# So: `ctrl-alt-cmd-h` below is L-Opt+h, and `ctrl-alt-cmd-shift-h` is
+# L-Opt+Shift+h -- matching SUPER+H and SUPER+SHIFT+H in binds.lua one to one.
+#
+# Not everything in binds.lua has an equivalent here -- noted per bind below.
+# Skipped entirely because macOS already covers it natively, no rebind
+# needed: screenshots, emoji picker, media keys, notification centre (click
+# the clock).
+#
+# Two of those shift under Karabiner's Ctrl<->Cmd swap, so their printed
+# shortcuts are not what you press:
+#
+#   screenshots    Cmd+Shift+3/4/5   ->  Ctrl+Shift+3/4/5
+#   emoji picker   Ctrl+Cmd+Space    ->  unchanged (symmetric chord)
+#
+# Same reason the binds below survive the swap: a chord holding both Ctrl and
+# Cmd maps onto itself. One holding only Cmd does not.
+
+config-version = 2
+
+# The accordion-layout backstop and the per-app workspace placement (the
+# analog of hosts/desktop/autostart.lua) both live in autostart.sh --
+# a shell script is far more readable than either as an inline TOML string.
+after-startup-command = ['exec-and-forget /bin/sh $HOME/.config/aerospace/autostart.sh']
+start-at-login = true
+auto-reload-config = true
+
+enable-normalization-flatten-containers = true
+enable-normalization-opposite-orientation-for-nested-containers = true
+
+# dwindle's closest AeroSpace equivalent: tiles + auto orientation.
+default-root-container-layout = 'tiles'
+default-root-container-orientation = 'auto'
+
+on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
+automatically-unhide-macos-hidden-apps = false
+key-mapping.preset = 'qwerty'
+
+# Hyprland's default (and every Wayland compositor's): moving the mouse over
+# a window focuses it, no click needed. AeroSpace ships this off.
+focus-follows-mouse.enabled = true
+
+# All ten always visible, matching waybar's "all ten always show" comment --
+# there's no multi-monitor pinning to port since this machine has one screen.
+persistent-workspaces = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
+
+# Fires on every workspace switch so SketchyBar's workspace module can repaint
+# on the event instead of polling. See sketchybar/plugins/aerospace_workspace.sh.
+exec-on-workspace-change = ['/bin/bash', '-c',
+    'sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE=$AEROSPACE_FOCUSED_WORKSPACE'
+]
+
+# gaps_in=5 / gaps_out=12 in looknfeel.lua, uniformly on all four edges.
+#
+# AeroSpace tiles within NSScreen.visibleFrame, not the raw screen frame --
+# that already excludes the OS's reserved top strip, regardless of whether
+# the native menu bar is visually hidden. That strip is 32pt on this 14" MBP
+# and was 38pt on the 15" Air; either way it is the same strip SketchyBar's
+# bar occupies, and sketchybarrc's `height` is set to match it.
+#
+# So this value does NOT need the bar's height added to it -- doing so
+# double-counts the strip: a previous version set this to 50 (38 bar + 12)
+# and the actual gap came out to 88pt, not 50. Plain 12 lands windows
+# exactly 12pt below the bar, and needed no change when the strip went
+# 38 -> 32.
+gaps.inner.horizontal = 5
+gaps.inner.vertical = 5
+gaps.outer.left = 12
+gaps.outer.bottom = 12
+gaps.outer.right = 12
+gaps.outer.top = 12
+
+[mode.main.binding]
+
+    # -- launching -- (SUPER+Return / E / B in binds.lua)
+    ctrl-alt-cmd-enter = 'exec-and-forget open -a Ghostty'
+    ctrl-alt-cmd-e = 'exec-and-forget open -a Finder'
+    # Swap the app name if Orion isn't the default browser.
+    ctrl-alt-cmd-b = 'exec-and-forget open -a Orion'
+
+    # -- focus / move -- (both hjkl and arrows, same as binds.lua)
+    ctrl-alt-cmd-h = 'focus left'
+    ctrl-alt-cmd-j = 'focus down'
+    ctrl-alt-cmd-k = 'focus up'
+    ctrl-alt-cmd-l = 'focus right'
+    ctrl-alt-cmd-left = 'focus left'
+    ctrl-alt-cmd-down = 'focus down'
+    ctrl-alt-cmd-up = 'focus up'
+    ctrl-alt-cmd-right = 'focus right'
+
+    ctrl-alt-cmd-shift-h = 'move left'
+    ctrl-alt-cmd-shift-j = 'move down'
+    ctrl-alt-cmd-shift-k = 'move up'
+    ctrl-alt-cmd-shift-l = 'move right'
+    ctrl-alt-cmd-shift-left = 'move left'
+    ctrl-alt-cmd-shift-down = 'move down'
+    ctrl-alt-cmd-shift-up = 'move up'
+    ctrl-alt-cmd-shift-right = 'move right'
+
+    # binds.lua resizes per-direction in 60px steps; AeroSpace's resize is
+    # dimension-based (smart/width/height), not directional, so this is an
+    # approximation, not a port.
+    ctrl-alt-cmd-minus = 'resize smart -60'
+    ctrl-alt-cmd-equal = 'resize smart +60'
+
+    # -- windows --
+    ctrl-alt-cmd-q = 'close'                    # SUPER+Q close
+    ctrl-alt-cmd-v = 'layout floating tiling'   # SUPER+V toggle floating
+    ctrl-alt-cmd-f = 'fullscreen'               # SUPER+F fullscreen (in-tiling)
+    ctrl-alt-cmd-shift-f = 'macos-native-fullscreen' # SUPER+SHIFT+F maximize -> own Space
+    ctrl-alt-cmd-t = 'layout tiles horizontal vertical' # SUPER+T flip split
+    # No AeroSpace equivalent for: centre floating window (G), pin above
+    # workspaces (SHIFT+P), pseudo-tile (P), mouse drag-resize.
+
+    # -- workspaces -- (SUPER+1..0 in binds.lua; 0 was workspace 10 there too)
+    ctrl-alt-cmd-1 = 'workspace 1'
+    ctrl-alt-cmd-2 = 'workspace 2'
+    ctrl-alt-cmd-3 = 'workspace 3'
+    ctrl-alt-cmd-4 = 'workspace 4'
+    ctrl-alt-cmd-5 = 'workspace 5'
+    ctrl-alt-cmd-6 = 'workspace 6'
+    ctrl-alt-cmd-7 = 'workspace 7'
+    ctrl-alt-cmd-8 = 'workspace 8'
+    ctrl-alt-cmd-9 = 'workspace 9'
+    ctrl-alt-cmd-0 = 'workspace 10'
+
+    ctrl-alt-cmd-shift-1 = 'move-node-to-workspace 1'
+    ctrl-alt-cmd-shift-2 = 'move-node-to-workspace 2'
+    ctrl-alt-cmd-shift-3 = 'move-node-to-workspace 3'
+    ctrl-alt-cmd-shift-4 = 'move-node-to-workspace 4'
+    ctrl-alt-cmd-shift-5 = 'move-node-to-workspace 5'
+    ctrl-alt-cmd-shift-6 = 'move-node-to-workspace 6'
+    ctrl-alt-cmd-shift-7 = 'move-node-to-workspace 7'
+    ctrl-alt-cmd-shift-8 = 'move-node-to-workspace 8'
+    ctrl-alt-cmd-shift-9 = 'move-node-to-workspace 9'
+    ctrl-alt-cmd-shift-0 = 'move-node-to-workspace 10'
+    # No scratchpad or scroll-to-switch-workspace equivalent.
+
+    ctrl-alt-cmd-tab = 'workspace-back-and-forth'
+    ctrl-alt-cmd-shift-tab = 'move-workspace-to-monitor --wrap-around next'
+
+    # -- session -- (SUPER+Escape lock in binds.lua)
+    # CGSession -suspend is the standard scriptable-lock trick; there is no
+    # public API for it. loginctl/hypridle/uwsm have no macOS equivalent, so
+    # this is a straight lock, not a "tell the idle daemon" call.
+    ctrl-alt-cmd-shift-esc = 'exec-and-forget /System/Library/CoreServices/Menu\ Extras/User.menu/Contents/Resources/CGSession -suspend'
+    # No power-menu port -- hold the power button, or Apple menu > options.
+
+    ctrl-alt-cmd-shift-semicolon = 'mode service'
+
+[mode.service.binding]
+    esc = ['reload-config', 'mode main']
+    r = ['flatten-workspace-tree', 'mode main']
+    backspace = ['close-all-windows-but-current', 'mode main']

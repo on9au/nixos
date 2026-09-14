@@ -1,0 +1,279 @@
+/* Waybar -- Catppuccin Mocha, matching kitty and the rest of the desktop. */
+
+@define-color base     #1e1e2e;
+@define-color mantle   #181825;
+@define-color crust    #11111b;
+@define-color surface0 #313244;
+@define-color surface1 #45475a;
+@define-color surface2 #585b70;
+@define-color text     #cdd6f4;
+@define-color subtext0 #a6adc8;
+@define-color overlay0 #6c7086;
+@define-color blue     #89b4fa;
+@define-color lavender #b4befe;
+@define-color sapphire #74c7ec;
+@define-color teal     #94e2d5;
+@define-color green    #a6e3a1;
+@define-color yellow   #f9e2af;
+@define-color peach    #fab387;
+@define-color red      #f38ba8;
+@define-color mauve    #cba6f7;
+
+* {
+    font-family: "Fira Code Nerd Font", monospace;
+    font-size: 13px;
+    /* GTK draws a 1px halo on tooltips without this. */
+    border: none;
+    border-radius: 0;
+    min-height: 0;
+}
+
+window#waybar {
+    background: transparent;
+    color: @text;
+}
+
+/* Each group gets its own rounded pill rather than one long bar. */
+.modules-left,
+.modules-center,
+.modules-right {
+    background-color: alpha(@base, 0.85);
+    border: 1px solid alpha(@surface0, 0.9);
+    border-radius: 12px;
+    padding: 0 6px;
+}
+
+#workspaces button,
+#window,
+#clock,
+#cpu,
+#memory,
+#temperature,
+#backlight,
+#pulseaudio,
+#network,
+#power-profiles-daemon,
+#battery,
+#idle_inhibitor,
+#custom-nolock,
+#custom-kdeconnect,
+#tray,
+#custom-fcitx5,
+#custom-notification,
+#submap {
+    padding: 0 10px;
+    color: @text;
+    background: transparent;
+}
+
+/* ---- Workspaces ---- */
+
+#workspaces {
+    padding: 0 2px;
+}
+
+#workspaces button {
+    padding: 0 8px;
+    margin: 4px 2px;
+    border-radius: 8px;
+    color: @overlay0;
+    transition: background-color 150ms ease, color 150ms ease;
+}
+
+#workspaces button:hover {
+    background-color: @surface0;
+    color: @text;
+    /* Waybar's default hover adds a box-shadow that reads as a glitch. */
+    box-shadow: none;
+    text-shadow: none;
+}
+
+#workspaces button.active {
+    background-color: @mauve;
+    color: @crust;
+    font-weight: bold;
+}
+
+#workspaces button.urgent {
+    background-color: @red;
+    color: @crust;
+}
+
+/* ---- Middle ---- */
+
+#window {
+    color: @subtext0;
+}
+
+/* Nothing focused -> collapse the empty pill instead of leaving a stub. */
+window#waybar.empty .modules-left #window {
+    padding: 0;
+    margin: 0;
+}
+
+#submap {
+    color: @peach;
+    font-weight: bold;
+}
+
+#clock {
+    color: @lavender;
+    font-weight: bold;
+}
+
+/* ---- Right side ---- */
+
+#cpu {
+    color: @green;
+}
+
+#memory {
+    color: @sapphire;
+}
+
+#temperature {
+    color: @teal;
+}
+
+#temperature.critical {
+    color: @red;
+    font-weight: bold;
+}
+
+#backlight {
+    color: @peach;
+}
+
+#pulseaudio {
+    color: @yellow;
+}
+
+#pulseaudio.muted {
+    color: @overlay0;
+}
+
+#network {
+    color: @blue;
+}
+
+#network.disconnected,
+#network.linked {
+    color: @red;
+}
+
+/* ---- Laptop modules ----
+ *
+ * These draw only on a machine that has the hardware; on the desktop waybar
+ * hides them, so the rules below are simply unused there. */
+
+#power-profiles-daemon {
+    color: @mauve;
+}
+
+#power-profiles-daemon.performance {
+    color: @red;
+}
+
+#power-profiles-daemon.power-saver {
+    color: @green;
+}
+
+#battery {
+    color: @green;
+}
+
+#battery.charging,
+#battery.plugged {
+    color: @teal;
+}
+
+/* states.warning / states.critical in config.jsonc set these at 30% and 15%. */
+#battery.warning {
+    color: @yellow;
+}
+
+#battery.critical {
+    color: @red;
+    font-weight: bold;
+}
+
+/* Lit while the inhibitor is holding the session awake, dim when it is not --
+ * the point is to be able to tell at a glance that the screen will not lock. */
+#idle_inhibitor {
+    color: @overlay0;
+}
+
+#idle_inhibitor.activated {
+    color: @yellow;
+}
+
+/* Only drawn while the idle lock is off (right-click on the cup). Red rather
+ * than yellow because it is the one of the two states that lowers a security
+ * setting, and it should not be mistaken for the caffeine cup at a glance. */
+#custom-nolock {
+    color: @red;
+    padding-left: 0;
+}
+
+/* ---- KDE Connect ----
+ *
+ * Colours track the phone's battery on the same thresholds as #battery above,
+ * so a phone about to die reads the same as a laptop about to die. The dim
+ * variant is a paired phone that is not on the network -- the module is hidden
+ * outright when no phone is paired at all, so this only ever means "away". */
+
+#custom-kdeconnect {
+    color: @lavender;
+}
+
+#custom-kdeconnect.disconnected {
+    color: @overlay0;
+}
+
+#custom-kdeconnect.charging {
+    color: @teal;
+}
+
+#custom-kdeconnect.warning {
+    color: @yellow;
+}
+
+#custom-kdeconnect.critical {
+    color: @red;
+    font-weight: bold;
+}
+
+#custom-notification {
+    color: @peach;
+    padding-right: 12px;
+}
+
+#tray {
+    padding: 0 8px;
+}
+
+#tray menu {
+    background-color: @base;
+    color: @text;
+    border: 1px solid @surface0;
+    border-radius: 10px;
+}
+
+#tray > .passive {
+    -gtk-icon-effect: dim;
+}
+
+#tray > .needs-attention {
+    -gtk-icon-effect: highlight;
+}
+
+tooltip {
+    background-color: @mantle;
+    border: 1px solid @surface0;
+    border-radius: 10px;
+}
+
+tooltip label {
+    color: @text;
+    padding: 4px;
+}

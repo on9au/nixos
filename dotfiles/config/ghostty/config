@@ -1,0 +1,35 @@
+# macOS-only terminal -- picked over kitty specifically
+# for background-blur. kitty's blur is Wayland-only (wlroots/KWin) and is a
+# silent no-op on macOS; Ghostty implements real blur via NSVisualEffectView.
+# Linux/Hyprland still uses kitty (../kitty/kitty.conf) -- diagram.nvim and
+# hypr/apps.lua are both keyed to it there.
+
+# font
+font-family = FiraCode Nerd Font Mono
+font-size = 14
+
+# transparency and blur
+background-opacity = 0.78
+background-blur = true
+
+# window
+window-padding-x = 10
+window-padding-y = 10
+# kitty's placement_strategy=center equivalent: balance leftover padding
+# instead of hugging the top-left cell.
+window-padding-balance = true
+
+# cursor
+cursor-style = bar
+cursor-style-blink = true
+
+# clipboard
+copy-on-select = true
+# default is "ask"; kitty's clipboard_control was set to silence exactly this
+# prompt for OSC 52 reads (tmux, nvim, image.nvim all rely on it).
+clipboard-read = allow
+
+keybind = ctrl+shift+v=paste_from_clipboard
+
+# same Catppuccin Mocha palette as kitty/current-theme.conf, tmux and nvim
+theme = Catppuccin Mocha

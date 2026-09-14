@@ -1,0 +1,37 @@
+# Eclipse JDT compiler preferences, loaded by jdtls via `java.settings.url`
+# (see lua/plugins/java.lua). jdtls exposes no LSP-level setting for the javadoc
+# compiler options, so they have to arrive as a .prefs file like this one.
+#
+# FIT2099 marks documentation, so a missing javadoc on the public/protected API
+# is worth seeing while writing the code rather than at submission time.
+# Everything here is `warning` rather than `error`: the diagnostics are advisory,
+# and keeping them out of the error tier means a genuine compile failure still
+# stands out. Swap `warning` -> `error` below to make them hard failures.
+#
+# `protected` as a visibility means "protected and above", i.e. public and
+# protected members -- private and package-private are left alone.
+
+# Master switch. Without this the javadoc problems below are never computed.
+org.eclipse.jdt.core.compiler.doc.comment.support=enabled
+
+# A public/protected type, method, or field with no javadoc comment at all.
+org.eclipse.jdt.core.compiler.problem.missingJavadocComments=warning
+org.eclipse.jdt.core.compiler.problem.missingJavadocCommentsVisibility=protected
+# Overrides inherit the supertype's javadoc, so requiring one again is noise.
+org.eclipse.jdt.core.compiler.problem.missingJavadocCommentsOverriding=disabled
+
+# A member that *has* a javadoc but is missing @param/@return/@throws entries.
+org.eclipse.jdt.core.compiler.problem.missingJavadocTags=warning
+org.eclipse.jdt.core.compiler.problem.missingJavadocTagsVisibility=protected
+org.eclipse.jdt.core.compiler.problem.missingJavadocTagsOverriding=disabled
+org.eclipse.jdt.core.compiler.problem.missingJavadocTagsMethodTypeParameters=enabled
+# Flag a bare `@return` with no text after it; other tags are left alone.
+org.eclipse.jdt.core.compiler.problem.missingJavadocTagDescription=return_tag
+
+# Malformed javadoc: unknown tags, @param naming a parameter that doesn't exist,
+# {@link} pointing at a type that cannot be resolved.
+org.eclipse.jdt.core.compiler.problem.invalidJavadoc=warning
+org.eclipse.jdt.core.compiler.problem.invalidJavadocTags=enabled
+org.eclipse.jdt.core.compiler.problem.invalidJavadocTagsVisibility=protected
+org.eclipse.jdt.core.compiler.problem.invalidJavadocTagsDeprecatedRef=disabled
+org.eclipse.jdt.core.compiler.problem.invalidJavadocTagsNotVisibleRef=disabled
