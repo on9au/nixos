@@ -7,7 +7,7 @@
     ../common/home-manager.nix
   ];
 
-  unfree.allow = [ "claude-code" ];
+  unfree.allow = [ "claude-code" "unrar" ];
 
   time.timeZone = "Australia/Melbourne";
   i18n.defaultLocale = "en_AU.UTF-8";

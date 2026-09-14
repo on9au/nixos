@@ -37,8 +37,10 @@ in
     kitty firefox nautilus
     papers loupe
     seahorse
-    discord spotify
-    libfido2
+    # Vencord built in; its installer can't patch a store path.
+    (discord.override { withVencord = true; })
+    spotify
+    libfido2 yubikey-manager yubioath-flutter
   ];
 
   xdg.configFile = {

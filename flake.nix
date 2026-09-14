@@ -22,6 +22,8 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    nix-flatpak.url = "github:gmodena/nix-flatpak/?ref=latest";
+
     # Source only, built with nixpkgs' recipe in home/desktop.nix.
     waybar = {
       url = "github:Alexays/Waybar";

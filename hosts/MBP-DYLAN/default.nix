@@ -23,7 +23,7 @@ in
   };
   programs.zsh.enable = true;
 
-  unfree.allow = [ "claude-code" ];
+  unfree.allow = [ "claude-code" "unrar" ];
 
   home-manager.users.djpro.imports = [ ../../home/darwin.nix ];
 

@@ -120,6 +120,47 @@ in
 
     services.power-profiles-daemon.enable = true;
 
+    # Caps Lock: Ctrl held, Esc tapped; Shift+Caps is a real Caps Lock.
+    services.keyd = {
+      enable = true;
+      keyboards.default = {
+        ids = [ "*" ];
+        settings = {
+          main.capslock = "overload(control, esc)";
+          shift.capslock = "capslock";
+        };
+      };
+    };
+
+    hardware.bluetooth.enable = true;
+    services.blueman.enable = true;
+
+    services.printing = {
+      enable = true;
+      drivers = with pkgs; [ gutenprint foomatic-db-ppds ];
+    };
+    programs.system-config-printer.enable = true;
+    # Network printers, AirPlay and .local names.
+    services.avahi = {
+      enable = true;
+      nssmdns4 = true;
+      openFirewall = true;
+    };
+
+    hardware.opentabletdriver.enable = true;
+
+    # Yubico Authenticator's OATH codes go over CCID; FIDO2 ssh keys don't need this.
+    services.pcscd.enable = true;
+
+    services.tailscale.enable = true;
+    services.mullvad-vpn = {
+      enable = true;
+      gui.enable = true;
+    };
+
+    # Spotify Connect local discovery.
+    networking.firewall.allowedTCPPorts = [ 57621 ];
+
     fonts.packages = with pkgs; [ nerd-fonts.fira-code noto-fonts-color-emoji noto-fonts-cjk-sans noto-fonts-cjk-serif ];
   };
 }

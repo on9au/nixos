@@ -12,6 +12,7 @@ way they do.
 | `hosts/<host>/` | one machine |
 | `modules/nixos/common.nix` | every NixOS machine |
 | `modules/nixos/desktop.nix` | the Hyprland desktop (both bare-metal machines) |
+| `modules/nixos/apps.nix` | apps and games, one comment each on what it is for |
 | `modules/common/` | shared by NixOS and nix-darwin |
 | `home/default.nix` | shell half — every machine |
 | `home/desktop.nix` | Hyprland half |
