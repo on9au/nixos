@@ -37,11 +37,6 @@
   # Matches `Port 7456` in the jia block of programs/tools/ssh/home.nix.
   services.openssh.ports = [7456];
 
-  # The YubiKey resident key's public half; `ssh-keygen -K` re-emits it on any
-  # machine holding the token. sshd.nix asserts this is non-empty.
-  users.users.opena0.openssh.authorizedKeys.keys = [
-  ];
-
   sops.defaultSopsFile = ./secrets.yaml;
 
   homeManagerModules = [

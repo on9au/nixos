@@ -45,7 +45,7 @@ Clone to `~/nixos` first — the config links point there.
 | Mac | install Nix and Homebrew, then `sudo nix run nix-darwin -- switch --flake ~/nixos#MBP-DYLAN`; afterwards `sudo darwin-rebuild switch --flake ~/nixos` |
 | WSL | import the NixOS-WSL tarball, then the NixOS command with `#G3JC7G4` |
 | laptop | during the install, write `modules/hosts/laptop/hardware.nix` and `git add` it — the output does not exist until then |
-| servers | same as the laptop: write `modules/hosts/{homelab,proxy}/hardware.nix` during the install and `git add` it. Both boxes need the repo cloned to `/home/opena0/nixos`, and a key in `authorizedKeys` — password auth is off and the build asserts the list is non-empty |
+| servers | same as the laptop: write `modules/hosts/{homelab,proxy}/hardware.nix` during the install and `git add` it. Both boxes need the repo cloned to `/home/opena0/nixos`. SSH is YubiKey-only (password auth is off), and after the first boot the host's key goes into `.sops.yaml` — see the homelab README |
 
 After the first switch, rebuild with `nh os switch` (NixOS) or `nh darwin switch`
 (Mac). nh already knows the flake is at `~/nixos`, and `nh clean` runs weekly,

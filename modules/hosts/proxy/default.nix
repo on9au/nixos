@@ -36,9 +36,6 @@
 
   # The reverse proxy itself goes in programs/server/ once the box exists.
 
-  users.users.opena0.openssh.authorizedKeys.keys = [
-  ];
-
   sops.defaultSopsFile = ./secrets.yaml;
 
   homeManagerModules = [
