@@ -1,0 +1,19 @@
+# Either YubiKey edits every file; see programs/services/ssh-agent/README.md.
+# A host decrypts its own file with its SSH host key, added after the install:
+# see hosts/homelab/README.md.
+keys:
+  - &yubikey-primary age1yubikey1qdre4pf0uxer9vrxqpscx3jdthuwyd20tp8rqqv5lkvgvmuwmqs52kak3eu
+  - &yubikey-backup age1yubikey1qwwajvh5ll93ns26nv59ug90qhq4fsf5zykzuwgwxt845ttng8745n0jtpv
+
+creation_rules:
+  - path_regex: modules/hosts/homelab/secrets\.yaml$
+    key_groups:
+      - age:
+          - *yubikey-primary
+          - *yubikey-backup
+
+  - path_regex: modules/hosts/proxy/secrets\.yaml$
+    key_groups:
+      - age:
+          - *yubikey-primary
+          - *yubikey-backup
