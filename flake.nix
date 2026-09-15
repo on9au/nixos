@@ -79,6 +79,30 @@
             inputs.home-manager.nixosModules.home-manager
           ];
         };
+      }
+      // nixpkgs.lib.optionalAttrs (builtins.pathExists ./modules/hosts/homelab/hardware.nix) {
+        jia-opena0 = nixpkgs.lib.nixosSystem {
+          specialArgs = specialArgs;
+
+          # nix-style: ignore-order
+          modules = [
+            ./modules/hosts/homelab
+
+            inputs.home-manager.nixosModules.home-manager
+          ];
+        };
+      }
+      // nixpkgs.lib.optionalAttrs (builtins.pathExists ./modules/hosts/proxy/hardware.nix) {
+        proxy-jia-opena0 = nixpkgs.lib.nixosSystem {
+          specialArgs = specialArgs;
+
+          # nix-style: ignore-order
+          modules = [
+            ./modules/hosts/proxy
+
+            inputs.home-manager.nixosModules.home-manager
+          ];
+        };
       };
 
     darwinConfigurations.MBP-DYLAN = inputs.nix-darwin.lib.darwinSystem {
