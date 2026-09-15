@@ -28,7 +28,8 @@ host in `flake.nix`.
 - `modules/hardware/` — `gpu/`, `peripherals/`, `power/`, `firmware/`, one
   concern per file, imported per host.
 - `modules/devices/` — one file per physical device (e.g. WirePlumber rules).
-- `modules/programs/{apps,desktop,development,games,macos,services,tools}/`.
+- `modules/programs/{apps,desktop,development,games,macos,server,services,tools}/`.
+  `server/` is the homelab's containers, one module per service.
 - `modules/users/djpro/` — `default.nix` (NixOS), `darwin.nix`, and `home.nix`
   (shared git identity).
 - `modules/home-manager/` — home-manager wiring (`default.nix`) and base config
@@ -109,3 +110,6 @@ Exceptions, read with `builtins.readFile` and so needing a rebuild:
 - Secrets are sops-nix, one `modules/hosts/<host>/secrets.yaml` per server.
   Editing needs a YubiKey touch, so leave `sops` itself to the user. Services
   get `config.sops.secrets.<name>.path`, never the value in a Nix string.
+- Homelab services are `virtualisation.oci-containers` units: stop and restart
+  them with `systemctl … docker-<name>`, never `docker stop`. None start until
+  `/var/lib/homelab/.restored` exists.

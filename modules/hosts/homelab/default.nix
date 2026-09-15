@@ -6,6 +6,8 @@
   imports = [
     # Hardware
     ./hardware.nix
+    ../../devices/zenbook-ux433fn.nix
+    ../../hardware/power/always-on.nix
 
     # System
     ../../system
@@ -20,6 +22,23 @@
     # Services
     ../../programs/services/sshd.nix
     ../../programs/services/tailscale.nix
+
+    # Server
+    ../../programs/server/backup
+    ../../programs/server/beszel.nix
+    ../../programs/server/bridges
+    ../../programs/server/caddy
+    ../../programs/server/cinny
+    ../../programs/server/diun.nix
+    ../../programs/server/docker.nix
+    ../../programs/server/forgejo-runner.nix
+    ../../programs/server/forgejo.nix
+    ../../programs/server/kanidm.nix
+    ../../programs/server/liveness.nix
+    ../../programs/server/terraria.nix
+    ../../programs/server/tuwunel
+    ../../programs/server/uptime-kuma
+    ../../programs/server/whoami.nix
 
     # Shell and development
     ../../programs/development/neovim
@@ -38,6 +57,17 @@
   services.openssh.ports = [7456];
 
   sops.defaultSopsFile = ./secrets.yaml;
+
+  # The router forwards 80, 443, 2222 and 7777 here. Overrides network-server.nix's DHCP.
+  systemd.network.networks."30-lan" = {
+    matchConfig.Type = "ether";
+    address = ["192.168.1.247/24"];
+    dns = ["192.168.1.1"];
+    gateway = ["192.168.1.1"];
+    linkConfig.RequiredForOnline = "routable";
+  };
+
+  users.users.opena0.extraGroups = ["docker"];
 
   homeManagerModules = [
     {home.stateVersion = "26.11";}

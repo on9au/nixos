@@ -1,0 +1,37 @@
+# Only the settings that differ from tuwunel's defaults. The @PLACEHOLDERS@ are
+# filled from sops at activation (default.nix); the full, commented reference is
+# https://tuwunel.chat/configuration.html.
+
+[global]
+server_name = "opena0.net"
+database_path = "/var/lib/tuwunel"
+address = ["0.0.0.0", "::"]
+port = 6167
+max_request_size = 25165824 # 24 MiB
+
+allow_registration = true
+registration_token = "@REGISTRATION_TOKEN@"
+allow_federation = true
+trusted_servers = ["matrix.org"]
+single_sso = true
+
+appservice_dir = "/appservices"
+# Recreating a bridge container gives it a new IP, which tuwunel's own DNS
+# cache (dns_min_ttl, 3 hours) would keep posting transactions to.
+dns_passthru_appservices = true
+
+[global.well_known]
+client = "https://matrix.opena0.net"
+server = "matrix.opena0.net:443"
+
+[[global.identity_provider]]
+brand = "kanidm"
+client_id = "tuwunel"
+client_secret = "@OIDC_CLIENT_SECRET@"
+issuer_url = "https://idm.opena0.net/oauth2/openid/tuwunel/"
+callback_url = "https://matrix.opena0.net/_matrix/client/unstable/login/sso/callback/tuwunel"
+default = true
+userid_claims = ["preferred_username", "email"]
+trusted = true
+unique_id_fallbacks = false
+discovery = true

@@ -24,7 +24,7 @@ modules/
   system/       base NixOS settings (boot, filesystems, network, nix); darwin/ for the Mac
   hardware/     gpu, peripherals, power, firmware
   devices/      per-device quirks, e.g. the Apple USB-C dongle's audio rules
-  programs/     apps, desktop, development, games, macos, services, tools
+  programs/     apps, desktop, development, games, macos, server, services, tools
   users/        the djpro and opena0 accounts
   home-manager/ home-manager wiring
 ```
@@ -81,5 +81,5 @@ home-manager wants links and moves each aside as `<name>.chezmoi-bak`. Then:
 | Laptop: whole-machine NVMe freezes | [`hosts/laptop/nvme-vmd-stalls.md`](modules/hosts/laptop/nvme-vmd-stalls.md) |
 | MacBook: bring-up, keyboard, bar, defaults | [`hosts/macbook`](modules/hosts/macbook/README.md) |
 | WSL | [`hosts/wsl`](modules/hosts/wsl/README.md) |
-| Homelab: install, SSH lockout guard, secrets | [`hosts/homelab`](modules/hosts/homelab/README.md) |
+| Homelab: services, install and restore, bridges, backups, secrets | [`hosts/homelab`](modules/hosts/homelab/README.md) |
 | Proxy VPS: boot loader, what is still missing | [`hosts/proxy`](modules/hosts/proxy/README.md) |
