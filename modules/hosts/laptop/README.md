@@ -1,5 +1,11 @@
 # LAPTOP-ON9AU
 
+- `Model`: Dell MA16250
+- `CPU`: Intel Ultra Core 9 285H (vPRO Enterprise)
+- `RAM`: 64 GB
+- `SSD`: 2 TB
+- `GPU`: See below
+
 ## Hybrid graphics (laptop)
 
 The laptop has an Intel Arc 140T iGPU and an NVIDIA RTX PRO 2000. **Every
@@ -59,6 +65,5 @@ Under KDE this reads `active` regardless, because KWin opens both cards. Use
 **Do not** add `GBM_BACKEND` or `__GLX_VENDOR_LIBRARY_NAME`. Those configure
 the opposite arrangement — NVIDIA driving the display — and would break this
 one.
-
 
 The whole-machine freezes are a separate write-up: [nvme-vmd-stalls.md](nvme-vmd-stalls.md).
