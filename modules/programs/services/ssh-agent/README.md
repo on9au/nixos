@@ -172,7 +172,43 @@ be on GitHub and in every `authorized_keys`.
 The file itself is not in this repo (it names hosts that need not be public,
 and lives next to private keys).
 
-`pcscd` is on, but only for Yubico Authenticator's OATH codes — FIDO2 goes over
-hidraw and does not need it. Commit signing is still
+`pcscd` is on for Yubico Authenticator's OATH codes and the sops identities
+below — FIDO2 goes over hidraw and does not need it. Commit signing is still
 GPG key `3FCF1E93FFC208B5` rather than the YubiKey.
+
+## age identities for sops
+
+The same two YubiKeys edit this repo's secrets, through their PIV applet —
+separate from FIDO2, so neither disturbs the other's credentials. Each holds an
+`age-plugin-yubikey` identity in PIV slot 1, PIN once per session and a touch
+for every decrypt:
+
+| Name | Recipient | Device |
+| --- | --- | --- |
+| `sops-primary` | `age1yubikey1qdre4pf0uxer9vrxqpscx3jdthuwyd20tp8rqqv5lkvgvmuwmqs52kak3eu` | serial 38362833 |
+| `sops-backup` | `age1yubikey1qwwajvh5ll93ns26nv59ug90qhq4fsf5zykzuwgwxt845ttng8745n0jtpv` | serial 38362959 |
+
+Both are recipients of every rule in [`.sops.yaml`](../../../../.sops.yaml), so
+either key alone opens any file. They are only for editing: a host decrypts its
+own file at activation with its SSH host key, and never sees a YubiKey.
+
+`~/.config/sops/age/keys.txt` holds what `age-plugin-yubikey --identity`
+prints. Those lines name a serial and a slot rather than holding key material,
+so the file copies to any machine as it is. `SOPS_AGE_KEY_FILE` points at that
+path on the Mac as well (`hardware/peripherals/yubikey/home.nix`), where sops
+would otherwise look under `~/Library/Application Support`.
+
+**The management key has to be TDES while generating.** Firmware 5.7 made
+AES192 the PIV management key default, and age-plugin-yubikey 0.5.1 only speaks
+TDES, so `--generate` fails with *"Failed to authenticate with the
+PIN-protected management key"*
+([str4d/age-plugin-yubikey#92](https://github.com/str4d/age-plugin-yubikey/issues/92)).
+The management key only authorises writing a slot — decrypting never uses it —
+and `--protect` keeps it on the device behind the PIN:
+
+```bash
+ykman --device <serial> piv access change-management-key -a TDES --generate --protect
+```
+
+It can go back to `-a AES192` afterwards; only another `--generate` needs TDES.
 

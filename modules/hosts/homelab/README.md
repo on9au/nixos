@@ -49,9 +49,38 @@ filesystem, so add it only if the install is btrfs.
 [`network-server.nix`](../../system/network-server.nix) — systemd-networkd
 plus resolved, since there is no user session to hand link management to.
 
-## Still missing: secrets
+## Secrets
 
-Nothing in this repo manages secrets. The store is world-readable and the
-repo is public, so anything with a password, token or ACME credential needs
-`sops-nix` or `agenix` added as a flake input first. Decide that before
-writing the first service module in `programs/server/`.
+sops-nix. This host's file is [`secrets.yaml`](secrets.yaml), set as
+`sops.defaultSopsFile`; edit it from the repo root with either YubiKey plugged
+in ([which ones](../../programs/services/ssh-agent/README.md#age-identities-for-sops)):
+
+```
+sops modules/hosts/homelab/secrets.yaml
+```
+
+Declare a secret next to the service that uses it, and hand the service
+`config.sops.secrets.<name>.path` — through a `*File` option, `EnvironmentFile=`
+or `LoadCredential=`. Never the value as a Nix string: the store is
+world-readable and the repo is public. For a service with no file option,
+`sops.templates` renders its whole config with the secrets substituted.
+
+**The host can't decrypt anything until its key is in `.sops.yaml`.** sops-nix
+uses `/etc/ssh/ssh_host_ed25519_key`, which doesn't exist until the machine has
+booted once, so the first switch goes out with no secrets declared. Then get the
+host's age recipient, on the box or from anywhere on the tailnet:
+
+```
+ssh-to-age < /etc/ssh/ssh_host_ed25519_key.pub
+ssh-keyscan -p 7456 -t ed25519 jia-opena0 | ssh-to-age
+```
+
+Add it under `keys:` in [`.sops.yaml`](../../../.sops.yaml) and to the homelab
+rule's `age:` list, re-encrypt, and commit:
+
+```
+sops updatekeys modules/hosts/homelab/secrets.yaml
+```
+
+A reinstall that doesn't carry `/etc/ssh` over makes a new host key and needs
+the same again. Until then, a declared secret fails at activation.

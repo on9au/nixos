@@ -39,6 +39,8 @@
   users.users.opena0.openssh.authorizedKeys.keys = [
   ];
 
+  sops.defaultSopsFile = ./secrets.yaml;
+
   homeManagerModules = [
     {home.stateVersion = "26.11";}
   ];

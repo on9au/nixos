@@ -24,6 +24,11 @@
 
     nix-flatpak.url = "github:gmodena/nix-flatpak/?ref=latest";
 
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # Source only, built with nixpkgs' recipe in modules/programs/desktop/waybar/home.nix.
     waybar = {
       url = "github:Alexays/Waybar";
@@ -89,6 +94,7 @@
             ./modules/hosts/homelab
 
             inputs.home-manager.nixosModules.home-manager
+            inputs.sops-nix.nixosModules.sops
           ];
         };
       }
@@ -101,6 +107,7 @@
             ./modules/hosts/proxy
 
             inputs.home-manager.nixosModules.home-manager
+            inputs.sops-nix.nixosModules.sops
           ];
         };
       };

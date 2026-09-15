@@ -29,9 +29,14 @@ there is no client config to match. Add a `proxy` block to
 
 The same non-empty `authorizedKeys` assertion applies; see the homelab README.
 
+## Secrets
+
+sops-nix, with its own [`secrets.yaml`](secrets.yaml) and the same workflow as
+the [homelab](../homelab/README.md#secrets) — including adding this host's key
+to `.sops.yaml` after its first boot. The `ssh-keyscan` there takes port 22 here.
+
 ## The proxy itself
 
 No reverse proxy is configured. It belongs in a new `modules/programs/server/`
-tree — flat `.nix` per service, since these have no home-manager half — and
-needs secret management (`sops-nix` or `agenix`) in place first for TLS and any
-upstream credentials.
+tree — flat `.nix` per service, since these have no home-manager half — with
+the TLS and upstream credentials in `secrets.yaml`.
