@@ -1,5 +1,9 @@
 # MBP-DYLAN (macOS)
 
+- `SOC:` Apple M5
+- `RAM`: 16GB
+- `SSD`: 1TB
+
 This also runs on a 14" MacBook Pro (M5, macOS 26). There is no
 Wayland here, so none of it is a literal port — it is the closest analog stack
 macOS has, config for config:
@@ -198,8 +202,8 @@ token at all.** It advertises the key types, which makes the failure
 confusing:
 
 ```
-$ ssh -Q key | grep sk        → sk-ssh-ed25519@openssh.com   (looks fine)
-$ ssh-keygen -K               → Cannot download keys without provider
+ssh -Q key | grep sk        → sk-ssh-ed25519@openssh.com   (looks fine)
+ssh-keygen -K               → Cannot download keys without provider
 ```
 
 There is no built-in provider and no middleware to point `SecurityKeyProvider`
@@ -211,8 +215,8 @@ nixpkgs' `openssh` (`hardware/peripherals/yubikey/home.nix`) is the fix. It is b
 Linux via `ssh-sk-helper`. The difference is visible immediately:
 
 ```
-$ /usr/bin/ssh-keygen -K                         Cannot download keys without provider
-$ /etc/profiles/per-user/djpro/bin/ssh-keygen -K Enter PIN for authenticator: …
+/usr/bin/ssh-keygen -K                         Cannot download keys without provider
+/etc/profiles/per-user/djpro/bin/ssh-keygen -K Enter PIN for authenticator: …
 ```
 
 The home-manager profile is ahead of `/usr/bin` on PATH, so shells get the
@@ -279,4 +283,3 @@ AeroSpace resizes by dimension, not by direction.
 `norg` is a permanent `:checkhealth` warning, not a local misconfiguration:
 nvim-treesitter has no parser registered under that name, so Snacks' hardcoded
 check list can only ever warn.
-

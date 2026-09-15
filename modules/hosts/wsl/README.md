@@ -1,5 +1,9 @@
 # G3JC7G4 (WSL)
 
+Work laptop via WSL
+
+Specs [in the laptop README](../laptop/README.md)
+
 NixOS-WSL on a Windows work laptop (`G3JC7G4`). Only the shell half lands:
 zsh, tmux, nvim, and the tools they shell out to — `default.nix` imports
 only the shell and development modules. No compositor, because the desktop over
