@@ -37,8 +37,9 @@ Failed assertions:
   is disabled -- this switch would lock you out.
 ```
 
-Fill in the YubiKey resident key's public half. `ssh-keygen -K` re-emits it on
-any machine holding the token, so it never needs copying between hosts.
+Both YubiKeys' resident keys are in [`users/opena0`](../../users/opena0/default.nix),
+shared with the proxy, so the assertion passes; it stays to catch the list being
+emptied by mistake.
 
 ## Not imported, deliberately
 

@@ -169,8 +169,9 @@ longer offered to anything — GitHub included, which fails silently here becaus
 this repo's remote is HTTPS through the gh credential helper. Both sk keys need to
 be on GitHub and in every `authorized_keys`.
 
-The file itself is not in this repo (it names hosts that need not be public,
-and lives next to private keys).
+The client config is [`programs/tools/ssh`](../../tools/ssh/home.nix), public
+along with the rest of the repo. The tailnet host name in it only resolves
+inside the tailnet, and the handle it names is useless without the YubiKey.
 
 `pcscd` is on for Yubico Authenticator's OATH codes and the sops identities
 below — FIDO2 goes over hidraw and does not need it. Commit signing is still
