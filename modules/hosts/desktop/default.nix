@@ -67,9 +67,6 @@
   networking.hostName = "DESKTOP-DYLAN";
   system.stateVersion = "26.05";
 
-  # ESP is shared with EndeavourOS
-  boot.loader.timeout = 10;
-
   # systemd in initrd - required for FIDO2 LUKS unlock later
   boot.initrd.systemd.enable = true;
   boot.initrd.luks.devices."cryptroot".crypttabExtraOpts = ["fido2-device=auto"];
