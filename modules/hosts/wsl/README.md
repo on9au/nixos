@@ -20,8 +20,15 @@ which is Windows node running under a Linux shell. It cannot build native
 modules for this filesystem, and it is what Mason would have used to install
 nvim's LSP servers.
 
-The fix is just to have a Linux node: `nodejs` is in `programs/development/toolchain`, so
+The fix is to have a Linux node: `nodejs` is in `programs/development/toolchain`, so
 there always is one, with fnm on top for per-project versions.
+
+That covers `node`, `npm`, `npx` and `corepack`, which all ship inside `nodejs`
+— but not `pnpm`, which does not, and so went on resolving to the Windows
+`pnpm.exe` long after node was installed here. It is listed as its own package
+in the same module. Corepack is no way out of this: `corepack enable` writes
+its shims next to the `node` binary, which is a store path, so it fails with
+`EROFS: read-only file system`.
 
 ## Skipped on purpose
 

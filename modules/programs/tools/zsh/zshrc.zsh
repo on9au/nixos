@@ -107,11 +107,18 @@ unset -f _path_append
 export PATH
 
 # pnpm
+# PNPM_HOME is set unconditionally -- `pnpm add -g` reads it to decide where to
+# install, and creates the directory itself. The PATH entry is guarded on that
+# directory existing, like every other addition above: nothing is installed
+# globally on most of these machines, and an entry pointing at a directory that
+# is not there is just noise in PATH.
 export PNPM_HOME="$HOME/.local/share/pnpm"
-case ":$PATH:" in
-  *":$PNPM_HOME/bin:"*) ;;
-  *) export PATH="$PNPM_HOME/bin:$PATH" ;;
-esac
+if [ -d "$PNPM_HOME/bin" ]; then
+  case ":$PATH:" in
+    *":$PNPM_HOME/bin:"*) ;;
+    *) export PATH="$PNPM_HOME/bin:$PATH" ;;
+  esac
+fi
 # pnpm end
 
 # flatpak
