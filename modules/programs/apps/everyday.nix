@@ -3,7 +3,7 @@
     bitwarden-desktop # password manager; handles bitwarden:// links (mimeapps.list)
     brave # Chromium browser, for sites that only work properly in Chrome
     cinny-desktop # Matrix chat
-    libreoffice-fresh # opening and editing Office documents
+    libreoffice-stable # opening and editing Office documents
     meld # side-by-side diffs and merge conflicts
     mpv # default video player (mimeapps.list)
     obsidian # Markdown notes
