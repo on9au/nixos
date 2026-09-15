@@ -4,6 +4,8 @@
 keys:
   - &yubikey-primary age1yubikey1qdre4pf0uxer9vrxqpscx3jdthuwyd20tp8rqqv5lkvgvmuwmqs52kak3eu
   - &yubikey-backup age1yubikey1qwwajvh5ll93ns26nv59ug90qhq4fsf5zykzuwgwxt845ttng8745n0jtpv
+  # Debian's host key, carried over by the NixOS reinstall.
+  - &jia-opena0 age1nfp89s4mgx3m65f686au49rp27ycawzjwrxxp79j4ny9rzwnudfsmlu695
 
 creation_rules:
   - path_regex: modules/hosts/homelab/secrets\.yaml$
@@ -11,6 +13,7 @@ creation_rules:
       - age:
           - *yubikey-primary
           - *yubikey-backup
+          - *jia-opena0
 
   - path_regex: modules/hosts/proxy/secrets\.yaml$
     key_groups:

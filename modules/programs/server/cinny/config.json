@@ -1,0 +1,17 @@
+{
+  "defaultHomeserver": 0,
+  "homeserverList": ["opena0.net"],
+  "allowCustomHomeservers": true,
+
+  "featuredCommunities": {
+    "openAsDefault": false,
+    "spaces": [],
+    "rooms": [],
+    "servers": ["opena0.net"]
+  },
+
+  "hashRouter": {
+    "enabled": false,
+    "basename": "/"
+  }
+}
