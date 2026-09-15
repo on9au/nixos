@@ -19,7 +19,6 @@
     mangohud # FPS/frametime overlay
     osu-lazer-bin
     prismlauncher # Minecraft instances and modpacks
-    wineWowPackages.stable # Windows-only games and tools
     winetricks
   ];
 }
