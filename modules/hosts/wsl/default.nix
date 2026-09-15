@@ -16,6 +16,7 @@
     ../../programs/tools
     ../../programs/tools/git
     ../../programs/tools/nh
+    ../../programs/tools/ssh
     ../../programs/tools/tmux
     ../../programs/tools/zsh
   ];

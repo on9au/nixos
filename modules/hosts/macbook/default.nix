@@ -23,6 +23,7 @@
     ../../programs/development/neovim
     ../../programs/development/neovim/images
     ../../programs/tools/git
+    ../../programs/tools/ssh
     ../../programs/tools/tmux
   ];
 
