@@ -12,6 +12,8 @@ that history — including the old GlazeWM config, `git log -- dot_glzr`).
 | `LAPTOP-ON9AU` | NixOS (Arch until reinstalled) | [`modules/hosts/laptop`](modules/hosts/laptop) | Hyprland |
 | `MBP-DYLAN` | macOS + nix-darwin | [`modules/hosts/macbook`](modules/hosts/macbook) | AeroSpace |
 | `G3JC7G4` | NixOS-WSL | [`modules/hosts/wsl`](modules/hosts/wsl) | none — shell only |
+| `jia-opena0` | NixOS (Debian until migrated) | [`modules/hosts/homelab`](modules/hosts/homelab) | none — headless |
+| `proxy-jia-opena0` | NixOS (not built yet) | [`modules/hosts/proxy`](modules/hosts/proxy) | none — headless |
 
 ## Layout
 
@@ -23,7 +25,7 @@ modules/
   hardware/     gpu, peripherals, power, firmware
   devices/      per-device quirks, e.g. the Apple USB-C dongle's audio rules
   programs/     apps, desktop, development, games, macos, services, tools
-  users/        the djpro account
+  users/        the djpro and opena0 accounts
   home-manager/ home-manager wiring
 ```
 
@@ -43,6 +45,7 @@ Clone to `~/nixos` first — the config links point there.
 | Mac | install Nix and Homebrew, then `sudo nix run nix-darwin -- switch --flake ~/nixos#MBP-DYLAN`; afterwards `sudo darwin-rebuild switch --flake ~/nixos` |
 | WSL | import the NixOS-WSL tarball, then the NixOS command with `#G3JC7G4` |
 | laptop | during the install, write `modules/hosts/laptop/hardware.nix` and `git add` it — the output does not exist until then |
+| servers | same as the laptop: write `modules/hosts/{homelab,proxy}/hardware.nix` during the install and `git add` it. Both boxes need the repo cloned to `/home/opena0/nixos`, and a key in `authorizedKeys` — password auth is off and the build asserts the list is non-empty |
 
 After the first switch, rebuild with `nh os switch` (NixOS) or `nh darwin switch`
 (Mac). nh already knows the flake is at `~/nixos`, and `nh clean` runs weekly,
@@ -78,3 +81,5 @@ home-manager wants links and moves each aside as `<name>.chezmoi-bak`. Then:
 | Laptop: whole-machine NVMe freezes | [`hosts/laptop/nvme-vmd-stalls.md`](modules/hosts/laptop/nvme-vmd-stalls.md) |
 | MacBook: bring-up, keyboard, bar, defaults | [`hosts/macbook`](modules/hosts/macbook/README.md) |
 | WSL | [`hosts/wsl`](modules/hosts/wsl/README.md) |
+| Homelab: install, SSH lockout guard, secrets | [`hosts/homelab`](modules/hosts/homelab/README.md) |
+| Proxy VPS: boot loader, what is still missing | [`hosts/proxy`](modules/hosts/proxy/README.md) |

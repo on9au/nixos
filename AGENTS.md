@@ -12,6 +12,8 @@ in a `README.md` next to the module they describe.
 | `LAPTOP-ON9AU` | `modules/hosts/laptop` | NixOS laptop — only an output once `hardware.nix` exists |
 | `G3JC7G4` | `modules/hosts/wsl` | NixOS-WSL, shell half only |
 | `MBP-DYLAN` | `modules/hosts/macbook` | nix-darwin |
+| `jia-opena0` | `modules/hosts/homelab` | headless server — only an output once `hardware.nix` exists |
+| `proxy-jia-opena0` | `modules/hosts/proxy` | headless proxy VPS — same, and not built yet |
 
 Input modules (home-manager, lanzaboote, nix-flatpak, nixos-wsl) are added per
 host in `flake.nix`.
