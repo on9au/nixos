@@ -56,6 +56,7 @@
     ../../programs/development/claude-code
     ../../programs/development/neovim
     ../../programs/development/neovim/images
+    ../../programs/development/neovim/lsp
     ../../programs/development/toolchain
     ../../programs/tools
     ../../programs/tools/git

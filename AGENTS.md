@@ -103,6 +103,8 @@ Exceptions, read with `builtins.readFile` and so needing a rebuild:
 - The Hyprland config is Lua, so `hyprctl dispatch` takes `hl.dsp.*`.
 - waybar tracks git HEAD (`waybar` flake input); `nix flake update waybar` can
   break its build when upstream adds a dependency.
+- Mason is disabled in nvim. A new LazyVim extra's LSPs, formatters and linters
+  go in `programs/development/neovim/lsp/home.nix`.
 - Run `nix flake lock`/`update` as the user; a `sudo` run leaves `flake.lock`
   root-owned.
 - The GTK/KDE preference: GTK apps, portal and theme; KDE Connect is the one
