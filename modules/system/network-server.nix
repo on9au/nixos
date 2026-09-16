@@ -5,8 +5,10 @@
   networking.useDHCP = false;
 
   # Any wired link takes a lease. A host needing a static address defines its
-  # own lower-numbered systemd.network.networks entry.
+  # own lower-numbered systemd.network.networks entry. Docker's veths are ether
+  # links too; matched, each gets the host's address and a default route.
   systemd.network.networks."40-wired" = {
+    matchConfig.Name = "!veth*";
     matchConfig.Type = "ether";
     networkConfig.DHCP = "yes";
     linkConfig.RequiredForOnline = "routable";
