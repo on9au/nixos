@@ -40,6 +40,7 @@
     ../../programs/services/kdeconnect.nix
     ../../programs/services/keyring.nix
     ../../programs/services/mullvad.nix
+    ../../programs/services/piper-tts.nix
     ../../programs/services/power-profiles-daemon.nix
     ../../programs/services/ssh-agent
     ../../programs/services/tailscale.nix
