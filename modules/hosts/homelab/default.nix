@@ -60,6 +60,7 @@
 
   # The router forwards 80, 443, 2222 and 7777 here. Overrides network-server.nix's DHCP.
   systemd.network.networks."30-lan" = {
+    matchConfig.Name = "!veth*";
     matchConfig.Type = "ether";
     address = ["192.168.1.247/24"];
     dns = ["192.168.1.1"];
