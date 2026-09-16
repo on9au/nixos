@@ -16,6 +16,7 @@
       iperf3
       jq
       less
+      pandoc
       sl
       smartmontools
       tldr
@@ -31,6 +32,7 @@
       hwinfo
       inxi
       whois
+      wkhtmltopdf
       wl-clipboard
     ];
 }
