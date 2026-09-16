@@ -83,25 +83,24 @@ local function read_only_filter()
   }
 end
 
--- The unit pins Java 17 Corretto in .sdkmanrc. sdkman's auto-env only fires in an
--- interactive shell that cd'd into the project, so if nvim was launched from
--- anywhere else `javac` would silently be whatever `current` points at (25.0.3).
--- Resolve the JDK from .sdkmanrc instead, so a build always uses the unit's
--- version regardless of how nvim was started.
+-- The unit pins Java 17 in .sdkmanrc, a file the repo ships and we don't own.
+-- Without it `javac` is the default JDK on PATH (25). JDKs come from Nix and are
+-- linked by major version under ~/.jdks (programs/development/toolchain), so
+-- resolve the one .sdkmanrc asks for regardless of how nvim was started.
 local function project_jdk(root)
   local rc = vim.fs.joinpath(root, ".sdkmanrc")
   if not vim.uv.fs_stat(rc) then
     return nil
   end
   for _, line in ipairs(vim.fn.readfile(rc)) do
-    local version = line:match("^%s*java%s*=%s*(%S+)")
-    if version then
-      local dir = vim.fs.joinpath(home, ".sdkman/candidates/java", version)
+    local major = line:match("^%s*java%s*=%s*(%d+)")
+    if major then
+      local dir = vim.fs.joinpath(home, ".jdks", major)
       if vim.uv.fs_stat(dir) then
         return dir
       end
       vim.notify(
-        (".sdkmanrc requests java %s but it is not installed (sdk install java %s)"):format(version, version),
+        (".sdkmanrc requests java %s but ~/.jdks/%s does not exist"):format(major, major),
         vim.log.levels.WARN
       )
       return nil
@@ -304,14 +303,6 @@ return {
   {
     "mfussenegger/nvim-jdtls",
     opts = function(_, opts)
-      -- jdtls itself must run on Java 21+, which is independent of the Java the
-      -- *project* targets. The `jdtls` binary is a Python launcher, so pass
-      -- the JVM via its --java-executable flag; prepending `java` to cmd makes it
-      -- try to load the launcher script as a main class.
-      if opts.cmd then
-        table.insert(opts.cmd, "--java-executable=" .. home .. "/.sdkman/candidates/java/25.0.3-tem/bin/java")
-      end
-
       -- LazyVim passes opts.jdtls the config it is about to hand to
       -- start_or_attach, which is the one place a handler can be installed on the
       -- jdtls client alone rather than on every server. nvim-jdtls only fills in
@@ -326,12 +317,12 @@ return {
             runtimes = {
               {
                 name = "JavaSE-17",
-                path = home .. "/.sdkman/candidates/java/17.0.20-amzn",
+                path = home .. "/.jdks/17",
                 default = true,
               },
               {
                 name = "JavaSE-25",
-                path = home .. "/.sdkman/candidates/java/25.0.3-tem",
+                path = home .. "/.jdks/25",
               },
             },
           },

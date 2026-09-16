@@ -22,7 +22,6 @@
 
     initContent = lib.mkMerge [
       (lib.mkOrder 550 "fpath=(~/.zsh/completion $fpath)")
-      # After every plugin, so SDKMAN's init stays last.
       (lib.mkOrder 1300 (builtins.readFile ./zshrc.zsh))
     ];
 
