@@ -4,6 +4,7 @@
     # Hardware
     ./hardware.nix
     ../../devices/apple-usb-c-dongle.nix
+    ../../hardware/drives/smart.nix
     ../../hardware/gpu/graphics.nix
     ../../hardware/peripherals/bluetooth.nix
     ../../hardware/peripherals/keyd.nix
@@ -15,6 +16,7 @@
     ../../system
     ../../system/boot/lanzaboote.nix
     ../../system/filesystems/btrfs.nix
+    ../../system/filesystems/btrfs-snapshots.nix
     ../../system/network.nix
     ../../system/zram.nix
 
@@ -72,6 +74,18 @@
   boot.initrd.luks.devices."cryptroot".crypttabExtraOpts = ["fido2-device=auto"];
 
   swapDevices = [{device = "/swap/swapfile";}];
+
+  # Nested subvolumes (/nix, /home, /swap) are not captured by a snapshot of
+  # /, so /home is taken separately. btrbk won't create the target dirs.
+  services.btrbk.instances.default.settings.subvolume = {
+    "/".snapshot_dir = "/.snapshots/root";
+    "/home".snapshot_dir = "/.snapshots/home";
+  };
+
+  systemd.tmpfiles.settings."btrbk-snapshot-dirs" = {
+    "/.snapshots/root".d = {};
+    "/.snapshots/home".d = {};
+  };
 
   greeterWallpaper = ./regreet-wallpaper.jpg;
 
