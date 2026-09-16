@@ -305,7 +305,7 @@ return {
     "mfussenegger/nvim-jdtls",
     opts = function(_, opts)
       -- jdtls itself must run on Java 21+, which is independent of the Java the
-      -- *project* targets. The mason `jdtls` binary is a Python launcher, so pass
+      -- *project* targets. The `jdtls` binary is a Python launcher, so pass
       -- the JVM via its --java-executable flag; prepending `java` to cmd makes it
       -- try to load the launcher script as a main class.
       if opts.cmd then
@@ -379,12 +379,6 @@ return {
       { "<leader>jr", javac_run(true), desc = "Build & Run main class", ft = "java" },
     },
   },
-
-  -- The formatter is a hard dependency now that jdtls no longer formats: without
-  -- it a java buffer has no working formatter at all, which is the intended
-  -- failure -- a save that visibly does nothing, rather than one that quietly
-  -- writes the wrong style. `:LazyFormatInfo` names the formatter in use.
-  { "mason-org/mason.nvim", opts = { ensure_installed = { "google-java-format" } } },
 
   -- google-java-format in true Google style: 2-space indent, 100 columns,
   -- Google's import order. Formats on save via LazyVim's autoformat.

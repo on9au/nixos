@@ -8,9 +8,6 @@
 -- <leader>cr, and its inlay_hints.enabled hook fires on any server advertising
 -- textDocument/inlayHint -- so all that is left here is the server itself,
 -- declared the way every other server in this config is.
---
--- `marie` is not a name mason-lspconfig knows, so LazyVim falls through to
--- vim.lsp.config + vim.lsp.enable and never tries to install anything.
 
 -- Nothing knows what a .mas file is, so teach it first. This half is worth
 -- doing even where the server is missing -- it is what makes the buffer say
@@ -18,7 +15,7 @@
 vim.filetype.add({ extension = { mas = "marie", mar = "marie" } })
 
 -- `cargo install --path crates/bin/marie-lsp` lands in ~/.cargo/bin, which
--- zshenv puts on PATH. Fall back to a release build inside the checkout,
+-- the toolchain module puts on PATH. Fall back to a release build inside the checkout,
 -- which is the version you want while working on the server itself and not
 -- reinstalling after every change.
 local server = "marie-lsp"
