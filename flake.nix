@@ -22,6 +22,8 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    betterfox-nix.url = "github:HeitorAugustoLN/betterfox-nix";
+
     nix-flatpak.url = "github:gmodena/nix-flatpak/?ref=latest";
 
     sops-nix = {
