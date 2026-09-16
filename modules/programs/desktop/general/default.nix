@@ -1,4 +1,8 @@
-{pkgs, ...}: {
+{
+  inputs,
+  pkgs,
+  ...
+}: {
   programs.dconf.enable = true;
 
   xdg.portal = {
@@ -10,5 +14,6 @@
 
   homeManagerModules = [
     ./home.nix
+    inputs.betterfox-nix.homeModules.betterfox
   ];
 }
