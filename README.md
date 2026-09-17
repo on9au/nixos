@@ -13,7 +13,7 @@ that history — including the old GlazeWM config, `git log -- dot_glzr`).
 | `MBP-DYLAN` | macOS + nix-darwin | [`modules/hosts/macbook`](modules/hosts/macbook) | AeroSpace |
 | `G3JC7G4` | NixOS-WSL | [`modules/hosts/wsl`](modules/hosts/wsl) | none — shell only |
 | `jia-opena0` | NixOS (Debian until migrated) | [`modules/hosts/homelab`](modules/hosts/homelab) | none — headless |
-| `proxy-jia-opena0` | NixOS (not built yet) | [`modules/hosts/proxy`](modules/hosts/proxy) | none — headless |
+| `proxy-jia-opena0` | NixOS (not deployed yet) | [`modules/hosts/proxy`](modules/hosts/proxy) | none — headless |
 
 ## Layout
 
@@ -45,7 +45,7 @@ Clone to `~/nixos` first — the config links point there.
 | Mac | install Nix and Homebrew, then `sudo nix run nix-darwin -- switch --flake ~/nixos#MBP-DYLAN`; afterwards `sudo darwin-rebuild switch --flake ~/nixos` |
 | WSL | import the NixOS-WSL tarball, then the NixOS command with `#G3JC7G4` |
 | laptop | during the install, write `modules/hosts/laptop/hardware.nix` and `git add` it — the output does not exist until then |
-| servers | same as the laptop: write `modules/hosts/{homelab,proxy}/hardware.nix` during the install and `git add` it. Both boxes need the repo cloned to `/home/opena0/nixos`. SSH is YubiKey-only (password auth is off), and after the first boot the host's key goes into `.sops.yaml` — see the homelab README |
+| servers | homelab: same as the laptop, writing `modules/hosts/homelab/hardware.nix` during the install; after the first boot the host's key goes into `.sops.yaml` — see the homelab README. Proxy: deployed with nixos-anywhere and disko, host key made beforehand — see the proxy README. Both boxes need the repo cloned to `/home/opena0/nixos`, and SSH is YubiKey-only (password auth is off) |
 
 After the first switch, rebuild with `nh os switch` (NixOS) or `nh darwin switch`
 (Mac). nh already knows the flake is at `~/nixos`, and `nh clean` runs weekly,
@@ -82,4 +82,4 @@ home-manager wants links and moves each aside as `<name>.chezmoi-bak`. Then:
 | MacBook: bring-up, keyboard, bar, defaults | [`hosts/macbook`](modules/hosts/macbook/README.md) |
 | WSL | [`hosts/wsl`](modules/hosts/wsl/README.md) |
 | Homelab: services, install and restore, bridges, backups, secrets | [`hosts/homelab`](modules/hosts/homelab/README.md) |
-| Proxy VPS: boot loader, what is still missing | [`hosts/proxy`](modules/hosts/proxy/README.md) |
+| Proxy VPS: nixos-anywhere install, boot loader, what is still missing | [`hosts/proxy`](modules/hosts/proxy/README.md) |
