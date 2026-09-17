@@ -1,14 +1,13 @@
 # proxy-jia-opena0: a VPS fronting the homelab over Tailscale. Not built yet.
+# Installed with nixos-anywhere; see README.md.
 {...}: {
   # nix-style: ignore-order
   imports = [
     # Hardware
+    ./disko.nix
     ./hardware.nix
 
     # System
-    # UEFI, which every current VPS provider offers. A BIOS-only image needs
-    # boot.loader.grub.devices instead -- see README.md.
-    ../../system/boot/systemd-boot.nix
     ../../system
     ../../system/network-server.nix
     ../../system/zram.nix
@@ -33,6 +32,14 @@
 
   networking.hostName = "proxy-jia-opena0";
   system.stateVersion = "26.11";
+
+  # GRUB rather than systemd-boot, so one image boots on BIOS or UEFI. Installed
+  # to the removable path, which needs no NVRAM entry and so conflicts with
+  # efi.canTouchEfiVariables (set by system/boot/systemd-boot.nix).
+  boot.loader.grub = {
+    efiInstallAsRemovable = true;
+    efiSupport = true;
+  };
 
   # The reverse proxy itself goes in programs/server/ once the box exists.
 

@@ -13,9 +13,9 @@ in a `README.md` next to the module they describe.
 | `G3JC7G4` | `modules/hosts/wsl` | NixOS-WSL, shell half only |
 | `MBP-DYLAN` | `modules/hosts/macbook` | nix-darwin |
 | `jia-opena0` | `modules/hosts/homelab` | headless server — only an output once `hardware.nix` exists |
-| `proxy-jia-opena0` | `modules/hosts/proxy` | headless proxy VPS — same, and not built yet |
+| `proxy-jia-opena0` | `modules/hosts/proxy` | headless proxy VPS — not deployed yet; installed with nixos-anywhere |
 
-Input modules (home-manager, lanzaboote, nix-flatpak, nixos-wsl) are added per
+Input modules (disko, home-manager, lanzaboote, nix-flatpak, nixos-wsl, sops-nix) are added per
 host in `flake.nix`.
 
 ## Layout
