@@ -26,6 +26,11 @@
 
     nix-flatpak.url = "github:gmodena/nix-flatpak/?ref=latest";
 
+    disko = {
+      url = "github:nix-community/disko";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     sops-nix = {
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -84,6 +89,7 @@
             ./modules/hosts/laptop
 
             inputs.home-manager.nixosModules.home-manager
+            inputs.lanzaboote.nixosModules.lanzaboote
           ];
         };
       }
@@ -108,6 +114,7 @@
           modules = [
             ./modules/hosts/proxy
 
+            inputs.disko.nixosModules.disko
             inputs.home-manager.nixosModules.home-manager
             inputs.sops-nix.nixosModules.sops
           ];
