@@ -89,6 +89,7 @@
             ./modules/hosts/laptop
 
             inputs.home-manager.nixosModules.home-manager
+            inputs.lanzaboote.nixosModules.lanzaboote
           ];
         };
       }
