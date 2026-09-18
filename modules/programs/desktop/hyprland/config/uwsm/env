@@ -50,9 +50,13 @@ unset _askpass _askpass_path
 
 # ---- Qt apps (KDE Connect, fcitx5's config tool) ----
 #
-# Follow the GTK theme and use GTK dialogs. Never `kde`: outside Plasma it
-# breaks opening files (empty "Open With" dialog).
-export QT_QPA_PLATFORMTHEME=gtk3
+# QT_QPA_PLATFORMTHEME is deliberately not set here. It used to be `gtk3`, to
+# follow the GTK theme; it is now `qt5ct` (Kvantum, catppuccin), set by
+# programs/desktop/catppuccin via ~/.config/environment.d. Setting it here too
+# would win over that file and silently undo the theme.
+#
+# Whatever it is set to, never `kde`: outside Plasma that breaks opening files
+# (empty "Open With" dialog).
 
 # ---- Input method (fcitx5, with mozc + pinyin) ----
 #
