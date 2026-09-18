@@ -246,8 +246,25 @@ stays off until [step 8](#8-secure-boot) — that ordering is deliberate.
 
 ## 6. Get the flake onto the target
 
+The checkout belongs at `~/nixos` — **not** `/etc/nixos`. Two things depend on
+that exact path: `programs.nh.flake` is `/home/djpro/nixos`
+([`../../programs/tools/nh/default.nix`](../../programs/tools/nh/default.nix)),
+and `dotfiles.root` defaults to `${config.home.homeDirectory}/nixos`, so every
+out-of-store symlink `config.lib.dotfiles.link` produces points into it.
+
+It cannot be cloned there *during* the install, though. NixOS only sets
+ownership on a home directory it creates itself; pre-creating `/mnt/home/djpro`
+as root leaves it root-owned and home-manager activation then fails on first
+boot. `djpro` also has no static uid (`users.users.djpro.uid` is null, so it is
+allocated at activation), so there is no correct number to `chown` to yet.
+
+So build from a throwaway clone in the installer's RAM, and clone to `~/nixos`
+as the user after first boot. That is safe because `dotfiles.link` strips the
+`inputs.self` store prefix and re-anchors on `dotfiles.root` — the link targets
+come out as `/home/djpro/nixos/...` no matter where you build from:
+
 ```bash
-nix-shell -p git --run 'git clone https://github.com/on9au/nixos.git /mnt/etc/nixos'
+nix-shell -p git --run 'git clone https://github.com/on9au/nixos.git /tmp/nixos'
 ```
 
 Cross-check the generated hardware config against the committed one and
@@ -256,13 +273,13 @@ be identical — if they are not, stop and work out why):
 
 ```bash
 nixos-generate-config --root /mnt --show-hardware-config > /tmp/generated.nix
-diff /tmp/generated.nix /mnt/etc/nixos/modules/hosts/laptop/hardware.nix
+diff /tmp/generated.nix /tmp/nixos/modules/hosts/laptop/hardware.nix
 ```
 
 ## 7. Install
 
 ```bash
-nixos-install --flake /mnt/etc/nixos#LAPTOP-ON9AU --no-root-password
+nixos-install --flake /tmp/nixos#LAPTOP-ON9AU --no-root-password
 ```
 
 If lanzaboote errors on signing, fall back to the two-phase path: temporarily
@@ -270,13 +287,25 @@ swap `../../system/boot/lanzaboote.nix` for `../../system/boot/systemd-boot.nix`
 in `default.nix`, install, boot, then swap it back and `nixos-rebuild switch`.
 
 Reboot. **First boot asks for the LUKS passphrase** — the TPM is not enrolled
-yet. Log in and confirm before continuing:
+yet.
+
+Log in as `djpro` and put the checkout where everything expects it. Until this
+exists, the live-linked nvim/tmux/mimeapps symlinks dangle and `nh` has no
+flake to point at:
+
+```bash
+git clone https://github.com/on9au/nixos.git ~/nixos
+```
+
+Then confirm the install before continuing:
 
 ```bash
 bootctl status                  # "Secure Boot: disabled (setup)" is expected here
 findmnt -t btrfs
 swapon --show
 grep reboot-for-bitlocker /boot/loader/loader.conf
+readlink ~/.config/nvim        # must resolve into ~/nixos, not dangle
+nh os info
 ```
 
 Also confirm Windows still boots, from the sd-boot menu, before you change
