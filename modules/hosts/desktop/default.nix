@@ -6,6 +6,7 @@
     ../../devices/apple-usb-c-dongle.nix
     ../../hardware/drives/smart.nix
     ../../hardware/gpu/graphics.nix
+    ../../hardware/gpu/radeon.nix
     ../../hardware/peripherals/bluetooth.nix
     ../../hardware/peripherals/keyd.nix
     ../../hardware/peripherals/printing.nix
