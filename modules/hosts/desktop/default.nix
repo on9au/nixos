@@ -4,6 +4,7 @@
     # Hardware
     ./hardware.nix
     ../../devices/apple-usb-c-dongle.nix
+    ../../devices/aula-f87-pro.nix
     ../../hardware/drives/smart.nix
     ../../hardware/gpu/graphics.nix
     ../../hardware/gpu/radeon.nix
