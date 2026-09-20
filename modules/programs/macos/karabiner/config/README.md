@@ -1,6 +1,6 @@
 # Karabiner-Elements
 
-Six rules, all there to make a Mac keyboard behave like the Linux one this
+Seven rules, all there to make a Mac keyboard behave like the Linux one this
 repo is really built around. `karabiner.json` is JSON and can't hold comments,
 hence this file.
 
@@ -12,6 +12,7 @@ hence this file.
 | **Cmd+Space** | always reaches the launcher, in or out of a terminal -- see below |
 | **Cmd+Tab** | no app switcher; Tab cycles tabs the Linux way |
 | **Arrows** | Ctrl+arrow moves by word; Cmd+arrow keeps the macOS line/doc jumps |
+| **Delete** | Ctrl+Delete deletes by word; Cmd+Delete keeps the macOS delete-to-line-start |
 
 ## Why Left Option is the modifier
 
@@ -209,6 +210,32 @@ which is the intent, Caps being a duplicate of Ctrl rather than its own thing.
 thing it would be on Linux. Rewriting it to `Option+Left` would break that for
 no gain.
 
+## Delete follows the arrows
+
+Same problem as the arrows, same fix. Rule 3 had left the two erase chords on
+keys nobody reaches for:
+
+| pressed | reached the app as | did |
+| --- | --- | --- |
+| `Ctrl+Delete` | `Cmd+Delete` (rule 3) | delete to start of line |
+| `Cmd+Delete` | `Ctrl+Delete` (rule 3) | nothing in most apps |
+| `R-Opt+Delete` | `Option+Delete` | delete a word -- the only one |
+
+So this rule swaps them back, exactly as rule 6 does for the arrows:
+
+    Ctrl+Delete  ->  Option+Delete    delete the previous word   (Linux)
+    Cmd+Delete   ->  Cmd+Delete       delete to start of line    (macOS, restored)
+
+Caps Lock comes along for free for the same reason it does on the arrows:
+outside a terminal it emits `command`, so `Caps+Delete` deletes a word.
+
+Only `delete_or_backspace` is matched. Forward delete (`Fn+Delete`) is left
+alone -- add a `delete_forward` pair here if the forward-word erase is ever
+wanted.
+
+**Terminals are excluded**, like rules 3 and 6: there `Ctrl+Delete` reaches
+the terminal as itself, and zsh and nvim handle the erase.
+
 ## The swap does not disturb the window-manager binds
 
 Two independent reasons, either one sufficient:
@@ -255,6 +282,7 @@ Worth checking once it is running, in this order -- each isolates one rule:
 | `Caps+C` | Orion | copies |
 | `Caps+C` | Ghostty | interrupts |
 | `Caps+Space` | Orion | opens Raycast, **not** Spotlight |
+| `Ctrl+Delete` | Orion, mid-word | deletes the whole word |
 
 **Karabiner-EventViewer** (installed alongside) shows exactly what each press
 resolves to, which is the fastest way to debug a rule that does not fire.

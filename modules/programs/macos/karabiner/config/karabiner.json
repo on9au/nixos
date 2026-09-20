@@ -387,6 +387,63 @@
                 ]
               }
             ]
+          },
+          {
+            "description": "Ctrl+Delete deletes by word; Cmd+Delete keeps the macOS delete-to-line-start",
+            "manipulators": [
+              {
+                "type": "basic",
+                "from": {
+                  "key_code": "delete_or_backspace",
+                  "modifiers": { "mandatory": ["command"] }
+                },
+                "to": [
+                  {
+                    "key_code": "delete_or_backspace",
+                    "modifiers": ["left_option"]
+                  }
+                ],
+                "conditions": [
+                  {
+                    "type": "frontmost_application_unless",
+                    "bundle_identifiers": [
+                      "^com\\.mitchellh\\.ghostty$",
+                      "^com\\.apple\\.Terminal$",
+                      "^com\\.googlecode\\.iterm2$",
+                      "^net\\.kovidgoyal\\.kitty$",
+                      "^com\\.github\\.wez\\.wezterm$",
+                      "^org\\.alacritty$"
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "basic",
+                "from": {
+                  "key_code": "delete_or_backspace",
+                  "modifiers": { "mandatory": ["control"] }
+                },
+                "to": [
+                  {
+                    "key_code": "delete_or_backspace",
+                    "modifiers": ["left_command"]
+                  }
+                ],
+                "conditions": [
+                  {
+                    "type": "frontmost_application_unless",
+                    "bundle_identifiers": [
+                      "^com\\.mitchellh\\.ghostty$",
+                      "^com\\.apple\\.Terminal$",
+                      "^com\\.googlecode\\.iterm2$",
+                      "^net\\.kovidgoyal\\.kitty$",
+                      "^com\\.github\\.wez\\.wezterm$",
+                      "^org\\.alacritty$"
+                    ]
+                  }
+                ]
+              }
+            ]
           }
         ]
       }
