@@ -40,6 +40,7 @@
     ../../programs/desktop/waybar
 
     # Services
+    ../../programs/services/cloudflare-warp.nix
     ../../programs/services/kdeconnect.nix
     ../../programs/services/keyring.nix
     ../../programs/services/mullvad.nix
