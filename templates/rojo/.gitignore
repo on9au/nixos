@@ -1,3 +1,6 @@
+# direnv's cached dev shell.
+/.direnv/
+
 # luau-lsp.nvim regenerates this from the project file on every edit.
 /sourcemap.json
 
