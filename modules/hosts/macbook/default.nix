@@ -23,6 +23,7 @@
     ../../programs/development/neovim
     ../../programs/development/neovim/images
     ../../programs/development/neovim/lsp
+    ../../programs/development/roblox
     ../../programs/tools/git
     ../../programs/tools/ssh
     ../../programs/tools/tmux

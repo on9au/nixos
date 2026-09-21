@@ -61,6 +61,7 @@
     ../../programs/development/neovim
     ../../programs/development/neovim/images
     ../../programs/development/neovim/lsp
+    ../../programs/development/roblox
     ../../programs/development/toolchain
     ../../programs/tools
     ../../programs/tools/git
