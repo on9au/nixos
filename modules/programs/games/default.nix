@@ -1,6 +1,6 @@
 {pkgs, ...}: {
   imports = [
-    ./sober.nix
+    ./roblox.nix
   ];
 
   programs.steam.enable = true;
