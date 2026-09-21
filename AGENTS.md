@@ -34,6 +34,8 @@ host in `flake.nix`.
   (shared git identity).
 - `modules/home-manager/` — home-manager wiring (`default.nix`) and base config
   (`common.nix`, which defines `config.lib.dotfiles.link`).
+- `templates/<name>/` — flake templates for new projects, one folder per
+  template, each an output in `flake.nix` (`nix flake init -t ~/nixos#<name>`).
 
 ## Program modules
 

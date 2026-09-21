@@ -27,6 +27,7 @@ modules/
   programs/     apps, desktop, development, games, macos, server, services, tools
   users/        the djpro and opena0 accounts
   home-manager/ home-manager wiring
+templates/      flake templates for new projects: nix flake init -t ~/nixos#<name>
 ```
 
 A program with home-manager config is a folder: `default.nix` for the system
