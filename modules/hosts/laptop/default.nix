@@ -42,7 +42,7 @@
     # Services
     ../../programs/services/cloudflare-warp.nix
     ../../programs/services/kdeconnect.nix
-    ../../programs/services/keyring.nix
+    ../../programs/services/keyring
     ../../programs/services/mullvad.nix
     ../../programs/services/piper-tts.nix
     ../../programs/services/power-profiles-daemon.nix
