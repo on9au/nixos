@@ -50,7 +50,7 @@ below.
 
 Every *other* host needs a helper named explicitly: `gitCredentialHelper` writes
 github.com and gist.github.com entries only, and nothing sets a global
-`credential.helper`. Monash's `git.infotech.monash.edu.au` filters port 22
+`credential.helper`. Monash's `git.infotech.monash.edu` filters port 22
 outside the campus network, so it is HTTPS with a PAT, and `keyring/home.nix`
 points that one host at `git-credential-libsecret`. The helper ships only in
 `gitFull`; `git.override { withLibsecret = true; }` is a smaller closure but not
