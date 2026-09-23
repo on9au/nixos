@@ -132,7 +132,12 @@
       ];
     };
 
-    # `nix flake init -t ~/nixos#rojo` in a new project.
+    # `nix flake init -t ~/nixos#<name>` in a new project.
+    templates.java = {
+      path = ./templates/java;
+      description = "Java project — a JDK and javac, no build file";
+    };
+
     templates.rojo = {
       path = ./templates/rojo;
       description = "Roblox project — Rojo and the Luau toolchain";
