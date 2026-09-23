@@ -42,12 +42,19 @@ secret-tool lookup test key
 ```
 
 git over HTTPS to GitHub authenticates through `gh`
-(`programs.gh.gitCredentialHelper`), not the keyring. gcr-ssh-agent stays off
+(`programs.gh.gitCredentialHelper`), not the keyring directly — though `gh` does
+keep its own token in the keyring, so `hosts.yml` holds only the account name
+(`gh auth status` prints `(keyring)`). gcr-ssh-agent stays off
 (`services.gnome.gcr-ssh-agent.enable = false`) — see "SSH agent and YubiKeys"
 below.
 
-`gh` itself is not covered by the keyring — it keeps its token in
-`~/.config/gh/hosts.yml` in plaintext and has no libsecret backend.
+Every *other* host needs a helper named explicitly: `gitCredentialHelper` writes
+github.com and gist.github.com entries only, and nothing sets a global
+`credential.helper`. Monash's `git.infotech.monash.edu.au` filters port 22
+outside the campus network, so it is HTTPS with a PAT, and `keyring/home.nix`
+points that one host at `git-credential-libsecret`. The helper ships only in
+`gitFull`; `git.override { withLibsecret = true; }` is a smaller closure but not
+a cached build.
 
 ## SSH agent and YubiKeys
 
