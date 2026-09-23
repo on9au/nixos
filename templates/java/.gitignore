@@ -1,0 +1,12 @@
+# `javac -d bin` output -- what <leader>jb writes.
+/bin/
+
+# IntelliJ project metadata.
+/.idea/
+*.iml
+
+# Eclipse metadata, written by anything other than nvim-jdtls, which keeps its
+# own under ~/.cache/nvim/jdtls instead.
+/.classpath
+/.project
+/.settings/
