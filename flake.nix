@@ -143,6 +143,11 @@
       description = "Roblox project — Rojo and the Luau toolchain";
     };
 
+    templates.rust = {
+      path = ./templates/rust;
+      description = "Rust project — a cargo toolchain and rust-analyzer";
+    };
+
     formatter.aarch64-darwin = nixpkgs.legacyPackages.aarch64-darwin.alejandra;
     formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.alejandra;
   };
