@@ -40,6 +40,7 @@
     ../../programs/desktop/waybar
 
     # Services
+    ../../programs/services/backup.nix
     ../../programs/services/kdeconnect.nix
     ../../programs/services/keyring
     ../../programs/services/mullvad.nix
@@ -92,6 +93,11 @@
     "/.snapshots/root".d = {};
     "/.snapshots/home".d = {};
   };
+
+  sops.defaultSopsFile = ./secrets.yaml;
+  # No sshd here, so sops-nix finds no host key by default; this one is made by
+  # hand (see README.md).
+  sops.age.sshKeyPaths = ["/etc/ssh/ssh_host_ed25519_key"];
 
   greeterWallpaper = ./regreet-wallpaper.jpg;
 

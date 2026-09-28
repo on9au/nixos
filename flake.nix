@@ -64,6 +64,7 @@
             inputs.home-manager.nixosModules.home-manager
             inputs.lanzaboote.nixosModules.lanzaboote
             inputs.nix-flatpak.nixosModules.nix-flatpak
+            inputs.sops-nix.nixosModules.sops
           ];
         };
 
