@@ -42,6 +42,7 @@ restic_run() {
   docker run --rm --env-file "$RESTIC_ENV" \
     $_mounts \
     -v /var/lib/homelab:/data/homelab:ro \
+    -v /var/lib/syncthing:/data/syncthing:ro \
     restic/restic "$@"
 }
 

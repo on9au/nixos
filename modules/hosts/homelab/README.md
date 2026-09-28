@@ -23,6 +23,7 @@ holds the macOS/Colima and Debian eras and their runbooks.
 | diun | none | [`diun.nix`](../../programs/server/diun.nix) | image-update notifications |
 | terraria | port 7777 | [`terraria.nix`](../../programs/server/terraria.nix) | tshock; not behind Caddy |
 | whoami | `whoami.jia.opena0.net` | [`whoami.nix`](../../programs/server/whoami.nix) | reachability canary |
+| syncthing | none | [`syncthing.nix`](../../programs/server/syncthing.nix) | the always-on member of every folder; see [its README](../../programs/services/syncthing/README.md) |
 | backup, liveness | none | [`backup/`](../../programs/server/backup), [`liveness.nix`](../../programs/server/liveness.nix) | systemd timers |
 
 ## How it runs
@@ -79,13 +80,15 @@ beszel, uptime-kuma and cinny do line up, and can go native one at a time.
 | `/var/lib/homelab/tuwunel/appservices` | appservice registrations |
 | `/var/lib/homelab/terraria/{config,worlds}` | tshock config and worlds |
 | `/var/lib/homelab/forgejo-runner/data` | runner registration and `config.yml` |
+| `/var/lib/syncthing` | synced folders, their `.stversions`, and syncthing's identity; a NixOS service, not a container |
 
 The volume names and the `/var/lib/homelab` layout are the old compose
 projects' names and tree, so a restore from the existing restic series lands
 without renaming anything.
 
 **Nothing starts until `/var/lib/homelab/.restored` exists** — every container
-unit and the backup carry `ConditionPathExists` on it (`programs/server/docker.nix`).
+unit, syncthing and the backup carry `ConditionPathExists` on it
+(`programs/server/docker.nix`, `programs/server/syncthing.nix`).
 A tuwunel that boots on an empty volume mints a new federation signing key, and
 a backup of an empty box would snapshot nothing into the series the restore
 needs.
@@ -389,7 +392,8 @@ restic → Cloudflare R2, nightly at 04:00 (`Persistent`, so a run missed while
 the box was down fires on boot), reporting to healthchecks.io. Retention 7
 daily / 4 weekly / 6 monthly.
 
-Backed up: the six stateful volumes and `/var/lib/homelab`. restic runs in a
+Backed up: the six stateful volumes, `/var/lib/homelab` and `/var/lib/syncthing`
+(not stopped: a file mid-sync is caught next night). restic runs in a
 container so the paths inside the repository — `/data/<volume>`,
 `/data/homelab` — are the ones the macOS and Debian hosts wrote, and the series
 and its retention carry straight on. The stateful containers are stopped for

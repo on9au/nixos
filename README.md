@@ -76,6 +76,7 @@ home-manager wants links and moves each aside as `<name>.chezmoi-bak`. Then:
 | GTK apps and theme | [`programs/desktop/general`](modules/programs/desktop/general/README.md) |
 | Input method (fcitx5) | [`programs/desktop/input-method.md`](modules/programs/desktop/input-method.md) |
 | Keyring, SSH agent, YubiKeys, sops identities | [`programs/services/ssh-agent`](modules/programs/services/ssh-agent/README.md) |
+| Syncthing: synced folders, adding a device | [`programs/services/syncthing`](modules/programs/services/syncthing/README.md) |
 | Neovim and marie-lsp | [`programs/development/neovim`](modules/programs/development/neovim/README.md) |
 | Karabiner | [`programs/macos/karabiner`](modules/programs/macos/karabiner/config/README.md) |
 | Laptop: hybrid graphics | [`hosts/laptop`](modules/hosts/laptop/README.md) |
