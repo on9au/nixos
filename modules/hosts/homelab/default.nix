@@ -35,6 +35,7 @@
     ../../programs/server/forgejo.nix
     ../../programs/server/kanidm.nix
     ../../programs/server/liveness.nix
+    ../../programs/server/syncthing.nix
     ../../programs/server/terraria.nix
     ../../programs/server/tuwunel
     ../../programs/server/uptime-kuma
