@@ -6,6 +6,8 @@ keys:
   - &yubikey-backup age1yubikey1qwwajvh5ll93ns26nv59ug90qhq4fsf5zykzuwgwxt845ttng8745n0jtpv
   # Debian's host key, carried over by the NixOS reinstall.
   - &jia-opena0 age1nfp89s4mgx3m65f686au49rp27ycawzjwrxxp79j4ny9rzwnudfsmlu695
+  # Made by hand, the desktop runs no sshd: see hosts/desktop/README.md.
+  - &desktop-dylan age1xm3qp2fkls82wjmtp905htuafnwf0krcknyvfu29y6423v5k3ftssuu6mm
 
 creation_rules:
   - path_regex: modules/hosts/homelab/secrets\.yaml$
@@ -20,3 +22,10 @@ creation_rules:
       - age:
           - *yubikey-primary
           - *yubikey-backup
+
+  - path_regex: modules/hosts/desktop/secrets\.yaml$
+    key_groups:
+      - age:
+          - *yubikey-primary
+          - *yubikey-backup
+          - *desktop-dylan

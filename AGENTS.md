@@ -111,9 +111,10 @@ Exceptions, read with `builtins.readFile` and so needing a rebuild:
   root-owned.
 - The GTK/KDE preference: GTK apps, portal and theme; KDE Connect is the one
   deliberate Qt/KDE exception.
-- Secrets are sops-nix, one `modules/hosts/<host>/secrets.yaml` per server.
-  Editing needs a YubiKey touch, so leave `sops` itself to the user. Services
-  get `config.sops.secrets.<name>.path`, never the value in a Nix string.
+- Secrets are sops-nix, one `modules/hosts/<host>/secrets.yaml` per server and
+  the desktop. Editing needs a YubiKey touch, so leave `sops` itself to the
+  user. Services get `config.sops.secrets.<name>.path`, never the value in a
+  Nix string.
 - Homelab services are `virtualisation.oci-containers` units: stop and restart
   them with `systemctl … docker-<name>`, never `docker stop`. None start until
   `/var/lib/homelab/.restored` exists.
