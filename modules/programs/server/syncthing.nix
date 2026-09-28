@@ -3,7 +3,6 @@
 # the homelab's restic job, mounted as /data/syncthing.
 {lib, ...}: let
   shared = import ../services/syncthing/shared.nix {lib = lib;};
-  peers = shared.peersOf "jia-opena0";
 in {
   services.syncthing = {
     enable = true;
@@ -11,11 +10,17 @@ in {
     openDefaultPorts = true;
     settings = {
       options = shared.options;
-      devices = peers;
+      devices = shared.peersOf "jia-opena0";
       folders =
-        lib.mapAttrs (id: dir: {
+        lib.mapAttrs (id: folder: {
           path = "/var/lib/syncthing/${id}";
-          devices = lib.attrNames peers;
+          devices = folder.peers;
+          ignorePatterns = shared.ignorePatterns;
+          # Only the phone writes its backups; jia never sends changes back.
+          type =
+            if id == "phone-backup"
+            then "receiveonly"
+            else "sendreceive";
           # Sync propagates deletes; this keeps what another device removed or
           # overwrote for 90 days. restic's history covers anything older.
           versioning = {
@@ -23,7 +28,7 @@ in {
             params.maxAge = toString (90 * 24 * 60 * 60);
           };
         })
-        shared.folders;
+        (shared.foldersOf "jia-opena0");
     };
   };
 
