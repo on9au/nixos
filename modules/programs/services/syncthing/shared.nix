@@ -13,7 +13,7 @@
     jia-opena0 = "AHJ7HAM-LHYYFTU-3FVFJEK-7SFRZRR-TS6CQFR-M7FBDBS-LVYBNWD-TXL3JQC";
     LAPTOP-ON9AU = null;
     MBP-DYLAN = "6QM6RNS-VAAUGR7-2RSERXG-DDQGL5A-U25FHT5-YNQ6HA2-3XSEJ77-662OZQU";
-    oneplus-cph2653 = null;
+    oneplus-cph2653 = "GEU4R4Y-XRZXBRG-2UUOJDK-PI7SGBQ-YWM6CVT-3PIMEUU-QECDH7Q-3OQJYQ2";
   };
 
   computers = ["DESKTOP-DYLAN" "jia-opena0" "LAPTOP-ON9AU" "MBP-DYLAN"];
@@ -39,7 +39,20 @@
   };
 
   hasId = name: devices.${name} != null;
+
+  # The folders `self` is in that have a peer with an ID, `peers` naming them.
+  foldersOf = self:
+    lib.filterAttrs (_: folder: folder.peers != []) (
+      lib.mapAttrs (_: folder:
+        folder
+        // {
+          peers = lib.filter (name: name != self && hasId name) folder.devices;
+        })
+      (lib.filterAttrs (_: folder: lib.elem self folder.devices) folders)
+    );
 in {
+  foldersOf = foldersOf;
+
   # On every folder of every device this repo manages.
   ignorePatterns = [
     "(?d).DS_Store"
@@ -54,21 +67,10 @@ in {
     urAccepted = -1;
   };
 
-  # Every other device with an ID, as `settings.devices`.
+  # The devices `self` shares a folder with, as `settings.devices`.
   peersOf = self:
-    lib.mapAttrs (name: id: {
-      id = id;
+    lib.genAttrs (lib.unique (lib.concatMap (folder: folder.peers) (lib.attrValues (foldersOf self)))) (name: {
+      id = devices.${name};
       addresses = ["tcp://${lib.toLower name}.tailc7b8fd.ts.net:22000"];
-    }) (lib.filterAttrs (name: _: name != self && hasId name) devices);
-
-  # The folders `self` is in that have a peer with an ID, `peers` naming them.
-  foldersOf = self:
-    lib.filterAttrs (_: folder: folder.peers != []) (
-      lib.mapAttrs (_: folder:
-        folder
-        // {
-          peers = lib.filter (name: name != self && hasId name) folder.devices;
-        })
-      (lib.filterAttrs (_: folder: lib.elem self folder.devices) folders)
-    );
+    });
 }
