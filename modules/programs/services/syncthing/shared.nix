@@ -9,7 +9,7 @@
   # config until then. `syncthing device-id`, or Actions → Show ID in the GUI.
   devices = {
     DESKTOP-DYLAN = "P6LPAYV-7O3C5G6-GKO2KR3-ADUIW73-ZEG4WU7-RHT4RKI-ZPH7JPA-6BT3OAA";
-    jia-opena0 = null;
+    jia-opena0 = "AHJ7HAM-LHYYFTU-3FVFJEK-7SFRZRR-TS6CQFR-M7FBDBS-LVYBNWD-TXL3JQC";
   };
 in {
   # Folder ID = directory under ~ on personal devices.
