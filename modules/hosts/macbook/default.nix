@@ -38,6 +38,7 @@
   homeManagerModules = [
     ../../hardware/peripherals/yubikey/home.nix
     ../../programs/development/toolchain/home.nix
+    ../../programs/services/syncthing/home.nix
     ../../programs/tools/home.nix
     ../../programs/tools/nh/home.nix
     ../../programs/tools/zsh/home.nix

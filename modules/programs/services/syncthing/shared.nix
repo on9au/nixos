@@ -5,19 +5,47 @@
 # only find each other by Tailscale name or on the LAN, and a connection still
 # needs both sides to list each other.
 {lib}: let
-  # null until the device has generated its identity, and left out of every
-  # config until then. `syncthing device-id`, or Actions → Show ID in the GUI.
+  # Keyed by networking.hostName, or the Tailscale name for the phone. null
+  # until the device has generated its identity, and left out of every config
+  # until then. `syncthing device-id`, or Actions → Show ID in the GUI.
   devices = {
     DESKTOP-DYLAN = "P6LPAYV-7O3C5G6-GKO2KR3-ADUIW73-ZEG4WU7-RHT4RKI-ZPH7JPA-6BT3OAA";
     jia-opena0 = "AHJ7HAM-LHYYFTU-3FVFJEK-7SFRZRR-TS6CQFR-M7FBDBS-LVYBNWD-TXL3JQC";
+    LAPTOP-ON9AU = null;
+    MBP-DYLAN = null;
+    oneplus-cph2653 = null;
   };
-in {
-  # Folder ID = directory under ~ on personal devices.
+
+  computers = ["DESKTOP-DYLAN" "jia-opena0" "LAPTOP-ON9AU" "MBP-DYLAN"];
+
+  # dir is the directory under ~ on personal devices; darwinDir where macOS
+  # names it differently.
   folders = {
-    documents = "Documents";
-    pictures = "Pictures";
-    videos = "Videos";
+    documents = {
+      dir = "Documents";
+      devices = computers;
+    };
+    pictures = {
+      dir = "Pictures";
+      devices = computers;
+    };
+    videos = {
+      dir = "Videos";
+      darwinDir = "Movies";
+      devices = computers;
+    };
+    # Neo Backup's archives. Only jia keeps a copy.
+    phone-backup.devices = ["jia-opena0" "oneplus-cph2653"];
   };
+
+  hasId = name: devices.${name} != null;
+in {
+  # On every folder of every device this repo manages.
+  ignorePatterns = [
+    "(?d).DS_Store"
+    # Apple Photos keeps its library in ~/Pictures: a database, not files to sync.
+    "Photos Library.photoslibrary"
+  ];
 
   options = {
     globalAnnounceEnabled = false;
@@ -31,5 +59,16 @@ in {
     lib.mapAttrs (name: id: {
       id = id;
       addresses = ["tcp://${lib.toLower name}.tailc7b8fd.ts.net:22000"];
-    }) (lib.filterAttrs (name: id: id != null && name != self) devices);
+    }) (lib.filterAttrs (name: _: name != self && hasId name) devices);
+
+  # The folders `self` is in that have a peer with an ID, `peers` naming them.
+  foldersOf = self:
+    lib.filterAttrs (_: folder: folder.peers != []) (
+      lib.mapAttrs (_: folder:
+        folder
+        // {
+          peers = lib.filter (name: name != self && hasId name) folder.devices;
+        })
+      (lib.filterAttrs (_: folder: lib.elem self folder.devices) folders)
+    );
 }

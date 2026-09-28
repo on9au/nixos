@@ -1,13 +1,21 @@
 # Syncthing
 
-Keeps `~/Documents`, `~/Pictures` and `~/Videos` the same on every device.
+Keeps `~/Documents`, `~/Pictures` and `~/Videos` (`~/Movies` on the Mac) the
+same on every computer, and carries the phone's backups to jia.
 [`shared.nix`](shared.nix) is the one list of devices and folders; the
 personal devices run syncthing from home-manager ([`home.nix`](home.nix)), and
 jia runs the system service ([`programs/server/syncthing.nix`](../../server/syncthing.nix)).
 
-Every device shares every folder with every other device. jia is always on, so
-two devices that are never online together still sync through it.
+| Folder | Devices |
+| --- | --- |
+| `documents`, `pictures`, `videos` | every computer |
+| `phone-backup` | the phone and jia; receive-only on jia |
 
+jia is in every folder and always on, so two devices that are never online
+together still sync through it.
+
+`Photos Library.photoslibrary` and `.DS_Store` are ignored everywhere: Apple
+Photos keeps its library, a database, in `~/Pictures`.
 ## Sync is not a backup
 
 A delete or an overwrite reaches every device. jia keeps what another device
@@ -37,8 +45,14 @@ Put the printed ID in `shared.nix` under the device's `networking.hostName`,
 and rebuild every device. A device without an ID is `null` there and left out
 of every config.
 
-The phone isn't managed here: add its ID to `shared.nix`, then add jia (and
-the folders) by hand in the app.
+The phone (Syncthing-Fork, keyed by its Tailscale name) isn't managed here:
+add its ID to `shared.nix`, switch jia, then accept jia and the
+`phone-backup` folder in the app. Its global discovery and relays have to be
+turned off by hand, and the app set to *Unrestricted* battery use, or
+OxygenOS stops it in the background.
+
+A new folder goes in `shared.nix` with its `devices`; a computer only gets
+the folders that list it.
 
 ## GUI
 
