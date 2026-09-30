@@ -31,6 +31,13 @@
     defaultUser = config.primaryUser;
   };
 
+  # WSL boot races the lingering user manager: its first start can fail with
+  # EBUSY, leaving no user bus and breaking home-manager activation.
+  systemd.services."user@".serviceConfig = {
+    Restart = "on-failure";
+    RestartSec = 2;
+  };
+
   homeManagerModules = [
     {home.stateVersion = "26.05";}
   ];
