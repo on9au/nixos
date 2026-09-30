@@ -34,6 +34,22 @@ in the same module. Corepack is no way out of this: `corepack enable` writes
 its shims next to the `node` binary, which is a store path, so it fails with
 `EROFS: read-only file system`.
 
+## The user manager at boot
+
+`user@1000.service` (started early because the user lingers) regularly fails
+at WSL boot with `Failed to spawn executor: Device or resource busy`. Nothing
+retries it, so the session has no `/run/user/1000/bus`, `systemctl --user`
+fails, and `nh os switch` ends with
+
+```
+Error: Failed to open dbus connection
+Unable to autolaunch a dbus-daemon without a $DISPLAY for X11
+warning: user activation for djpro failed
+```
+
+`default.nix` gives `user@` a `Restart=on-failure`. If it has already failed
+this boot, `sudo systemctl start user@1000.service` brings it up by hand.
+
 ## Skipped on purpose
 
 `imagemagick`, `ghostscript`, `tectonic` and `mermaid-cli` are not installed
