@@ -50,6 +50,18 @@ warning: user activation for djpro failed
 `default.nix` gives `user@` a `Restart=on-failure`. If it has already failed
 this boot, `sudo systemctl start user@1000.service` brings it up by hand.
 
+## Monash git credentials
+
+The desktop stores the `git.infotech.monash.edu` PAT with
+`git-credential-libsecret` in gnome-keyring (`programs/services/keyring`),
+which PAM unlocks at a graphical login that never happens here. So this host
+points that remote at Git for Windows' Credential Manager instead
+(`/mnt/c/Program Files/Git/mingw64/bin/git-credential-manager.exe`). The PAT
+lands in Windows Credential Manager, which Windows unlocks when you log in, so
+git asks for it once.
+`provider = generic` skips GCM's OAuth detection and asks plainly for a
+username and PAT. This depends on Git for Windows being installed.
+
 ## Skipped on purpose
 
 `imagemagick`, `ghostscript`, `tectonic` and `mermaid-cli` are not installed
