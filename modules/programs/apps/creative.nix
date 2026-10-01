@@ -7,6 +7,12 @@
     uxplay # AirPlay receiver for mirroring an Apple device; run as `uxplay -p`
   ];
 
+  # uxplay advertises itself through Avahi, which refuses to publish by default.
+  services.avahi.publish = {
+    enable = true;
+    userServices = true;
+  };
+
   # uxplay's fixed ports with -p.
   networking.firewall = {
     allowedTCPPorts = [7000 7001 7100];
