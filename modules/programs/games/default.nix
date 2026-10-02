@@ -18,7 +18,10 @@
     lunar-client # Minecraft PvP client; handles lunarclient:// links
     mangohud # FPS/frametime overlay
     osu-lazer-bin
-    prismlauncher # Minecraft instances and modpacks
+    # Minecraft instances and modpacks; libxkbcommon is needed by LWJGL's SDL3 Wayland backend.
+    (prismlauncher.override {
+      additionalLibs = [libxkbcommon];
+    })
     winetricks
   ];
 }
