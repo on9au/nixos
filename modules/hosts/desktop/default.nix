@@ -1,4 +1,4 @@
-{...}: {
+{pkgs, ...}: {
   # nix-style: ignore-order
   imports = [
     # Hardware
@@ -76,6 +76,8 @@
 
   networking.hostName = "DESKTOP-DYLAN";
   system.stateVersion = "26.05";
+
+  boot.kernelPackages = pkgs.linuxPackages_latest;
 
   # systemd in initrd - required for FIDO2 LUKS unlock later
   boot.initrd.systemd.enable = true;

@@ -1,7 +1,11 @@
 # Install procedure lives in ./install.md. Disk layout mirrors DESKTOP-DYLAN
 # (LUKS2 -> btrfs subvolumes) minus @games, and unlocks via TPM2 rather than
 # FIDO2, so Secure Boot must be enrolled before the TPM enrollment is done.
-{lib, ...}: {
+{
+  lib,
+  pkgs,
+  ...
+}: {
   # nix-style: ignore-order
   imports = [
     # Hardware
@@ -72,6 +76,8 @@
 
   networking.hostName = "LAPTOP-ON9AU";
   system.stateVersion = "26.11";
+
+  boot.kernelPackages = pkgs.linuxPackages_latest;
 
   # VMD stall stopgap, see ./nvme-vmd-stalls.md. Drop once VMD is off in firmware.
   boot.kernelParams = [
