@@ -8,6 +8,6 @@
     mpv # default video player (mimeapps.list)
     obsidian # Markdown notes
     vlc # fallback for videos and discs mpv won't play
-    vscode # GUI editor for projects that want its debuggers/extensions
+    vscode-fhs # GUI editor for projects that want its debuggers/extensions
   ];
 }
