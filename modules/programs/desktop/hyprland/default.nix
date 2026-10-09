@@ -1,11 +1,18 @@
-{pkgs, ...}: {
+{
+  lib,
+  pkgs,
+  ...
+}: {
   programs.hyprland = {
     enable = true;
     withUWSM = true;
   };
 
   programs.hyprlock.enable = true;
-  # Not services.hypridle: config/hypr/autostart.lua starts it, and both ran two copies.
+  # config/hypr/autostart.lua starts hypridle; programs.hyprlock enables the unit
+  # too. Two copies race on every lock, and the hyprlock that loses never exits,
+  # so `pidof hyprlock` in lock_cmd stays true and later locks do nothing.
+  services.hypridle.enable = lib.mkForce false;
 
   security.polkit.enable = true;
 
