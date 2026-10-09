@@ -1,7 +1,8 @@
 -- Brave is the private browser. It lives on its own special workspace, out of
 -- the workspace list and the bar, and is blacked out of screenshots,
 -- recordings and screen shares unless capture is allowed for the session.
--- Its copies are kept out of cliphist by bin/cliphist-store.
+-- Its copies are kept out of cliphist by bin/cliphist-store, and its profile
+-- stays locked until a PIN is entered (programs/apps/brave).
 
 local mod = "SUPER"
 
