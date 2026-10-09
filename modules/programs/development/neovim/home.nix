@@ -12,6 +12,8 @@
     tree-sitter
   ];
 
+  home.sessionVariables.MANPAGER = "nvim +Man!";
+
   xdg.configFile = {
     "mermaid".source = config.lib.dotfiles.link ./mermaid;
     "nvim".source = config.lib.dotfiles.link ./config;
