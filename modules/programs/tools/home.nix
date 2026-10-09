@@ -48,6 +48,14 @@
     };
   };
 
+  programs.btop = {
+    enable = true;
+    settings.color_theme = "catppuccin_mocha";
+  };
+
+  # Not programs.btop.themes, which writes a store path string as the file's text.
+  xdg.configFile."btop/themes/catppuccin_mocha.theme".source = "${pkgs.catppuccin.override {variant = "mocha";}}/btop/catppuccin_mocha.theme";
+
   # Also aliases ls, ll, la and lt.
   programs.eza = {
     enable = true;
