@@ -15,6 +15,7 @@
       iperf3
       jq
       less
+      nix-output-monitor
       pandoc
       sl
       smartmontools
