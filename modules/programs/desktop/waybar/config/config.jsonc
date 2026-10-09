@@ -35,6 +35,7 @@
     "custom/kdeconnect",
     "power-profiles-daemon",
     "battery",
+    "custom/privacy",
     "custom/notification"
   ],
   // All ten always show because rules.lua marks them persistent.
@@ -274,6 +275,14 @@
     "interval": "once",
     "signal": 8,
     "on-click": "$HOME/.local/bin/nolock off"
+  },
+  // Camera, mic and screen capture as one group; see scripts/privacy.sh.
+  // Hidden while nothing is capturing.
+  "custom/privacy": {
+    "format": "{}",
+    "return-type": "json",
+    "exec": "$HOME/.config/waybar/scripts/privacy.sh",
+    "interval": 2
   },
   "tray": {
     "icon-size": 18,

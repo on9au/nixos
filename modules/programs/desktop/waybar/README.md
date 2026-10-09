@@ -77,3 +77,22 @@ kdeconnect-cli --refresh && kdeconnect-cli --list-available
 kdeconnect-cli --pair -d <device-id>
 ```
 
+
+## Privacy indicators
+
+`custom/privacy` (`scripts/privacy.sh`, every 2s) draws one Nerd Font icon per
+thing capturing, coloured like macOS's dots, and nothing at all otherwise. When
+one comes on, the pill pulses in its colour for about 4s; the script keeps
+the last state in `$XDG_RUNTIME_DIR/waybar-privacy` to tell.
+
+| icon | lights for | source |
+| --- | --- | --- |
+| green camera | any process holding `/dev/video*` | `/proc/*/fd` |
+| orange mic | running mic recordings, not level meters | PipeWire `Stream/Input/Audio` |
+| purple screen | portal screencasts, and cameras opened through PipeWire | PipeWire `Stream/Input/Video` |
+
+Not waybar's own `privacy` module: it draws GTK theme icons, which can't be
+Nerd Font glyphs, and only sees PipeWire. Most apps (Chromium, Zoom, OBS) open
+the webcam straight through V4L2, where PipeWire never sees it. Tools that use
+Hyprland's screencopy protocol directly (`grim`, `wf-recorder`) bypass PipeWire
+too, and nothing here catches them.
