@@ -62,6 +62,7 @@
     "separate-outputs": true,
     "rewrite": {
       "(.*) — Mozilla Firefox": "$1",
+      "(.*) - Brave": "",
       "(.*) - Chromium": "$1",
       "(.*) - Visual Studio Code": "$1"
     }

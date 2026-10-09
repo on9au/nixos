@@ -39,9 +39,10 @@ hl.on("hyprland.start", function()
     launch.app("hypridle")
 
     -- Clipboard history, fed to the SUPER + SHIFT + V picker. Two watchers,
-    -- because text and images are stored separately.
-    launch.app("wl-paste --type text --watch cliphist store")
-    launch.app("wl-paste --type image --watch cliphist store")
+    -- because text and images are stored separately. cliphist-store skips
+    -- copies made in Brave.
+    launch.app("wl-paste --type text --watch " .. os.getenv("HOME") .. "/.local/bin/cliphist-store")
+    launch.app("wl-paste --type image --watch " .. os.getenv("HOME") .. "/.local/bin/cliphist-store")
 
     -- Wallpaper. The daemon has to be up before an image can be handed to it,
     -- so the two are chained in one shell command rather than raced.
