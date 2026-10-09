@@ -24,6 +24,11 @@
 
     betterfox-nix.url = "github:HeitorAugustoLN/betterfox-nix";
 
+    nix-index-database = {
+      url = "github:nix-community/nix-index-database";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     nix-flatpak.url = "github:gmodena/nix-flatpak/?ref=latest";
 
     disko = {

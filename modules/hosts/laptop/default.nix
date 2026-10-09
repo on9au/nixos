@@ -69,6 +69,7 @@
     ../../programs/tools/git
     ../../programs/tools/kitty
     ../../programs/tools/nh
+    ../../programs/tools/nix-index
     ../../programs/tools/ssh
     ../../programs/tools/tmux
     ../../programs/tools/zsh

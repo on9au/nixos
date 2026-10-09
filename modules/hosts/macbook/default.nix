@@ -41,6 +41,7 @@
     ../../programs/services/syncthing/home.nix
     ../../programs/tools/home.nix
     ../../programs/tools/nh/home.nix
+    ../../programs/tools/nix-index/home.nix
     ../../programs/tools/zsh/home.nix
     {home.stateVersion = "26.05";}
   ];
