@@ -99,7 +99,7 @@ Exceptions, read with `builtins.readFile` and so needing a rebuild:
 - `hyprpolkitagent` stays in `environment.systemPackages`: autostart starts it
   as a user unit, and units from `home.packages` aren't linked.
 - hypridle is started by `hypr/autostart.lua`. Enabling `services.hypridle` too
-  runs two.
+  runs two, and `programs.hyprlock` turns it on, hence the `mkForce false`.
 - `lazy-lock.json` is committed and written by nvim. Scripts use
   `nvim --headless "+Lazy! restore" +qa`, never `Lazy! sync`.
 - The Hyprland config is Lua, so `hyprctl dispatch` takes `hl.dsp.*`.
