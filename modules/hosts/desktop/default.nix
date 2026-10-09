@@ -18,6 +18,7 @@
     # System
     ../../system
     ../../system/boot/lanzaboote.nix
+    ../../system/envfs.nix
     ../../system/filesystems/btrfs.nix
     ../../system/filesystems/btrfs-snapshots.nix
     ../../system/network.nix
