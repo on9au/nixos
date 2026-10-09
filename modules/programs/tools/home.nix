@@ -48,6 +48,13 @@
     };
   };
 
+  # Also aliases ls, ll, la and lt.
+  programs.eza = {
+    enable = true;
+    git = true;
+    icons = "auto";
+  };
+
   programs.fzf.enable = true;
 
   # Enabled rather than just installed for the `y` wrapper, which leaves the
