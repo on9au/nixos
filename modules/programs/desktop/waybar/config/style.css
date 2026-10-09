@@ -243,6 +243,54 @@ window#waybar.empty .modules-left #window {
     font-weight: bold;
 }
 
+/* Colours are set per icon in scripts/privacy.sh. The pill only shows while
+ * something is capturing, since the module is hidden otherwise. */
+#custom-privacy {
+    padding: 0 8px;
+    margin: 4px 2px;
+    border-radius: 8px;
+    background-color: @surface0;
+}
+
+/* Two polls (4s) after an indicator comes on, pulsed in its colour. An even
+ * iteration count ends on "from", so the pill is back to plain before the
+ * class drops. */
+@keyframes privacy-camera {
+    from { background-color: @surface0; }
+    to   { background-color: alpha(@green, 0.4); }
+}
+
+@keyframes privacy-mic {
+    from { background-color: @surface0; }
+    to   { background-color: alpha(@peach, 0.4); }
+}
+
+@keyframes privacy-screen {
+    from { background-color: @surface0; }
+    to   { background-color: alpha(@mauve, 0.4); }
+}
+
+#custom-privacy.flash-camera,
+#custom-privacy.flash-mic,
+#custom-privacy.flash-screen {
+    animation-duration: 0.25s;
+    animation-iteration-count: 16;
+    animation-direction: alternate;
+    animation-timing-function: ease-in-out;
+}
+
+#custom-privacy.flash-camera {
+    animation-name: privacy-camera;
+}
+
+#custom-privacy.flash-mic {
+    animation-name: privacy-mic;
+}
+
+#custom-privacy.flash-screen {
+    animation-name: privacy-screen;
+}
+
 #custom-notification {
     color: @peach;
     padding-right: 12px;
