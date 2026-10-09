@@ -66,5 +66,8 @@
     nix-direnv.enable = true;
   };
 
+  # `f` after a mistyped command runs the corrected one.
+  programs.pay-respects.enable = true;
+
   programs.starship.enable = true;
 }
