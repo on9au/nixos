@@ -33,6 +33,20 @@
       wl-clipboard
     ];
 
+  programs.bat = {
+    enable = true;
+    config.theme = "Catppuccin Mocha";
+    extraPackages = with pkgs.bat-extras; [
+      batdiff
+      batgrep
+      batman
+    ];
+    themes."Catppuccin Mocha" = {
+      src = pkgs.catppuccin.override {variant = "mocha";};
+      file = "bat/Catppuccin Mocha.tmTheme";
+    };
+  };
+
   programs.fzf.enable = true;
 
   # Enabled rather than just installed for the `y` wrapper, which leaves the

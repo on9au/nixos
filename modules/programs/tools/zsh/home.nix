@@ -18,6 +18,10 @@
     };
 
     historySubstringSearch.enable = true;
+
+    # Coloured `<command> --help` output.
+    shellGlobalAliases."--help" = "--help 2>&1 | bat --plain --language=help";
+
     syntaxHighlighting.enable = true;
 
     initContent = lib.mkMerge [
