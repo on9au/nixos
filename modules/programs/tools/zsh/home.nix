@@ -54,6 +54,12 @@
     ];
   };
 
+  # Ctrl-R only; the up arrow stays with history-substring-search.
+  programs.atuin = {
+    enable = true;
+    flags = ["--disable-up-arrow"];
+  };
+
   # `use flake` in a project's .envrc loads its dev shell on cd.
   programs.direnv = {
     enable = true;
