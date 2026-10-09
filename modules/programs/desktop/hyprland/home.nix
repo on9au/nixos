@@ -28,7 +28,7 @@ in {
 
   home.file = lib.listToAttrs (map
     (name: lib.nameValuePair ".local/bin/${name}" {source = link (./bin + "/${name}");})
-    ["colorpicker" "emoji" "nolock" "powermenu"]);
+    ["cliphist-store" "colorpicker" "emoji" "nolock" "powermenu"]);
 
   # Discord and Steam recreate these when their launch-on-startup toggle is
   # used; uwsm would start a second copy alongside hypr/hosts/*/autostart.lua.

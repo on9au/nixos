@@ -1,0 +1,10 @@
+#!/bin/sh
+# cliphist-store -- `cliphist store`, except copies made in Brave are dropped
+# so they never reach the SUPER + SHIFT + V history (see hypr/private.lua).
+#
+# wl-paste --watch runs this once per copy with the contents on stdin.
+
+case $(hyprctl activewindow | sed -n 's/^[[:space:]]*class: //p') in
+[Bb]rave-*) cat >/dev/null ;;
+*) exec cliphist store ;;
+esac
