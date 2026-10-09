@@ -22,6 +22,7 @@
     ../../system/filesystems/btrfs-snapshots.nix
     ../../system/network.nix
     ../../system/oomd.nix
+    ../../system/tmpfs.nix
     ../../system/zram.nix
 
     # Users

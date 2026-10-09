@@ -27,6 +27,7 @@
     ../../system/filesystems/btrfs-snapshots.nix
     ../../system/network.nix
     ../../system/oomd.nix
+    ../../system/tmpfs.nix
 
     # Users
     ../../users/djpro
