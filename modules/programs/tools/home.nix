@@ -11,7 +11,6 @@
       duf
       exiftool
       fastfetch
-      fzf
       glances
       iperf3
       jq
@@ -24,9 +23,7 @@
       unrar
       unzip
       upx
-      yazi
       zip
-      zoxide
     ]
     ++ lib.optionals stdenv.hostPlatform.isLinux [
       hwinfo
@@ -35,4 +32,12 @@
       wkhtmltopdf
       wl-clipboard
     ];
+
+  programs.fzf.enable = true;
+
+  # Enabled rather than just installed for the `y` wrapper, which leaves the
+  # shell in the directory yazi was quit in.
+  programs.yazi.enable = true;
+
+  programs.zoxide.enable = true;
 }

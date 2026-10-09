@@ -5,12 +5,16 @@ setopt INC_APPEND_HISTORY
 setopt HIST_REDUCE_BLANKS
 
 # zsh-vi-mode hijacks keymaps on init, clobbering fzf-tab and
-# history-substring-search bindings. Re-apply them after vi-mode finishes.
+# history-substring-search and fzf bindings. Re-apply them after vi-mode
+# finishes.
 zvm_after_init() {
   bindkey '^[[A' history-substring-search-up
   bindkey '^[[B' history-substring-search-down
   bindkey -M vicmd 'k' history-substring-search-up
   bindkey -M vicmd 'j' history-substring-search-down
+  bindkey '^R' fzf-history-widget
+  bindkey '^T' fzf-file-widget
+  bindkey '\ec' fzf-cd-widget
 }
 
 # ssh-agent
