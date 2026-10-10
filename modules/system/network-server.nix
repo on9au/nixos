@@ -14,6 +14,13 @@
     linkConfig.RequiredForOnline = "routable";
   };
 
+  # BBR paces its sends, and fq is the qdisc that does the pacing well.
+  boot.kernelModules = ["tcp_bbr"];
+  boot.kernel.sysctl = {
+    "net.core.default_qdisc" = "fq";
+    "net.ipv4.tcp_congestion_control" = "bbr";
+  };
+
   # networkd delegates DNS to resolved; without it nothing writes resolv.conf.
   services.resolved.enable = true;
 }
