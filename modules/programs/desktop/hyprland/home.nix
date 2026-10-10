@@ -18,7 +18,19 @@ in {
     pavucontrol
     playerctl
     wtype
+    xrdb
   ];
+
+  # XCURSOR_THEME in hypr/env.lua only reaches X11 clients that inherit it.
+  # This adds what the rest fall back to: a `default` theme in ~/.icons, the
+  # Xcursor.* resources (loaded by hypr/autostart.lua) and the GTK setting.
+  home.pointerCursor = {
+    name = "Posy_Cursor_Black";
+    package = pkgs.posy-cursors;
+    size = 32;
+    gtk.enable = true;
+    x11.enable = true;
+  };
 
   xdg.configFile = {
     "hypr".source = link ./config/hypr;
