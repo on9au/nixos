@@ -20,6 +20,7 @@
       DIUN_DEFAULTS_SORTTAGS = "semver";
       DIUN_DEFAULTS_WATCHREPO = "true";
       DIUN_PROVIDERS_DOCKER = "true";
+      DIUN_PROVIDERS_DOCKER_ENDPOINT = "tcp://socket-proxy:2375";
       DIUN_PROVIDERS_DOCKER_WATCHBYDEFAULT = "true";
       DIUN_WATCH_FIRSTCHECKNOTIF = "false";
       DIUN_WATCH_JITTER = "30s";
@@ -31,10 +32,8 @@
       TZ = config.time.timeZone;
     };
     environmentFiles = [config.sops.templates."diun.env".path];
-    volumes = [
-      "/var/run/docker.sock:/var/run/docker.sock:ro"
-      "diun_data:/data"
-    ];
-    networks = ["proxy"];
+    volumes = ["diun_data:/data"];
+    networks = ["proxy" "socket"];
+    dependsOn = ["socket-proxy"];
   };
 }

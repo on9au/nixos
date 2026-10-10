@@ -1,7 +1,7 @@
 # jia-opena0: the homelab server, migrated from Debian. Headless.
 # Generate the hardware config during the install, then git add it:
 #   nixos-generate-config --root /mnt --show-hardware-config > modules/hosts/homelab/hardware.nix
-{...}: {
+{lib, ...}: {
   # nix-style: ignore-order
   imports = [
     # Hardware
@@ -35,6 +35,7 @@
     ../../programs/server/forgejo.nix
     ../../programs/server/kanidm.nix
     ../../programs/server/liveness.nix
+    ../../programs/server/socket-proxy.nix
     ../../programs/server/syncthing.nix
     ../../programs/server/terraria.nix
     ../../programs/server/tuwunel
@@ -57,6 +58,11 @@
   # Matches `Port 7456` in the jia block of programs/tools/ssh/home.nix.
   services.openssh.ports = [7456];
 
+  # sshd for Tailscale and the LAN only, not for containers.
+  services.openssh.openFirewall = false;
+  networking.firewall.interfaces.tailscale0.allowedTCPPorts = [7456];
+  networking.firewall.extraCommands = "iptables -A nixos-fw -p tcp -s 192.168.1.0/24 --dport 7456 -j nixos-fw-accept";
+
   sops.defaultSopsFile = ./secrets.yaml;
 
   # The router forwards 80, 443, 2222 and 7777 here. Overrides network-server.nix's DHCP.
@@ -69,7 +75,11 @@
     linkConfig.RequiredForOnline = "routable";
   };
 
-  users.users.opena0.extraGroups = ["docker"];
+  # Root takes the sudo password here: opena0 is not in the docker group, and
+  # the wheel shortcuts the desktops get (system/nix/nix.nix, system/sudo.nix)
+  # are undone.
+  nix.settings.trusted-users = lib.mkForce ["root"];
+  security.sudo.extraConfig = lib.mkAfter "Defaults timestamp_timeout=5";
 
   homeManagerModules = [
     {home.stateVersion = "26.11";}

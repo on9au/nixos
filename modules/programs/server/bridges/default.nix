@@ -34,6 +34,14 @@ in {
       image = bridge.image;
       volumes = ["/var/lib/homelab/bridges/${name}/data:/data"];
       networks = ["proxy"];
+      # docker-run.sh chowns /data, then drops to the bridge's user.
+      capabilities = {
+        CHOWN = true;
+        DAC_OVERRIDE = true;
+        FOWNER = true;
+        SETGID = true;
+        SETUID = true;
+      };
       # Direct media: the bridge mints signed mxc:// URIs on its own server name
       # and serves the bytes itself, so the whole subdomain has to reach it --
       # federation media, client media, /_matrix/key and .well-known.

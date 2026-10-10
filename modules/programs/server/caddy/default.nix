@@ -39,7 +39,10 @@ in {
   virtualisation.oci-containers.containers.caddy = {
     image = "${image.imageName}:${image.imageTag}";
     imageStream = image;
-    environment.CADDY_INGRESS_NETWORKS = "proxy";
+    environment = {
+      CADDY_INGRESS_NETWORKS = "proxy";
+      DOCKER_HOST = "tcp://socket-proxy:2375";
+    };
     environmentFiles = [config.sops.templates."caddy.env".path];
     ports = [
       "443:443"
@@ -47,11 +50,12 @@ in {
       "80:80"
     ];
     volumes = [
-      "/var/run/docker.sock:/var/run/docker.sock:ro"
       "caddy_caddy_config:/config"
       "caddy_caddy_data:/data"
     ];
-    networks = ["proxy"];
+    networks = ["proxy" "socket"];
+    dependsOn = ["socket-proxy"];
+    extraOptions = ["--read-only" "--tmpfs=/tmp"];
 
     labels = {
       "caddy.acme_dns" = "cloudflare {env.CLOUDFLARE_API_TOKEN}";
