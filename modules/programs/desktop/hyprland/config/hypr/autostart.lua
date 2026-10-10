@@ -30,6 +30,11 @@ hl.on("hyprland.start", function()
     -- a no-op rather than a second agent.
     launch.unit("hyprpolkitagent")
 
+    -- Cursor theme and size for X11 apps that don't inherit XCURSOR_* (see
+    -- home.pointerCursor in hyprland/home.nix). Nothing else loads this file
+    -- outside an X session.
+    hl.exec_cmd("xrdb -merge " .. os.getenv("HOME") .. "/.Xresources")
+
     -- Status bar and notification daemon.
     launch.app("waybar")
     launch.app("swaync")
