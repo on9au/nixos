@@ -1,6 +1,6 @@
 {...}: {
   virtualisation.oci-containers.containers.terraria = {
-    image = "ryshe/terraria:latest";
+    image = "ryshe/terraria:tshock-1.4.5.8-6.2.1";
     environment = {
       CONFIGPATH = "/config";
       CONFIG_FILENAME = "serverconfig.txt";

@@ -9,7 +9,7 @@
   '';
 
   virtualisation.oci-containers.containers.uptime-kuma = {
-    image = "louislam/uptime-kuma:2";
+    image = "louislam/uptime-kuma:2.5.6";
     volumes = ["uptime-kuma_data:/app/data"];
     networks = ["proxy"];
     # For the terraria and beszel-agent monitors, which check ports on the host.
