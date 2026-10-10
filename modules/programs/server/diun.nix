@@ -12,6 +12,13 @@
     image = "crazymax/diun:4.33.0";
     cmd = ["serve"];
     environment = {
+      # Every image is pinned to an exact version, whose digest never moves, so
+      # watch the repo for newer release tags instead. The filter drops
+      # variants (-rootless, -slim) and moving tags (latest, 16).
+      DIUN_DEFAULTS_INCLUDETAGS = ''^(ig-|tshock-)?v?\d+(\.\d+)+(-\d+(\.\d+)+)?$'';
+      DIUN_DEFAULTS_MAXTAGS = "5";
+      DIUN_DEFAULTS_SORTTAGS = "semver";
+      DIUN_DEFAULTS_WATCHREPO = "true";
       DIUN_PROVIDERS_DOCKER = "true";
       DIUN_PROVIDERS_DOCKER_WATCHBYDEFAULT = "true";
       DIUN_WATCH_FIRSTCHECKNOTIF = "false";
