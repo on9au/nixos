@@ -60,6 +60,9 @@
     flags = ["--disable-up-arrow"];
   };
 
+  # Atuin owns Ctrl-R; fzf keeps Ctrl-T and Alt-C.
+  programs.fzf.historyWidget.command = "";
+
   # `use flake` in a project's .envrc loads its dev shell on cd.
   programs.direnv = {
     enable = true;
