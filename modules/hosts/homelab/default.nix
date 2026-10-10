@@ -1,7 +1,11 @@
 # jia-opena0: the homelab server, migrated from Debian. Headless.
 # Generate the hardware config during the install, then git add it:
 #   nixos-generate-config --root /mnt --show-hardware-config > modules/hosts/homelab/hardware.nix
-{lib, ...}: {
+{
+  config,
+  lib,
+  ...
+}: {
   # nix-style: ignore-order
   imports = [
     # Hardware
@@ -12,6 +16,7 @@
     # System
     ../../system
     ../../system/boot/systemd-boot.nix
+    ../../system/hardening.nix
     ../../system/network-server.nix
     ../../system/zram.nix
 
@@ -80,6 +85,13 @@
   # are undone.
   nix.settings.trusted-users = lib.mkForce ["root"];
   security.sudo.extraConfig = lib.mkAfter "Defaults timestamp_timeout=5";
+
+  # Users and passwords come from here alone; a passwd run on the box is
+  # undone by the next switch. The hash is in sops, so a new password is
+  # `mkpasswd -m yescrypt` into opena0/password_hash.
+  sops.secrets."opena0/password_hash".neededForUsers = true;
+  users.mutableUsers = false;
+  users.users.opena0.hashedPasswordFile = config.sops.secrets."opena0/password_hash".path;
 
   homeManagerModules = [
     {home.stateVersion = "26.11";}

@@ -23,8 +23,8 @@ host in `flake.nix`.
 - `modules/hosts/<host>/` — `default.nix` imports what the machine uses, grouped
   under short section comments; `hardware.nix` is the generated hardware config.
 - `modules/system/` — base NixOS modules. `default.nix` (locale, nix settings,
-  options) goes on every NixOS host; `boot/`, `filesystems/`, `network.nix`,
-  `zram.nix` are imported per host. `system/darwin/` is the nix-darwin base.
+  options) goes on every NixOS host; `boot/`, `filesystems/`, `hardening.nix`,
+  `network.nix`, `zram.nix` are imported per host. `system/darwin/` is the nix-darwin base.
 - `modules/hardware/` — `gpu/`, `peripherals/`, `power/`, `firmware/`, one
   concern per file, imported per host.
 - `modules/devices/` — one file per physical device (e.g. WirePlumber rules).
