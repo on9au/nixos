@@ -11,6 +11,6 @@
     noto-fonts-cjk-serif
     noto-fonts-color-emoji
     open-sans
-    ttf_bitstream_vera
+    ttf-bitstream-vera
   ];
 }

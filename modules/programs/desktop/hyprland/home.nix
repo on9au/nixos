@@ -25,6 +25,7 @@ in {
   # This adds what the rest fall back to: a `default` theme in ~/.icons, the
   # Xcursor.* resources (loaded by hypr/autostart.lua) and the GTK setting.
   home.pointerCursor = {
+    enable = true;
     name = "Posy_Cursor_Black";
     package = pkgs.posy-cursors;
     size = 32;
