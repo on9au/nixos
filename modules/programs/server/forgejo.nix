@@ -1,6 +1,6 @@
 {config, ...}: {
   virtualisation.oci-containers.containers.forgejo = {
-    image = "codeberg.org/forgejo/forgejo:16";
+    image = "codeberg.org/forgejo/forgejo:16.0.5";
     environment = {
       FORGEJO__database__DB_TYPE = "sqlite3";
       FORGEJO__openid__ENABLE_OPENID_SIGNIN = "false";

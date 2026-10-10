@@ -95,10 +95,9 @@ needs.
 
 ### Updates
 
-Every image is pinned in its module except tuwunel, cinny, terraria and whoami,
-which track `:latest`. `pull` defaults to `missing`, so `:latest` only moves on
-`sudo docker pull <image>` followed by a unit restart. Diun checks every running
-image daily at 08:00 and notifies Discord; it never updates anything.
+Every image is pinned to an exact version in its module, so an update is a tag
+bump and a switch. Diun checks every running image daily at 08:00 and notifies
+Discord; it never updates anything.
 
 There is no `unattended-upgrades` equivalent: `nix flake update`, then
 `nh os switch`.
