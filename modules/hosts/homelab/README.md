@@ -299,12 +299,12 @@ name; only direct media gives them a public name.
 
 | Bridge | Image | Port | Namespace |
 |---|---|---|---|
-| telegram | `mautrix/telegram:v26.07` | 29317 | `@telegram_*` |
-| whatsapp | `mautrix/whatsapp:v26.07` | 29318 | `@whatsapp_*` |
-| discord | `mautrix/discord:v0.7.6` | 29334 | `@discord_*` |
-| gmessages | `mautrix/gmessages:v26.05` | 29336 | `@gmessages_*` |
-| messenger | `mautrix/meta:v26.07` | 29321 | `@messenger_*` |
-| instagram | `mautrix/meta:ig-v26.07` | 29322 | `@instagram_*` |
+| telegram | `mautrix/telegram:v26.09` | 29317 | `@telegram_*` |
+| whatsapp | `mautrix/whatsapp:v26.09` | 29318 | `@whatsapp_*` |
+| discord | `mautrix/discord:v0.7.7` | 29334 | `@discord_*` |
+| gmessages | `mautrix/gmessages:v26.09` | 29336 | `@gmessages_*` |
+| messenger | `mautrix/meta:v26.09` | 29321 | `@messenger_*` |
+| instagram | `mautrix/meta:ig-v26.09` | 29322 | `@instagram_*` |
 
 Instagram split out of mautrix-meta in July 2026 into its own bridge, published
 under `ig-` prefixed tags in the same repo. Messenger and Instagram therefore

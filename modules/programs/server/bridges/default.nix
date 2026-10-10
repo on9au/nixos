@@ -3,28 +3,28 @@
   # mediaPort is the appservice port, which also serves direct media.
   bridges = {
     discord = {
-      image = "dock.mau.dev/mautrix/discord:v0.7.6";
+      image = "dock.mau.dev/mautrix/discord:v0.7.7";
       mediaPort = 29334;
     };
     # RCS media has no HTTP URL to hand out, so no direct media and no subdomain.
     gmessages = {
-      image = "dock.mau.dev/mautrix/gmessages:v26.05";
+      image = "dock.mau.dev/mautrix/gmessages:v26.09";
       mediaPort = null;
     };
     instagram = {
-      image = "dock.mau.dev/mautrix/meta:ig-v26.07";
+      image = "dock.mau.dev/mautrix/meta:ig-v26.09";
       mediaPort = 29322;
     };
     messenger = {
-      image = "dock.mau.dev/mautrix/meta:v26.07";
+      image = "dock.mau.dev/mautrix/meta:v26.09";
       mediaPort = 29321;
     };
     telegram = {
-      image = "dock.mau.dev/mautrix/telegram:v26.07";
+      image = "dock.mau.dev/mautrix/telegram:v26.09";
       mediaPort = 29317;
     };
     whatsapp = {
-      image = "dock.mau.dev/mautrix/whatsapp:v26.07";
+      image = "dock.mau.dev/mautrix/whatsapp:v26.09";
       mediaPort = 29318;
     };
   };

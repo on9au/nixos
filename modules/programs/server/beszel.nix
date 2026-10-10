@@ -1,6 +1,6 @@
 {...}: {
   virtualisation.oci-containers.containers.beszel = {
-    image = "henrygd/beszel:0.18.7";
+    image = "henrygd/beszel:0.21.0";
     volumes = ["beszel_data:/beszel_data"];
     networks = ["proxy"];
     extraOptions = ["--add-host=host.docker.internal:host-gateway"];

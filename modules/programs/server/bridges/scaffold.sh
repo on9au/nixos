@@ -123,13 +123,13 @@ bridge() {
 
 M=dock.mau.dev/mautrix
 
-bridge telegram  "$M/telegram:v26.07"  29317 telegram  telegrambot  v2
-bridge whatsapp  "$M/whatsapp:v26.07"  29318 whatsapp  whatsappbot  v2
-bridge discord   "$M/discord:v0.7.6"   29334 discord   discordbot   legacy
+bridge telegram  "$M/telegram:v26.09"  29317 telegram  telegrambot  v2
+bridge whatsapp  "$M/whatsapp:v26.09"  29318 whatsapp  whatsappbot  v2
+bridge discord   "$M/discord:v0.7.7"   29334 discord   discordbot   legacy
 # Google Messages is the one bridge that cannot do direct media: RCS media has
 # no HTTP URL the bridge could hand out, and the connector refuses to start
 # ("the network connector does not support it") rather than ignoring it.
-bridge gmessages "$M/gmessages:v26.05" 29336 gmessages gmessagesbot v2 \
+bridge gmessages "$M/gmessages:v26.09" 29336 gmessages gmessagesbot v2 \
   '.direct_media.enabled = false
    | .network.aggressive_reconnect = true'
 
@@ -137,9 +137,9 @@ bridge gmessages "$M/gmessages:v26.05" 29336 gmessages gmessagesbot v2 \
 # July 2026 (ig- prefixed tags). They must not share a user namespace, hence
 # the explicit username_template on each. Note username_template lives under
 # `appservice`, not `bridge`.
-bridge messenger "$M/meta:v26.07"      29321 messenger messengerbot v2 \
+bridge messenger "$M/meta:v26.09"      29321 messenger messengerbot v2 \
   '.network.mode = "messenger" | .appservice.username_template = "messenger_{{.}}"'
-bridge instagram "$M/meta:ig-v26.07"   29322 instagram instagrambot v2 \
+bridge instagram "$M/meta:ig-v26.09"   29322 instagram instagrambot v2 \
   '.appservice.username_template = "instagram_{{.}}"'
 
 echo

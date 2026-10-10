@@ -7,7 +7,7 @@
   '';
 
   virtualisation.oci-containers.containers.forgejo-runner = {
-    image = "code.forgejo.org/forgejo/runner:12.0.0";
+    image = "code.forgejo.org/forgejo/runner:13.2.0";
 
     # Registers on first start only; the .runner file it writes is what makes
     # this idempotent. Registration tokens are single-use, so re-registering

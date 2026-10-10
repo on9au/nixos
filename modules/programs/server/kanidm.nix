@@ -2,7 +2,7 @@
   # A container, not services.kanidm: nixpkgs stops at 1.9, and kanidm refuses to
   # start on a database written by a newer version.
   virtualisation.oci-containers.containers.kanidm = {
-    image = "kanidm/server:1.11.0";
+    image = "kanidm/server:1.11.2";
     user = "1000:1000";
     volumes = [
       "kanidm_certs:/certs:ro"
