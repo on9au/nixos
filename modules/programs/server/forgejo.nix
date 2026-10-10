@@ -16,6 +16,15 @@
       USER_UID = "1000";
     };
     ports = ["2222:2222"];
+    # The entrypoint chowns /data, then s6 runs forgejo as git and has to signal it.
+    capabilities = {
+      CHOWN = true;
+      DAC_OVERRIDE = true;
+      FOWNER = true;
+      KILL = true;
+      SETGID = true;
+      SETUID = true;
+    };
     volumes = [
       "/etc/localtime:/etc/localtime:ro"
       "/etc/timezone:/etc/timezone:ro"

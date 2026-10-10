@@ -13,7 +13,8 @@ holds the macOS/Colima and Debian eras and their runbooks.
 | Service | URL | Module | Notes |
 | --- | --- | --- | --- |
 | forgejo | `git.opena0.net` | [`forgejo.nix`](../../programs/server/forgejo.nix) | git; also SSH on 2222 |
-| forgejo-runner | none | [`forgejo-runner.nix`](../../programs/server/forgejo-runner.nix) | Actions runner, jobs as sibling containers |
+| forgejo-runner | none | [`forgejo-runner.nix`](../../programs/server/forgejo-runner.nix) | Actions runner, jobs on its own rootless docker daemon |
+| socket-proxy | none | [`socket-proxy.nix`](../../programs/server/socket-proxy.nix) | read-only docker API for caddy and diun |
 | kanidm | `idm.opena0.net` | [`kanidm.nix`](../../programs/server/kanidm.nix) | identity; OIDC provider for tuwunel |
 | tuwunel | `matrix.opena0.net` | [`tuwunel/`](../../programs/server/tuwunel) | Matrix homeserver, `server_name = opena0.net` |
 | cinny | `chat.opena0.net` | [`cinny/`](../../programs/server/cinny) | Matrix web client |
@@ -43,7 +44,7 @@ either comes straight back or disappears — `backup.sh` stops them the same way
 
 Containers that Caddy routes to join the `proxy` network, created by
 `docker-network-proxy.service` with the bridge named `br-proxy`. Routing is by
-label, not a Caddyfile — caddy-docker-proxy watches the docker socket:
+label, not a Caddyfile — caddy-docker-proxy watches the docker API:
 
 ```nix
 labels = {
@@ -63,6 +64,23 @@ name resolves nowhere. `.well-known/matrix/{client,server}` is served by a
 **Cloudflare Worker on `opena0.net`**, not by this box — Matrix delegation can
 break without anything here changing, hence the Kuma monitor on it.
 
+### Hardening
+
+- **Nothing but the socket proxy mounts the docker socket.** Caddy and Diun
+  read the API through `socket-proxy`, which passes GETs for containers,
+  images, networks and info only. It sits on the `socket` network (internal,
+  joined by those three), because inspecting a container returns its
+  environment — secrets included.
+- **Containers start with no capabilities** and `no-new-privileges`
+  (`docker.nix`). An image whose entrypoint chowns and drops to a user gets
+  those capabilities back in its own module; a new service that dies at start
+  with `Operation not permitted` needs the same.
+- **sshd answers on Tailscale and the LAN only**, and Docker's published ports
+  never pass the NixOS firewall at all: 80, 443, 2222 and 7777 are open
+  whatever `networking.firewall` says.
+- **`opena0` is not in the docker group** and is not a nix trusted user; both
+  are root without the sudo password. `sudo docker …`.
+
 ### Why containers, not NixOS service modules
 
 Moving over was meant to change the host, not the services. Several couldn't
@@ -75,7 +93,7 @@ beszel, uptime-kuma and cinny do line up, and can go native one at a time.
 
 | Where | What |
 | --- | --- |
-| docker volumes | `forgejo_data`, `kanidm_data`, `kanidm_certs`, `tuwunel_db`, `uptime-kuma_data`, `beszel_data`; unbacked `caddy_caddy_data`, `caddy_caddy_config`, `diun_data` |
+| docker volumes | `forgejo_data`, `kanidm_data`, `kanidm_certs`, `tuwunel_db`, `uptime-kuma_data`, `beszel_data`; unbacked `caddy_caddy_data`, `caddy_caddy_config`, `diun_data`, `forgejo-runner_dind` |
 | `/var/lib/homelab/bridges/<bridge>/data` | each bridge's config, registration and SQLite |
 | `/var/lib/homelab/tuwunel/appservices` | appservice registrations |
 | `/var/lib/homelab/terraria/{config,worlds}` | tshock config and worlds |
@@ -429,14 +447,19 @@ the firewall opens the port on.
 
 ## Forgejo Actions runner
 
-Registered against this same forgejo, running jobs as sibling containers.
+Registered against this same forgejo. Jobs run on `forgejo-runner-dind`, a
+rootless docker daemon in its own container, not on the host's: a job that
+reaches its daemon is an unprivileged user in that container rather than root
+on the box. The two share the `runner` network and nothing else is on it.
 
-- It joins the docker group by GID. NixOS fixes that GID (131), where Colima
-  and Debian each picked their own.
-- `container.network: proxy` in `data/config.yml` — job containers otherwise
-  get a per-workflow network where `forgejo` does not resolve, so
-  `actions/checkout` cannot clone. This does put CI jobs on the same network as
-  every service.
+- The runner is registered as `https://git.opena0.net`, not `forgejo:3000`.
+  Jobs clone from the registered address, and from inside the nested daemon
+  only the public name resolves.
+- `data/config.yml` keeps `container.network: ""` (a per-workflow network
+  inside the nested daemon; `proxy` does not exist there), `docker_host: "-"`,
+  `privileged: false` and `valid_volumes: []`.
+- Images jobs pull live in the `forgejo-runner_dind` volume. It is a cache:
+  not backed up, and safe to delete with the unit stopped.
 
 A fresh registration token, only needed if `data/.runner` is lost:
 
