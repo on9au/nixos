@@ -41,4 +41,8 @@
     ];
     networks = ["proxy"];
   };
+
+  # The daemon exits if forgejo isn't listening yet, and when both restart
+  # together the default 100ms retry burns the start limit before it is.
+  systemd.services.docker-forgejo-runner.serviceConfig.RestartSec = 5;
 }
