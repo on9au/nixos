@@ -34,4 +34,12 @@
       "caddy.reverse_proxy" = "{{upstreams 6167}}";
     };
   };
+
+  # tuwunel is root with no capabilities, and the registrations are mode 0600:
+  # owned by anyone else they are unreadable, and every bridge's as_token is
+  # refused. Reapplied each boot and switch: a restore brings back uid 1000.
+  systemd.tmpfiles.settings."10-homelab"."/var/lib/homelab/tuwunel/appservices".Z = {
+    group = "root";
+    user = "root";
+  };
 }
