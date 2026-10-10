@@ -208,12 +208,14 @@ mkdir -p /mnt/etc/ssh
 tar -C /mnt/etc/ssh -xzf /home/nixos/hostkey.tgz
 chmod 600 /mnt/etc/ssh/ssh_host_ed25519_key
 nixos-install --flake /mnt/home/opena0/nixos#jia-opena0 --no-root-passwd
-nixos-enter --root /mnt -c 'passwd opena0 && chown -R opena0:users /home/opena0/nixos'
+nixos-enter --root /mnt -c 'chown -R opena0:users /home/opena0/nixos'
 reboot
 ```
 
-`passwd opena0` is the sudo password. SSH never asks for it — key auth only —
-but nothing on this box works without sudo.
+`opena0`'s sudo password is the `opena0/password_hash` secret, set on first
+boot once the host key has decrypted it; `users.mutableUsers` is off, so
+`passwd` on the box doesn't last. SSH never asks for it — key auth only — but
+nothing on this box works without sudo.
 
 The checkout has to stay at `/home/opena0/nixos`: `dotfiles.link` resolves
 against `$HOME/nixos`, and the live-linked nvim and tmux config dangle without it.
@@ -291,6 +293,7 @@ sops modules/hosts/homelab/secrets.yaml
 | `diun/discord_webhook` | Diun notifications |
 | `forgejo-runner/token` | runner registration; only read while `data/.runner` is missing |
 | `liveness/url` | heartbeat check on healthchecks.io |
+| `opena0/password_hash` | `opena0`'s login and sudo password, from `mkpasswd -m yescrypt` |
 | `tuwunel/registration_token`, `tuwunel/oidc_client_secret` | substituted into `tuwunel.toml` |
 | `uptime-kuma/username`, `uptime-kuma/password` | `setup-monitors.sh` only |
 
