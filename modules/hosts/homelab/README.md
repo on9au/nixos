@@ -74,7 +74,10 @@ break without anything here changing, hence the Kuma monitor on it.
 - **Containers start with no capabilities** and `no-new-privileges`
   (`docker.nix`). An image whose entrypoint chowns and drops to a user gets
   those capabilities back in its own module; a new service that dies at start
-  with `Operation not permitted` needs the same.
+  with `Operation not permitted` needs the same. Root without capabilities
+  can't touch another user's files either, so what tuwunel and terraria
+  bind-mount from `/var/lib/homelab` is kept root-owned by tmpfiles rules in
+  their modules.
 - **sshd answers on Tailscale and the LAN only**, and Docker's published ports
   never pass the NixOS firewall at all: 80, 443, 2222 and 7777 are open
   whatever `networking.firewall` says.
