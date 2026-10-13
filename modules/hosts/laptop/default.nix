@@ -10,6 +10,7 @@
   imports = [
     # Hardware
     ./hardware.nix
+    ../../hardware/drives/udisks.nix
     ../../hardware/firmware/fwupd.nix
     ../../hardware/gpu/intel.nix
     ../../hardware/gpu/nvidia-prime.nix

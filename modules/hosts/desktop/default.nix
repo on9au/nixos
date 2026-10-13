@@ -6,6 +6,7 @@
     ../../devices/apple-usb-c-dongle.nix
     ../../devices/aula-f87-pro.nix
     ../../hardware/drives/smart.nix
+    ../../hardware/drives/udisks.nix
     ../../hardware/gpu/graphics.nix
     ../../hardware/gpu/radeon.nix
     ../../hardware/peripherals/bluetooth.nix
