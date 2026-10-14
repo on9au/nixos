@@ -25,33 +25,33 @@
 -- Both divide 3840 evenly (3072 and 2560), which avoids fractional-scale
 -- blurring.
 --
--- The 144px y-offset on the Dell centres it vertically against the taller
--- logical height of the AOC ((1728 - 1440) / 2 = 144), so the mouse crosses
--- between screens at the height you expect.
+-- The 188px y-offset on the Dell: 144 would centre it logically
+-- ((1728 - 1440) / 2), plus 44px (~1cm at ~44px/cm) because the Dell
+-- physically sits ~1cm below centre on the desk.
 --
 -- To identify outputs after a cable change:  hyprctl monitors all
 
 -- Catch-all first: any output not named below gets sane defaults, so
 -- plugging in a random display still lights it up.
 hl.monitor({
-    output   = "",
-    mode     = "preferred",
-    position = "auto",
-    scale    = "auto",
+	output = "",
+	mode = "preferred",
+	position = "auto",
+	scale = "auto",
 })
 
 -- AOC U32G4 -- 32" 4K 160Hz, left, primary
 hl.monitor({
-    output   = "DP-2",
-    mode     = "3840x2160@160",
-    position = "0x0",
-    scale    = 1.25,
+	output = "DP-2",
+	mode = "3840x2160@160",
+	position = "0x0",
+	scale = 1.25,
 })
 
 -- Dell U2725QE -- 27" 4K 120Hz, right
 hl.monitor({
-    output   = "DP-1",
-    mode     = "3840x2160@120",
-    position = "3072x144",
-    scale    = 1.5,
+	output = "DP-1",
+	mode = "3840x2160@120",
+	position = "3072x188",
+	scale = 1.5,
 })
