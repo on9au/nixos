@@ -2,7 +2,6 @@
   environment.systemPackages = with pkgs; [
     godot-mono # game dev with C#
     krita # drawing and painting, with the tablet
-    logisim-evolution # digital logic circuit simulation
     reaper # audio recording and mixing
     uxplay # AirPlay receiver for mirroring an Apple device; run as `uxplay -p`
   ];
