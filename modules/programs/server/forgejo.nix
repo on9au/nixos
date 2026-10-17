@@ -35,6 +35,9 @@
       FORGEJO__server__SSH_LISTEN_PORT = "2222";
       FORGEJO__server__SSH_PORT = "22";
       FORGEJO__server__START_SSH_SERVER = "true";
+      # Kanidm is the only web login: hides the password form and refuses its POST.
+      # Git over SSH and access tokens are unaffected.
+      FORGEJO__service__ENABLE_INTERNAL_SIGNIN = "false";
       USER_GID = "1000";
       USER_UID = "1000";
     };
