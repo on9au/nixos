@@ -9,7 +9,6 @@
     owner = "kanidm";
     restartUnits = ["kanidm.service"];
   };
-  sops.secrets."tuwunel/registration_token" = {};
 
   services.kanidm.provision = {
     groups.tuwunel_admins = {};
@@ -37,10 +36,9 @@
   sops.templates."tuwunel.toml" = {
     content =
       lib.replaceStrings
-      ["@OIDC_CLIENT_SECRET@" "@REGISTRATION_TOKEN@"]
+      ["@OIDC_CLIENT_SECRET@"]
       [
         config.sops.placeholder."tuwunel/oidc_client_secret"
-        config.sops.placeholder."tuwunel/registration_token"
       ]
       (builtins.readFile ./tuwunel.toml);
     # The file is bind-mounted, so an edit only reaches tuwunel through a restart.

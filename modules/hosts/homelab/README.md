@@ -306,7 +306,7 @@ sops modules/hosts/homelab/secrets.yaml
 | `open-webui/deepseek_api_key`, `open-webui/oidc_client_secret` | DeepSeek, and the `open-webui` client in Kanidm |
 | `open-webui/secret_key` | open-webui session signing; `openssl rand -hex 32` |
 | `opena0/password_hash` | `opena0`'s login and sudo password, from `mkpasswd -m yescrypt` |
-| `tuwunel/registration_token`, `tuwunel/oidc_client_secret` | substituted into `tuwunel.toml` |
+| `tuwunel/oidc_client_secret` | substituted into `tuwunel.toml`, and the `tuwunel` client in Kanidm |
 | `uptime-kuma/username`, `uptime-kuma/password` | `setup-monitors.sh` only |
 
 Every key has to exist before the host builds: sops-nix checks the file against

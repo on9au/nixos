@@ -9,8 +9,10 @@ address = ["0.0.0.0", "::"]
 port = 6167
 max_request_size = 25165824 # 24 MiB
 
-allow_registration = true
-registration_token = "@REGISTRATION_TOKEN@"
+# Kanidm is the only way in, and its identity_provider below creates the
+# accounts; appservices register their users regardless.
+login_with_password = false
+
 allow_federation = true
 trusted_servers = ["matrix.org"]
 single_sso = true
