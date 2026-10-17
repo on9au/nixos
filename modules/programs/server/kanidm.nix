@@ -5,8 +5,15 @@
 }: let
   tls = "/var/lib/kanidm-tls";
 in {
-  sops.secrets."kanidm/group_members".owner = "kanidm";
-  sops.secrets."kanidm/idm_admin_password".owner = "kanidm";
+  # Provisioning runs when kanidm starts, so a changed secret restarts it.
+  sops.secrets."kanidm/group_members" = {
+    owner = "kanidm";
+    restartUnits = ["kanidm.service"];
+  };
+  sops.secrets."kanidm/idm_admin_password" = {
+    owner = "kanidm";
+    restartUnits = ["kanidm.service"];
+  };
 
   services.kanidm = {
     # The secret-provisioning patches let basicSecretFile and the idm_admin
@@ -29,7 +36,8 @@ in {
 
     # Each service module declares its own groups and oauth2 client. Members,
     # and any persons, are in the kanidm/group_members secret so the public
-    # repo doesn't list who has access: {"groups": {"<group>": {"members": ["<user>"]}}}.
+    # repo doesn't list who has access. It's YAML (groups.<group>.members),
+    # which yq merges into the JSON state.
     provision = {
       enable = true;
       extraJsonFile = config.sops.secrets."kanidm/group_members".path;

@@ -1,7 +1,10 @@
 {config, ...}: {
   sops.secrets."open-webui/deepseek_api_key" = {};
   # kanidm-provision reads it to set the client's secret.
-  sops.secrets."open-webui/oidc_client_secret".owner = "kanidm";
+  sops.secrets."open-webui/oidc_client_secret" = {
+    owner = "kanidm";
+    restartUnits = ["kanidm.service"];
+  };
   sops.secrets."open-webui/secret_key" = {};
 
   services.kanidm.provision = {

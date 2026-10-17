@@ -1,4 +1,19 @@
 {config, ...}: {
+  # No basicSecretFile: the client secret lives in forgejo's own database, as
+  # the "kanidm" authentication source, and provisioning leaves it alone.
+  services.kanidm.provision = {
+    groups.forgejo_admins = {};
+    groups.forgejo_users = {};
+    systems.oauth2.forgejo = {
+      displayName = "Forgejo";
+      originLanding = "https://git.opena0.net/";
+      originUrl = "https://git.opena0.net/user/oauth2/kanidm/callback";
+      preferShortUsername = true;
+      scopeMaps.forgejo_admins = ["email" "groups" "groups_name" "openid" "profile"];
+      scopeMaps.forgejo_users = ["email" "groups" "groups_name" "openid" "profile"];
+    };
+  };
+
   virtualisation.oci-containers.containers.forgejo = {
     image = "codeberg.org/forgejo/forgejo:16.0.5";
     environment = {

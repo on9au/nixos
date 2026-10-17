@@ -15,7 +15,7 @@ holds the macOS/Colima and Debian eras and their runbooks.
 | forgejo | `git.opena0.net` | [`forgejo.nix`](../../programs/server/forgejo.nix) | git; also SSH on 2222 |
 | forgejo-runner | none | [`forgejo-runner.nix`](../../programs/server/forgejo-runner.nix) | Actions runner, jobs on its own rootless docker daemon |
 | socket-proxy | none | [`socket-proxy.nix`](../../programs/server/socket-proxy.nix) | read-only docker API for caddy and diun |
-| kanidm | `idm.opena0.net` | [`kanidm.nix`](../../programs/server/kanidm.nix) | identity; OIDC provider for tuwunel and open-webui. A NixOS service, not a container: see [Kanidm](#kanidm) |
+| kanidm | `idm.opena0.net` | [`kanidm.nix`](../../programs/server/kanidm.nix) | identity; OIDC provider for tuwunel, forgejo and open-webui. A NixOS service, not a container: see [Kanidm](#kanidm) |
 | tuwunel | `matrix.opena0.net` | [`tuwunel/`](../../programs/server/tuwunel) | Matrix homeserver, `server_name = opena0.net` |
 | cinny | `chat.opena0.net` | [`cinny/`](../../programs/server/cinny) | Matrix web client |
 | open-webui | `ai.opena0.net` | [`open-webui.nix`](../../programs/server/open-webui.nix) | chat client for the DeepSeek API; Kanidm login only |
@@ -154,21 +154,10 @@ The Debian box is replaced in place. Downtime is the install plus a restore.
      | grep -v -e registration_token -e client_secret"
    ```
 
-3. **Check Kanidm's domain.** Kanidm moves from a container to
-   `services.kanidm` ([below](#kanidm)), with `domain = "idm.opena0.net"` in
-   `kanidm.nix`. Compare it with the live one:
-
-   ```
-   ssh jia 'sudo docker exec kanidm cat /data/server.toml'
-   ```
-
-   If they differ, change `kanidm.nix` to the live value. A mismatch makes the
-   first start rename the domain, and every passkey stops working.
-
-4. **Verify the restic password** from Bitwarden: `ssh jia ~/homelab/backup/backup.sh check`.
+3. **Verify the restic password** from Bitwarden: `ssh jia ~/homelab/backup/backup.sh check`.
    Losing it makes every snapshot unreadable — the one unrecoverable failure.
 
-5. **Copy the SSH host key off.** `.sops.yaml` already lists this key as the
+4. **Copy the SSH host key off.** `.sops.yaml` already lists this key as the
    host's recipient, so carrying it over means secrets decrypt on first boot,
    and nothing's `known_hosts` changes:
 
@@ -179,14 +168,14 @@ The Debian box is replaced in place. Downtime is the install plus a restore.
 
    It's a private key: keep it off anything synced, and delete it after the install.
 
-6. **Take the final backup and freeze the box**, so nothing is written after
+5. **Take the final backup and freeze the box**, so nothing is written after
    the snapshot:
 
    ```
    ssh -t jia '~/homelab/backup/backup.sh && sudo systemctl disable --now docker.socket docker.service'
    ```
 
-7. **Delete the `jia-opena0` node** in the Tailscale admin console. Otherwise
+6. **Delete the `jia-opena0` node** in the Tailscale admin console. Otherwise
    the new install joins as `jia-opena0-1` and the `jia` block in
    [`programs/tools/ssh`](../../programs/tools/ssh/home.nix) points at nothing.
 
@@ -251,30 +240,23 @@ the last Debian snapshot:
 ```
 sudo docker run --rm --env-file /run/secrets/rendered/restic.env \
   -v forgejo_data:/data/forgejo_data \
-  -v /var/lib/kanidm-restore:/data/kanidm_data \
+  -v kanidm_data:/data/kanidm_data \
+  -v kanidm_certs:/data/kanidm_certs \
   -v tuwunel_db:/data/tuwunel_db \
   -v uptime-kuma_data:/data/uptime-kuma_data \
   -v beszel_data:/data/beszel_data \
   -v /var/lib/homelab:/data/homelab \
   restic/restic restore latest --host jia --target / \
     --include /data/forgejo_data --include /data/kanidm_data \
-    --include /data/tuwunel_db \
+    --include /data/kanidm_certs --include /data/tuwunel_db \
     --include /data/uptime-kuma_data --include /data/beszel_data \
     --include /data/homelab/bridges \
     --include /data/homelab/forgejo-runner/data \
     --include /data/homelab/terraria \
     --include /data/homelab/tuwunel/appservices
-sudo install -d -m 0700 -o kanidm -g kanidm /var/lib/kanidm
-sudo sh -c 'mv /var/lib/kanidm-restore/kanidm.db* /var/lib/kanidm/ && chown kanidm:kanidm /var/lib/kanidm/*'
-sudo rm -r /var/lib/kanidm-restore
 sudo touch /var/lib/homelab/.restored
 sudo reboot
 ```
-
-Kanidm was a container on Debian, so its volume is restored to a staging
-directory and only the database moves to `/var/lib/kanidm`. The old
-`kanidm_certs` stay behind: `kanidm-tls.service` makes a new self-signed
-certificate.
 
 Only the data directories come back; the old tree's compose files, scripts and
 `.env` secrets stay in the snapshot. `tuwunel_db` carries the **federation
@@ -317,11 +299,11 @@ sops modules/hosts/homelab/secrets.yaml
 | `caddy/acme_email` | Let's Encrypt account |
 | `diun/discord_webhook` | Diun notifications |
 | `forgejo-runner/token` | runner registration; only read while `data/.runner` is missing |
-| `kanidm/group_members` | who is in each provisioned group, as JSON; see [Kanidm](#kanidm) |
+| `kanidm/group_members` | who is in each provisioned group, as a YAML block; see [Kanidm](#kanidm) |
 | `kanidm/idm_admin_password` | `idm_admin`, reset to this on every start |
 | `liveness/url` | heartbeat check on healthchecks.io |
 | `open-webui/deepseek_api_key`, `open-webui/oidc_client_secret` | DeepSeek, and the `open-webui` client in Kanidm |
-| `open-webui/secret_key` | open-webui session signing; `openssl rand -base64 32` |
+| `open-webui/secret_key` | open-webui session signing; `openssl rand -hex 32` |
 | `opena0/password_hash` | `opena0`'s login and sudo password, from `mkpasswd -m yescrypt` |
 | `tuwunel/registration_token`, `tuwunel/oidc_client_secret` | substituted into `tuwunel.toml` |
 | `uptime-kuma/username`, `uptime-kuma/password` | `setup-monitors.sh` only |
@@ -355,25 +337,31 @@ clients match what the modules declare under `services.kanidm.provision`.
   is copied out of Kanidm.
 - **Members live in `kanidm/group_members`**, deep-merged into the declared
   state, so the public repo doesn't say who has access. In `secrets.yaml` it is
-  a JSON string:
+  a block string of YAML, which yq merges into the JSON state:
 
-  ```json
-  {"groups": {"open-webui_users": {"members": ["djpro"]}}}
+  ```yaml
+  kanidm:
+      group_members: |
+          groups:
+            open-webui_users:
+              members: [djpro]
   ```
 
   Members added by hand to a provisioned group are dropped on the next start.
-  Persons can go in the same JSON (`"persons": {"<name>": {"displayName": "…",
-  "mailAddresses": ["…"]}}`); their credentials can't, so a new person still
+  Persons can go in the same block (`persons: {<name>: {displayName: …,
+  mailAddresses: […]}}`); their credentials can't, so a new person still
   needs `kanidm person credential create-reset-token <name>`.
 - **Removing a group or client from Nix deletes it from Kanidm**, but only if
   provisioning created it (tracked in the `ext_idm_provisioned_entities`
   group). Anything made by hand is left alone.
-- **Settings a client doesn't declare are reset to their defaults.** That is
-  why tuwunel's client, made by hand, isn't declared yet: a wrong
-  `preferShortUsername` would give every Matrix user a new ID. To bring it in,
-  read its settings with `kanidm system oauth2 get tuwunel`, declare them in
-  `tuwunel/default.nix` with `basicSecretFile` pointing at
-  `tuwunel/oidc_client_secret`, switch, and compare `get` again.
+- **Settings a client doesn't declare are reset to their defaults.** The
+  tuwunel and forgejo clients were made by hand and are declared to match
+  what was live; on tuwunel, a wrong `preferShortUsername` would give every
+  Matrix user a new ID. Without `basicSecretFile` a client's secret is left
+  alone, which is how forgejo keeps the one stored in its own database.
+- **Clients and groups nothing declares are left as they are**: the old
+  `matrix` (Synapse) and `nyanet-*` clients, and the unused groups. Delete
+  them by hand if they're dead.
 
 Anything else is done by hand on jia: `kanidm login -D idm_admin`, with the
 password from `sudo cat /run/secrets/kanidm/idm_admin_password`.
@@ -387,6 +375,31 @@ verify.
 Kanidm upgrades one minor version at a time: 1.11 → 1.12 is a package bump to
 `kanidmWithSecretProvisioning_1_12` once nixpkgs has it, after reading the
 release notes. Diun doesn't watch it.
+
+### Moving from the container (once)
+
+Kanidm was the `kanidm` container until this module replaced it. The first
+switch to it needs the database copied out of the volume beforehand; copied,
+not moved, so a rollback brings the container back on its untouched volume:
+
+```
+sudo ls /var/lib/docker/volumes/kanidm_data/_data         # kanidm.db, server.toml
+sudo grep domain /var/lib/docker/volumes/kanidm_data/_data/server.toml
+sudo systemctl stop docker-kanidm
+sudo install -d -m 0700 /var/lib/kanidm
+sudo sh -c 'cp -a /var/lib/docker/volumes/kanidm_data/_data/kanidm.db* /var/lib/kanidm/'
+nh os switch
+```
+
+`domain` has to match `kanidm.nix`. A mismatch makes the first start rename
+the domain, and every passkey stops working. The `kanidm` user only exists
+after the switch; `StateDirectory` hands `/var/lib/kanidm` to it on start.
+Once a nightly backup has run, the old volumes can go:
+`sudo docker volume rm kanidm_data kanidm_certs`.
+
+The [install](#install-reinstalling-from-debian) restore predates this and
+restores `kanidm_data`. A restore from a later snapshot takes `/data/kanidm`
+into `/var/lib/kanidm` instead.
 
 ## Matrix bridges
 

@@ -3,8 +3,29 @@
   lib,
   ...
 }: {
-  sops.secrets."tuwunel/oidc_client_secret" = {};
+  # kanidm-provision reads it to set the client's secret.
+  sops.secrets."tuwunel/oidc_client_secret" = {
+    owner = "kanidm";
+    restartUnits = ["kanidm.service"];
+  };
   sops.secrets."tuwunel/registration_token" = {};
+
+  services.kanidm.provision = {
+    groups.tuwunel_admins = {};
+    groups.tuwunel_users = {};
+    systems.oauth2.tuwunel = {
+      basicSecretFile = config.sops.secrets."tuwunel/oidc_client_secret".path;
+      displayName = "Tuwunel";
+      originLanding = "https://matrix.opena0.net/";
+      originUrl = "https://matrix.opena0.net/_matrix/client/unstable/login/sso/callback/tuwunel";
+      # userid_claims in tuwunel.toml takes preferred_username first: turning
+      # this off would give every Matrix user a new ID.
+      preferShortUsername = true;
+      scopeMaps.tuwunel_admins = ["email" "openid" "profile"];
+      scopeMaps.tuwunel_users = ["email" "openid" "profile"];
+      supplementaryScopeMaps.tuwunel_admins = ["admin"];
+    };
+  };
 
   sops.templates."tuwunel.toml" = {
     content =
