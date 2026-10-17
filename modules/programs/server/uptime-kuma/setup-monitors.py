@@ -15,6 +15,7 @@ MONITORS = [
     dict(type=MonitorType.HTTP, name="forgejo (git)", url="https://git.opena0.net"),
     dict(type=MonitorType.HTTP, name="kanidm (idm)", url="https://idm.opena0.net"),
     dict(type=MonitorType.HTTP, name="cinny (chat)", url="https://chat.opena0.net"),
+    dict(type=MonitorType.HTTP, name="open-webui (ai)", url="https://ai.opena0.net/health"),
 
     # Keyword rather than status code: tuwunel can return 200 while being
     # useless, and this is the endpoint every Matrix client calls first.

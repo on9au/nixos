@@ -118,3 +118,9 @@ Exceptions, read with `builtins.readFile` and so needing a rebuild:
 - Homelab services are `virtualisation.oci-containers` units: stop and restart
   them with `systemctl … docker-<name>`, never `docker stop`. None start until
   `/var/lib/homelab/.restored` exists.
+  Kanidm is the exception, `services.kanidm` (`kanidm.service`); a service's
+  OIDC client and group go in its own module under `services.kanidm.provision`,
+  and group members only in the `kanidm/group_members` secret.
+- The repo is public. `.githooks/pre-commit` runs gitleaks on staged changes
+  (git uses it through an `includeIf` in `programs/tools/git/home.nix`); a
+  false positive goes in `.gitleaks.toml`.

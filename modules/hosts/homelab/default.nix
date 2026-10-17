@@ -40,6 +40,7 @@
     ../../programs/server/forgejo.nix
     ../../programs/server/kanidm.nix
     ../../programs/server/liveness.nix
+    ../../programs/server/open-webui.nix
     ../../programs/server/socket-proxy.nix
     ../../programs/server/syncthing.nix
     ../../programs/server/terraria.nix

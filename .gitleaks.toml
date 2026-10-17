@@ -1,0 +1,6 @@
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "SSH key file names in the ssh-agent docs, not keys"
+regexes = ['''id_ed25519_sk_\w+''']

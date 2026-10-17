@@ -1,0 +1,4 @@
+#!/bin/sh
+# Refuses a commit whose staged changes look like a secret. A false positive
+# goes in .gitleaks.toml; `git commit --no-verify` skips the check once.
+exec gitleaks git --pre-commit --staged --redact --no-banner --verbose .
