@@ -1,4 +1,8 @@
-{config, ...}: {
+{
+  config,
+  pkgs,
+  ...
+}: {
   sops.secrets."open-webui/deepseek_api_key" = {};
   # kanidm-provision reads it to set the client's secret.
   sops.secrets."open-webui/oidc_client_secret" = {
@@ -12,6 +16,11 @@
     systems.oauth2.open-webui = {
       basicSecretFile = config.sops.secrets."open-webui/oidc_client_secret".path;
       displayName = "Open WebUI";
+      # Kanidm takes PNG, JPEG, GIF, SVG or WebP, up to 1024x1024 and 256 KiB.
+      imageFile = pkgs.fetchurl {
+        url = "https://raw.githubusercontent.com/open-webui/open-webui/v0.12.3/static/favicon.png";
+        hash = "sha256-Vpij45UT57YwTslsMJNzqzrw9w/nlCk0Yd45WpTeqmU=";
+      };
       originLanding = "https://ai.opena0.net";
       # Must match OPENID_REDIRECT_URI below.
       originUrl = "https://ai.opena0.net/oauth/oidc/callback";

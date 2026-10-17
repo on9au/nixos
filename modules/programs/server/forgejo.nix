@@ -1,4 +1,8 @@
-{config, ...}: {
+{
+  config,
+  pkgs,
+  ...
+}: {
   # No basicSecretFile: the client secret lives in forgejo's own database, as
   # the "kanidm" authentication source, and provisioning leaves it alone.
   services.kanidm.provision = {
@@ -6,6 +10,10 @@
     groups.forgejo_users = {};
     systems.oauth2.forgejo = {
       displayName = "Forgejo";
+      imageFile = pkgs.fetchurl {
+        url = "https://codeberg.org/forgejo/forgejo/raw/tag/v16.0.5/public/assets/img/logo.svg";
+        hash = "sha256-mXvqG5TJtApPWdRbEnEZpRs2Ttt9nWiQRdSpeHZznok=";
+      };
       originLanding = "https://git.opena0.net/";
       originUrl = "https://git.opena0.net/user/oauth2/kanidm/callback";
       preferShortUsername = true;

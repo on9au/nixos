@@ -359,6 +359,10 @@ clients match what the modules declare under `services.kanidm.provision`.
   what was live; on tuwunel, a wrong `preferShortUsername` would give every
   Matrix user a new ID. Without `basicSecretFile` a client's secret is left
   alone, which is how forgejo keeps the one stored in its own database.
+- **A client's icon** on Kanidm's apps page is its `imageFile`: either the
+  upstream logo through `pkgs.fetchurl`, pinned by hash as `open-webui.nix`
+  does, or a file next to the module (`./icon.svg`). It's uploaded again on
+  every start.
 - **Clients and groups nothing declares are left as they are**: the old
   `matrix` (Synapse) and `nyanet-*` clients, and the unused groups. Delete
   them by hand if they're dead.

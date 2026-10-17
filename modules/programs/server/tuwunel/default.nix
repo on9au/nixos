@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }: {
   # kanidm-provision reads it to set the client's secret.
@@ -16,6 +17,12 @@
     systems.oauth2.tuwunel = {
       basicSecretFile = config.sops.secrets."tuwunel/oidc_client_secret".path;
       displayName = "Tuwunel";
+      # tuwunel has no logo of its own. matrix.org's favicon rather than its
+      # branding icon, which is plain black and vanishes on a dark page.
+      imageFile = pkgs.fetchurl {
+        url = "https://raw.githubusercontent.com/matrix-org/matrix.org/44f13b22050ecedeff65493af7bc0447669cc164/static/assets/favicon.svg";
+        hash = "sha256-s2aBHsPuRsT4PCyVxIYvvrwqkyLQvlDNNPU7lAh13lY=";
+      };
       originLanding = "https://matrix.opena0.net/";
       originUrl = "https://matrix.opena0.net/_matrix/client/unstable/login/sso/callback/tuwunel";
       # userid_claims in tuwunel.toml takes preferred_username first: turning
