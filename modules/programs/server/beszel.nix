@@ -27,8 +27,12 @@
 
   virtualisation.oci-containers.containers.beszel = {
     image = "henrygd/beszel:0.21.0";
-    # Kanidm's beszel_users decides who gets in, so a first login makes the account.
-    environment.USER_CREATION = "true";
+    # Kanidm's beszel_users decides who gets in, so a first login makes the
+    # account. PocketBase superusers (/_/) keep their password login.
+    environment = {
+      DISABLE_PASSWORD_AUTH = "true";
+      USER_CREATION = "true";
+    };
     volumes = ["beszel_data:/beszel_data"];
     networks = ["proxy"];
     extraOptions = ["--add-host=host.docker.internal:host-gateway"];
