@@ -15,13 +15,13 @@ holds the macOS/Colima and Debian eras and their runbooks.
 | forgejo | `git.opena0.net` | [`forgejo.nix`](../../programs/server/forgejo.nix) | git; also SSH on 2222 |
 | forgejo-runner | none | [`forgejo-runner.nix`](../../programs/server/forgejo-runner.nix) | Actions runner, jobs on its own rootless docker daemon |
 | socket-proxy | none | [`socket-proxy.nix`](../../programs/server/socket-proxy.nix) | read-only docker API for caddy and diun |
-| kanidm | `idm.opena0.net` | [`kanidm.nix`](../../programs/server/kanidm.nix) | identity; OIDC provider for tuwunel, forgejo and open-webui. A NixOS service, not a container: see [Kanidm](#kanidm) |
+| kanidm | `idm.opena0.net` | [`kanidm.nix`](../../programs/server/kanidm.nix) | identity; OIDC provider for tuwunel, forgejo, open-webui and beszel. A NixOS service, not a container: see [Kanidm](#kanidm) |
 | tuwunel | `matrix.opena0.net` | [`tuwunel/`](../../programs/server/tuwunel) | Matrix homeserver, `server_name = opena0.net` |
 | cinny | `chat.opena0.net` | [`cinny/`](../../programs/server/cinny) | Matrix web client |
 | open-webui | `ai.opena0.net` | [`open-webui.nix`](../../programs/server/open-webui.nix) | chat client for the DeepSeek API; Kanidm login only |
 | bridges | `<bridge>-media.opena0.net` | [`bridges/`](../../programs/server/bridges) | six mautrix bridges, see below |
 | uptime-kuma | `status.opena0.net` | [`uptime-kuma/`](../../programs/server/uptime-kuma) | monitoring, alerts to Discord |
-| beszel | `metrics.opena0.net` | [`beszel.nix`](../../programs/server/beszel.nix) | resource metrics; the agent runs on the host |
+| beszel | `metrics.opena0.net` | [`beszel.nix`](../../programs/server/beszel.nix) | resource metrics; the agent runs on the host. Kanidm login, set up in PocketBase (see [Kanidm](#kanidm)) |
 | diun | none | [`diun.nix`](../../programs/server/diun.nix) | image-update notifications |
 | terraria | port 7777 | [`terraria.nix`](../../programs/server/terraria.nix) | tshock; not behind Caddy |
 | whoami | `whoami.jia.opena0.net` | [`whoami.nix`](../../programs/server/whoami.nix) | reachability canary |
@@ -295,6 +295,7 @@ sops modules/hosts/homelab/secrets.yaml
 | `backup/restic_repository`, `backup/restic_password` | restic; the password also lives in Bitwarden |
 | `backup/aws_access_key_id`, `backup/aws_secret_access_key` | R2 |
 | `backup/healthcheck_url` | backup check on healthchecks.io |
+| `beszel/oidc_client_secret` | the `beszel` client in Kanidm; also pasted into PocketBase's OIDC provider |
 | `caddy/cloudflare_api_token` | ACME DNS-01 (DNS:Edit) |
 | `caddy/acme_email` | Let's Encrypt account |
 | `diun/discord_webhook` | Diun notifications |
@@ -359,6 +360,15 @@ clients match what the modules declare under `services.kanidm.provision`.
   what was live; on tuwunel, a wrong `preferShortUsername` would give every
   Matrix user a new ID. Without `basicSecretFile` a client's secret is left
   alone, which is how forgejo keeps the one stored in its own database.
+- **Beszel's side lives in PocketBase**, set once at
+  `https://metrics.opena0.net/_/`: turn off "Hide collection create and edit
+  controls" in settings, then the `users` collection → Options → OAuth2 →
+  OpenID Connect. Client ID `beszel`, the secret from
+  `beszel/oidc_client_secret`, auth URL `https://idm.opena0.net/ui/oauth2`,
+  token URL `https://idm.opena0.net/oauth2/token`, user info URL
+  `https://idm.opena0.net/oauth2/openid/beszel/userinfo`, PKCE on. Turn the
+  switch back on afterwards. An existing Beszel user is matched by email, and
+  `USER_CREATION` makes accounts for anyone else in `beszel_users`.
 - **A client's icon** on Kanidm's apps page is its `imageFile`: either the
   upstream logo through `pkgs.fetchurl`, pinned by hash as `open-webui.nix`
   does, or a file next to the module (`./icon.svg`). It's uploaded again on

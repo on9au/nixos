@@ -1,6 +1,34 @@
-{...}: {
+{
+  config,
+  pkgs,
+  ...
+}: {
+  # kanidm-provision reads it to set the client's secret. Beszel keeps its own
+  # copy, entered once in PocketBase's admin UI.
+  sops.secrets."beszel/oidc_client_secret" = {
+    owner = "kanidm";
+    restartUnits = ["kanidm.service"];
+  };
+
+  services.kanidm.provision = {
+    groups.beszel_users = {};
+    systems.oauth2.beszel = {
+      basicSecretFile = config.sops.secrets."beszel/oidc_client_secret".path;
+      displayName = "Beszel";
+      imageFile = pkgs.fetchurl {
+        url = "https://raw.githubusercontent.com/henrygd/beszel/v0.21.0/internal/site/public/static/icon.svg";
+        hash = "sha256-oJD3AvKaxN2EVnrxwRnMaDP4rZYFlEk/dWX2RYkGtNM=";
+      };
+      originLanding = "https://metrics.opena0.net/";
+      originUrl = "https://metrics.opena0.net/api/oauth2-redirect";
+      scopeMaps.beszel_users = ["email" "openid" "profile"];
+    };
+  };
+
   virtualisation.oci-containers.containers.beszel = {
     image = "henrygd/beszel:0.21.0";
+    # Kanidm's beszel_users decides who gets in, so a first login makes the account.
+    environment.USER_CREATION = "true";
     volumes = ["beszel_data:/beszel_data"];
     networks = ["proxy"];
     extraOptions = ["--add-host=host.docker.internal:host-gateway"];
