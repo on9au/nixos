@@ -551,6 +551,7 @@ with `-v /var/lib/kanidm:/data/kanidm`.
 | Layer | Watcher | Catches |
 |---|---|---|
 | services | Uptime Kuma → Discord | a service down while the box is up |
+| the proxy VPS | Uptime Kuma, by `jia.opena0.net` (whoami, 22, 7777) | the proxy, its Tailscale leg or the exit node down |
 | backups | healthchecks.io | backup failed or never ran |
 | the box | healthchecks.io (5 min heartbeat) | jia dark, or the network gone |
 | resources | Beszel | usage over time |

@@ -27,11 +27,19 @@ MONITORS = [
     dict(type=MonitorType.KEYWORD, name="matrix delegation (.well-known)",
          url="https://opena0.net/.well-known/matrix/client", keyword="matrix.opena0.net"),
 
-    # Game traffic never goes through Caddy. terraria is not on the proxy
-    # network, so it is checked via the host's published port instead -- which
-    # is the path players actually take. Not the LAN IP: that has renumbered before.
+    # The proxy VPS's own paths, by the grey-clouded name, so Cloudflare can't
+    # mask a dead proxy. From in here they leave through the exit node, reach
+    # the VPS's public address and come back over Tailscale: haproxy, the
+    # Tailscale leg and the PROXY header to Caddy all have to work.
+    dict(type=MonitorType.HTTP, name="proxy (whoami canary)",
+         url="https://whoami.jia.opena0.net"),
+    dict(type=MonitorType.PORT, name="forgejo ssh (via proxy)",
+         hostname="jia.opena0.net", port=22),
+
+    # Game traffic never goes through Caddy; players reach tshock through the
+    # proxy VPS, so that is the path checked.
     dict(type=MonitorType.PORT, name="terraria (tshock)",
-         hostname="host.docker.internal", port=7777),
+         hostname="jia.opena0.net", port=7777),
 
     # Beszel: the hub through Caddy, and the agent as a raw port. The agent runs
     # on the host, not in a container, so from in here it is reachable via

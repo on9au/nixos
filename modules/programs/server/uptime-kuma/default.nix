@@ -12,7 +12,7 @@
     image = "louislam/uptime-kuma:2.5.6";
     volumes = ["uptime-kuma_data:/app/data"];
     networks = ["proxy"];
-    # For the terraria and beszel-agent monitors, which check ports on the host.
+    # For the beszel-agent monitor, which checks a port on the host.
     extraOptions = ["--add-host=host.docker.internal:host-gateway"];
     labels = {
       caddy = "status.opena0.net";
