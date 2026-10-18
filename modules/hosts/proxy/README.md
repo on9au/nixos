@@ -1,25 +1,40 @@
 # proxy-jia-opena0 (proxy VPS)
 
 A VPS to sit in front of [`jia-opena0`](../homelab) over Tailscale, planned as a
-Vultr High Frequency instance. Not deployed yet: the host config is ready to
-install, but no reverse proxy is configured.
+Vultr High Performance AMD instance in Melbourne (`vhp-1c-1gb-amd`). Not
+deployed yet: the host config is ready to install, but no reverse proxy is
+configured.
 
 Same shape as the homelab: headless, `users/opena0`,
 [`network-server.nix`](../../system/network-server.nix), sshd and Tailscale.
 Differences below.
 
+## Hosting
+
+- **Melbourne**, the same city as jia. From a Telstra connection, Vultr and
+  BinaryLane Melbourne both answer in about 4 ms. Vultr takes Telstra domestic
+  transit directly (a `twi…lnk.telstra.net` hop). BinaryLane is reached
+  through Superloop, which is also its only IPv6 upstream. Telstra barely
+  peers, so the direct link is the one that matters.
+- **High Performance, not High Frequency**: same $6 for 1 GB, but 2 TB of
+  transfer rather than 1 TB. Every byte jia serves passes through this box,
+  and forwarding it needs no CPU clock.
+- **1 GB**, which rules out nixos-anywhere's kexec step (it needs 1.5 GB), so
+  the install boots the NixOS ISO instead. Vultr resizes plans up but never
+  down, so taking 2 GB just for the install would mean paying for it for good.
+
 ## Install: nixos-anywhere and disko
 
-There is no installer ISO. The VPS is deployed with a stock Debian image, and
-[nixos-anywhere](https://github.com/nix-community/nixos-anywhere) replaces it
-over SSH: it kexecs into a NixOS installer running in RAM, partitions the disk
-with [disko](https://github.com/nix-community/disko), installs this flake's
-output and reboots. Redeploying the box is the same command again.
+The VPS boots the NixOS minimal ISO from Vultr's *Custom ISO* option, and
+[nixos-anywhere](https://github.com/nix-community/nixos-anywhere) installs over
+SSH to that live system: it partitions the disk with
+[disko](https://github.com/nix-community/disko) and installs this flake's
+output. Redeploying the box is the same steps again.
 
 ### Host config
 
 - [`disko.nix`](disko.nix) partitions `/dev/vda` (check with `lsblk` on the
-  Debian image): a BIOS boot partition *and* an ESP, so the same layout boots
+  live ISO): a BIOS boot partition *and* an ESP, so the same layout boots
   whether the instance comes up in BIOS or UEFI. disko provides `fileSystems`
   and `boot.loader.grub.devices`.
 - [`hardware.nix`](hardware.nix) is written by hand, not generated: a KVM guest
@@ -55,38 +70,52 @@ install.
 
 ### Deploy
 
-1. **Create the instance** in Vultr: High Frequency, Debian, IPv6 on, and your
-   SSH key added under *SSH Keys*. The installer runs from RAM, so pick a plan
-   with at least 2 GB. If Vultr won't take the `sk-ssh-ed25519` key, log in as
-   root from the web console and append it to `/root/.ssh/authorized_keys`.
+1. **Add the ISO, then create the instance.** Vultr's ISO library has no
+   NixOS, so add it under *Products → ISOs → Add ISO* from a remote URL.
+   `https://channels.nixos.org/nixos-unstable/latest-nixos-minimal-x86_64-linux.iso`
+   redirects to a dated file on `releases.nixos.org`, so give Vultr the URL it
+   redirects to (`curl -sI` shows it). The ISO's release doesn't matter,
+   because the installed system comes from the flake. Then create the instance:
+   Cloud Compute → High Performance → AMD, Melbourne, `vhp-1c-1gb-amd`,
+   IPv6 on, with that ISO as the image.
 
-2. **Check root SSH** works: `ssh root@<ip> lsblk` — and confirm the disk
-   name matches `disko.nix`.
+2. **Open SSH on the live ISO** from Vultr's web console. The ISO boots logged
+   in as `nixos`, with sshd installed but not started:
 
-3. **Run nixos-anywhere** from the repo root, without the reboot phase:
+   ```
+   sudo passwd root
+   sudo systemctl start sshd
+   ```
+
+   Then, from the desktop, run `ssh-copy-id root@<ip>` with that password, and
+   check the disk name matches `disko.nix`: `ssh root@<ip> lsblk`.
+
+3. **Run nixos-anywhere** from the repo root on the desktop. Run only the disko
+   and install phases: kexec isn't needed because the ISO already is the
+   installer, and the reboot waits for step 4.
 
    ```
    nix run github:nix-community/nixos-anywhere -- \
      --flake .#proxy-jia-opena0 \
      --target-host root@<ip> \
      --extra-files ~/proxy-hostkey \
-     --build-on remote \
-     --phases kexec,disko,install
+     --phases disko,install
    ```
 
-   `--build-on remote` has the VPS build the system: the Mac can't build
-   `x86_64-linux`. From the desktop, it can be left off. **disko wipes the
+   The desktop builds the system and copies it across. The box has too little
+   RAM to build, and the Mac can't build `x86_64-linux`. **disko wipes the
    disk.**
 
-4. **Set the sudo password** before rebooting. `PermitRootLogin` is off and SSH
-   is key-only, so this is the last point anything can set it. The installer
-   kept root's `authorized_keys`, but has a new host key:
+4. **Set the sudo password** before leaving the ISO. `PermitRootLogin` is off
+   and SSH is key-only, so this is the last point anything can set it:
 
    ```
-   ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@<ip>
-   nixos-enter --root /mnt -c 'passwd opena0'
-   reboot
+   ssh -t root@<ip> "nixos-enter --root /mnt -c 'passwd opena0'"
    ```
+
+5. **Remove the ISO** in Vultr (the instance's *Settings → Custom ISO*), which
+   reboots it into the installed system. A plain `reboot` would come back up in
+   the ISO.
 
 ### First boot
 
@@ -98,17 +127,27 @@ sudo tailscale up --hostname=proxy-jia-opena0
 sudo ls /run/secrets    # populated if the injected host key matches .sops.yaml
 ```
 
+`ssh-keygen -R` drops the live ISO's host key, since the installed system
+answers with the injected one.
+
 The checkout has to be at `/home/opena0/nixos`: `dotfiles.link` resolves against
 `$HOME/nixos`, and the live-linked nvim and tmux config dangle without it.
 Cloned as `opena0`, it needs no `chown`.
 
-From here on, rebuild on the box with `nh os switch`.
+Rebuild from the desktop, not on the box: evaluating home-manager and neovim in
+1 GB runs out of memory. `opena0` is in `wheel`, so it is a trusted user and
+can receive the closure. nh asks for the sudo password over SSH:
+
+```
+nh os switch -H proxy-jia-opena0 --target-host opena0@proxy-jia-opena0
+```
 
 ### Redeploying
 
 Delete the `proxy-jia-opena0` node in the Tailscale admin console first, or the
 new install joins as `proxy-jia-opena0-1`. Restore `~/proxy-hostkey` from
-Bitwarden and run [Deploy](#deploy) again — `.sops.yaml` doesn't change.
+Bitwarden, attach the ISO again (*Settings → Custom ISO*), and run
+[Deploy](#deploy) from step 2. `.sops.yaml` doesn't change.
 
 ## SSH
 
@@ -116,7 +155,7 @@ Default port 22, unlike the homelab's 7456 — nothing connects here yet, so
 there is no client config to match. Add a `proxy` block to
 [`programs/tools/ssh`](../../programs/tools/ssh) when the box exists, and set
 `services.openssh.ports` here to match if you move it. nixos-anywhere talks to
-Debian's sshd, so the port only matters after the first boot.
+the live ISO's sshd, so the port only matters after the first boot.
 
 The same non-empty `authorizedKeys` assertion applies; see the homelab README.
 
