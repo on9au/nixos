@@ -58,6 +58,9 @@
     labels = {
       caddy = "matrix.opena0.net";
       "caddy.reverse_proxy" = "{{upstreams 6167}}";
+      # A browser opening the bare name gets the web client rather than
+      # tuwunel's placeholder. Only the exact path: /_matrix/… still proxies.
+      "caddy.redir" = "/ https://chat.opena0.net/";
     };
   };
 
