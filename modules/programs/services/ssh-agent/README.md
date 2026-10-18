@@ -2,19 +2,12 @@
 
 ## Keyring (secrets, git credentials, ssh)
 
-Nothing on this machine implemented the freedesktop **Secret Service** until
-now. gnome-keyring was never installed, and the `kwallet` left over from the
-KDE days only registers `org.kde.secretservicecompat` — a different bus name,
-which nothing outside KDE looks for. So every app that stores a password hit:
-
-```
-GDBus.Error:org.freedesktop.DBus.Error.ServiceUnknown: The name is not activatable
-```
-
-Chromium, Brave, Electron apps and `git-credential-libsecret` all ask for
-`org.freedesktop.secrets` by name; with no owner they either fall back to
-storing secrets in plaintext or fail outright. gnome-keyring rather than
-kwallet, because the rest of this session is deliberately not KDE.
+gnome-keyring provides the freedesktop **Secret Service**
+(`org.freedesktop.secrets`) that Chromium, Brave, Electron apps and
+`git-credential-libsecret` ask for by name; with no owner they fall back to
+plaintext or fail with `The name is not activatable`. gnome-keyring rather
+than kwallet because the session is GTK, and kwallet only registers
+`org.kde.secretservicecompat`, which nothing outside KDE looks for.
 
 `services.gnome.gnome-keyring` plus `enableGnomeKeyring` on the `greetd` and
 `passwd` PAM services, in `programs/services/keyring.nix`.
@@ -44,9 +37,7 @@ secret-tool lookup test key
 git over HTTPS to GitHub authenticates through `gh`
 (`programs.gh.gitCredentialHelper`), not the keyring directly — though `gh` does
 keep its own token in the keyring, so `hosts.yml` holds only the account name
-(`gh auth status` prints `(keyring)`). gcr-ssh-agent stays off
-(`services.gnome.gcr-ssh-agent.enable = false`) — see "SSH agent and YubiKeys"
-below.
+(`gh auth status` prints `(keyring)`).
 
 Every *other* host needs a helper named explicitly: `gitCredentialHelper` writes
 github.com and gist.github.com entries only, and nothing sets a global
@@ -63,11 +54,11 @@ key, `id_ed25519_sk_primary` and `id_ed25519_sk_backup`. The private half never
 leaves the device; what sits in `~/.ssh` is only a *handle*, useless without the
 YubiKey that made it. Every authentication needs a physical touch.
 
-**Which agent, and why it changed.** gcr-ssh-agent was the answer while keys
-were ordinary files on disk (see Keyring above). It cannot hold these:
-gcr-ssh-agent links no libfido2 and knows no `sk-*` key types. So it is
-disabled and OpenSSH's own agent (`programs.ssh.startAgent`), which talks to
-the key through `ssh-sk-helper`, took over.
+**OpenSSH's agent, not gcr-ssh-agent.** gcr-ssh-agent links no libfido2 and
+knows no `sk-*` key types, so it is off
+(`services.gnome.gcr-ssh-agent.enable = false`) and OpenSSH's own agent
+(`programs.ssh.startAgent`), which talks to the key through `ssh-sk-helper`,
+runs instead.
 
 **The socket path has to be named twice, and neither place is optional.**
 The agent listens on `$XDG_RUNTIME_DIR/ssh-agent`, and NixOS exports
@@ -117,9 +108,6 @@ remaining* differs per device (95 and 94 here — five and six credentials used,
 the rest being website passkeys), so it distinguishes the two keys without
 authenticating, but it cannot say *which* credentials those are.
 
-Both `.pub` files go to GitHub and to every `authorized_keys` — while the old
-`id_ed25519` still works, not after.
-
 **A PIN prompt needs an askpass when there is no tty.** `ssh-keygen -K`, and
 anything else that asks for a FIDO2 PIN, falls back to `$SSH_ASKPASS` when it
 has no controlling terminal — from a GUI app, or from a tool driving the shell.
@@ -147,6 +135,11 @@ key shadows a working one. `ssh-add -D` is the quick way out.
 
 `SSH_ASKPASS` is therefore set in `systemd.user.sessionVariables` and not only in `uwsm/env` —
 the user manager starts the agent from its own environment, not the session's.
+
+Sudo prompts outside a terminal go through `SUDO_ASKPASS`, also in
+`uwsm/env`, which takes the first of `ssh-askpass`, `ksshaskpass` and
+`lxqt-openssh-askpass` on PATH rather than naming a path. This module puts
+seahorse's GTK helper there as `ssh-askpass`.
 
 Note also that `ssh-keygen -Y sign` writes its signature next to the file being
 signed, so signing `/dev/null` as a throwaway probe fails on `/dev/null.sig`

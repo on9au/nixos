@@ -1,42 +1,22 @@
 # Working in this repo
 
-A NixOS + nix-darwin + home-manager flake for four machines. `README.md` is the
-short overview; the notes on *why* something is configured the way it is live
-in a `README.md` next to the module they describe.
+A NixOS + nix-darwin + home-manager flake for six machines. `README.md` has the
+hosts, the layout, installing and the sops workflow; the notes on *why*
+something is configured the way it is live in a `README.md` next to the module
+they describe. Say a thing in one place and link to it from the others.
 
-## Hosts
+## Where things go
 
-| flake output | module | machine |
-| --- | --- | --- |
-| `DESKTOP-DYLAN` | `modules/hosts/desktop` | NixOS desktop |
-| `LAPTOP-ON9AU` | `modules/hosts/laptop` | NixOS laptop — only an output once `hardware.nix` exists |
-| `G3JC7G4` | `modules/hosts/wsl` | NixOS-WSL, shell half only |
-| `MBP-DYLAN` | `modules/hosts/macbook` | nix-darwin |
-| `jia-opena0` | `modules/hosts/homelab` | headless server — only an output once `hardware.nix` exists |
-| `proxy-jia-opena0` | `modules/hosts/proxy` | headless proxy VPS on Vultr; installed with nixos-anywhere |
-
-Input modules (disko, home-manager, lanzaboote, nix-flatpak, nixos-wsl, sops-nix) are added per
-host in `flake.nix`.
-
-## Layout
-
-- `modules/hosts/<host>/` — `default.nix` imports what the machine uses, grouped
-  under short section comments; `hardware.nix` is the generated hardware config.
-- `modules/system/` — base NixOS modules. `default.nix` (locale, nix settings,
-  options) goes on every NixOS host; `boot/`, `filesystems/`, `hardening.nix`,
-  `network.nix`, `zram.nix` are imported per host. `system/darwin/` is the nix-darwin base.
-- `modules/hardware/` — `gpu/`, `peripherals/`, `power/`, `firmware/`, one
-  concern per file, imported per host.
-- `modules/devices/` — one file per physical device (e.g. WirePlumber rules).
-- `modules/programs/{apps,desktop,development,games,macos,server,services,tools}/`.
-  `server/` is the servers' services: the homelab's containers, one module per
-  service, and the proxy's `haproxy.nix`.
+- `modules/hosts/<host>/default.nix` imports what the machine uses, grouped
+  under short section comments.
+- `modules/system/default.nix` goes on every NixOS host; the rest of
+  `system/`, and all of `hardware/`, is imported per host.
+- `modules/programs/server/` is the servers' services: the homelab's
+  containers, one module per service, and the proxy's `haproxy.nix`.
 - `modules/users/djpro/` — `default.nix` (NixOS), `darwin.nix`, and `home.nix`
   (shared git identity).
-- `modules/home-manager/` — home-manager wiring (`default.nix`) and base config
-  (`common.nix`, which defines `config.lib.dotfiles.link`).
-- `templates/<name>/` — flake templates for new projects, one folder per
-  template, each an output in `flake.nix` (`nix flake init -t ~/nixos#<name>`).
+- Input modules (disko, home-manager, lanzaboote, nix-flatpak, nixos-wsl,
+  sops-nix) are added per host in `flake.nix`.
 
 ## Program modules
 
@@ -89,7 +69,6 @@ Exceptions, read with `builtins.readFile` and so needing a rebuild:
 - NixOS: `nix build .#nixosConfigurations.<host>.config.system.build.toplevel`.
 - Mac: `nix eval --raw .#darwinConfigurations.MBP-DYLAN.system.drvPath` (evaluates
   on Linux, can't be built here).
-- Laptop: evaluate with a stub `modules/hosts/laptop/hardware.nix`, then delete it.
 - Hyprland: `Hyprland --verify-config -c ~/nixos/modules/programs/desktop/hyprland/config/hypr/hyprland.lua`.
 - Switching needs sudo and a TTY. Build, and leave the switch to the user.
 
@@ -112,10 +91,9 @@ Exceptions, read with `builtins.readFile` and so needing a rebuild:
   root-owned.
 - The GTK/KDE preference: GTK apps, portal and theme; KDE Connect is the one
   deliberate Qt/KDE exception.
-- Secrets are sops-nix, one `modules/hosts/<host>/secrets.yaml` per server and
-  the desktop. Editing needs a YubiKey touch, so leave `sops` itself to the
-  user. Services get `config.sops.secrets.<name>.path`, never the value in a
-  Nix string.
+- Secrets: see `README.md`. Editing needs a YubiKey touch, so leave `sops`
+  itself to the user. Services get `config.sops.secrets.<name>.path`, never
+  the value in a Nix string.
 - Homelab services are `virtualisation.oci-containers` units: stop and restart
   them with `systemctl … docker-<name>`, never `docker stop`. None start until
   `/var/lib/homelab/.restored` exists.

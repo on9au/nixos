@@ -6,7 +6,7 @@
 - `SSD`: 2 TB
 - `GPU`: See below
 
-## Hybrid graphics (laptop)
+## Hybrid graphics
 
 The laptop has an Intel Arc 140T iGPU and an NVIDIA RTX PRO 2000. **Every
 display connector is wired to the Intel side** — the panel, HDMI and USB-C —

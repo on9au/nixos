@@ -15,7 +15,7 @@ holds the macOS/Colima and Debian eras and their runbooks.
 | forgejo | `git.opena0.net` | [`forgejo.nix`](../../programs/server/forgejo.nix) | git; SSH on 2222, public as `jia.opena0.net:22` |
 | forgejo-runner | none | [`forgejo-runner.nix`](../../programs/server/forgejo-runner.nix) | Actions runner, jobs on its own rootless docker daemon |
 | socket-proxy | none | [`socket-proxy.nix`](../../programs/server/socket-proxy.nix) | read-only docker API for caddy and diun |
-| kanidm | `idm.opena0.net` | [`kanidm.nix`](../../programs/server/kanidm.nix) | identity; OIDC provider for tuwunel, forgejo, open-webui and beszel. A NixOS service, not a container: see [Kanidm](#kanidm) |
+| kanidm | `idm.opena0.net` | [`kanidm.nix`](../../programs/server/kanidm.nix) | identity; OIDC provider for tuwunel, forgejo, open-webui and beszel. See [Kanidm](#kanidm) |
 | tuwunel | `matrix.opena0.net` | [`tuwunel/`](../../programs/server/tuwunel) | Matrix homeserver, `server_name = opena0.net` |
 | cinny | `chat.opena0.net` | [`cinny/`](../../programs/server/cinny) | Matrix web client |
 | open-webui | `ai.opena0.net` | [`open-webui.nix`](../../programs/server/open-webui.nix) | chat client for the DeepSeek API; Kanidm login only |
@@ -60,14 +60,10 @@ Changing a plugin version needs a new `hash`: set it to `lib.fakeHash`, build,
 and copy the `got:` line.
 
 Certificates come from Let's Encrypt over the Cloudflare DNS-01 challenge.
-Public DNS is separate: add a CNAME to `jia.opena0.net` in Cloudflare, or the
-name resolves nowhere. `jia.opena0.net` itself points at the
-[proxy VPS](../proxy/README.md#the-proxy-itself), which forwards 80, 443, 22
-(to 2222) and 7777 here over Tailscale. Service names stay orange-clouded and
-`jia.opena0.net` grey; Caddy reads the client from the PROXY header, or
-`CF-Connecting-IP` behind Cloudflare, and serves HTTP/1.1 and HTTP/2 only,
-since QUIC can't cross the proxy. See
-[Public DNS and Cloudflare](../proxy/README.md#public-dns-and-cloudflare). `.well-known/matrix/{client,server}` is served by a
+Public traffic arrives through the [proxy VPS](../proxy/README.md#the-proxy-itself),
+and a new name needs a CNAME to `jia.opena0.net` in Cloudflare, or it resolves
+nowhere ([Public DNS](../proxy/README.md#public-dns-and-cloudflare)).
+`.well-known/matrix/{client,server}` is served by a
 **Cloudflare Worker on `opena0.net`**, not by this box — Matrix delegation can
 break without anything here changing, hence the Kuma monitor on it.
 
@@ -88,12 +84,11 @@ break without anything here changing, hence the Kuma monitor on it.
 - **sshd answers on Tailscale and the LAN only**, and Docker's published ports
   never pass the NixOS firewall at all: 80, 443, 2222 and 7777 are open
   whatever `networking.firewall` says.
-- **Outbound traffic leaves through the proxy VPS**, which is jia's Tailscale
-  exit node (`--exit-node`, in `default.nix`). Matrix federation, the bridges,
-  Forgejo mirrors, ACME and restic would otherwise all come from the home IP.
-  It fails closed: with the proxy down, jia has no internet, but LAN access
-  stays (`--exit-node-allow-lan-access`), so DNS through the router and LAN SSH
-  still work. See [jia's exit node](../proxy/README.md#jias-exit-node).
+- **Outbound traffic leaves through the proxy VPS**, jia's Tailscale
+  [exit node](../proxy/README.md#jias-exit-node). It fails closed: with the
+  proxy down, jia has no internet, but LAN access stays
+  (`--exit-node-allow-lan-access`), so DNS through the router and LAN SSH
+  still work.
 - **`opena0` is not in the docker group** and is not a nix trusted user; both
   are root without the sudo password. `sudo docker …`.
 
@@ -103,9 +98,7 @@ Moving over was meant to change the host, not the services. Several couldn't
 move to nixpkgs anyway: nixpkgs' `mautrix-telegram` is the old Python bridge
 rather than the Go one running here, and gmessages has no module. forgejo,
 beszel, uptime-kuma and cinny do line up, and can go native one at a time.
-
-Kanidm is the exception: it runs as `services.kanidm`, for declarative
-provisioning ([Kanidm](#kanidm)).
+Kanidm already has, for declarative provisioning ([Kanidm](#kanidm)).
 
 ### State
 
@@ -117,15 +110,14 @@ provisioning ([Kanidm](#kanidm)).
 | `/var/lib/homelab/tuwunel/appservices` | appservice registrations |
 | `/var/lib/homelab/terraria/{config,worlds}` | tshock config and worlds |
 | `/var/lib/homelab/forgejo-runner/data` | runner registration and `config.yml` |
-| `/var/lib/syncthing` | synced folders, their `.stversions`, and syncthing's identity; a NixOS service, not a container |
+| `/var/lib/syncthing` | synced folders, their `.stversions`, and syncthing's identity |
 
 The volume names and the `/var/lib/homelab` layout are the old compose
 projects' names and tree, so a restore from the existing restic series lands
 without renaming anything.
 
 **Nothing starts until `/var/lib/homelab/.restored` exists** — every container
-unit, syncthing and the backup carry `ConditionPathExists` on it
-(`programs/server/docker.nix`, `programs/server/syncthing.nix`).
+unit, kanidm, syncthing and the backup carry `ConditionPathExists` on it.
 A tuwunel that boots on an empty volume mints a new federation signing key, and
 a backup of an empty box would snapshot nothing into the series the restore
 needs.
@@ -139,39 +131,20 @@ Discord; it never updates anything.
 There is no `unattended-upgrades` equivalent: `nix flake update`, then
 `nh os switch`.
 
-## Install: reinstalling from Debian
+## Reinstall
 
-The Debian box is replaced in place. Downtime is the install plus a restore.
+A reinstall is a fresh NixOS plus a restore from restic. This is how jia came
+over from Debian; the Debian-specific steps are in this file's git history.
 
-### Before wiping Debian
+### Before wiping
 
-1. **Put the secrets in sops.** Read the current values off the box and enter
-   them with `sops modules/hosts/homelab/secrets.yaml` (keys under
-   [Secrets](#secrets)):
+1. **Verify the restic password** from Bitwarden:
+   `sudo modules/programs/server/backup/backup.sh check`. Losing it makes every
+   snapshot unreadable — the one unrecoverable failure.
 
-   ```
-   ssh jia 'cd ~/homelab && cat caddy/.env diun/.env forgejo-runner/.env \
-     backup/backup.env liveness/liveness.env uptime-kuma/.admin.env \
-     && grep -E "^(registration_token|client_secret)" tuwunel/tuwunel.toml'
-   ```
-
-   Commit and push: the install clones from GitHub.
-
-2. **Check `tuwunel.toml` against the repo copy.** The repo's
-   [`tuwunel.toml`](../../programs/server/tuwunel/tuwunel.toml) was rebuilt from
-   the example plus the fixes in the old README, so diff it against the live file:
-
-   ```
-   ssh jia "grep -v '^[[:space:]]*#' ~/homelab/tuwunel/tuwunel.toml | grep . \
-     | grep -v -e registration_token -e client_secret"
-   ```
-
-3. **Verify the restic password** from Bitwarden: `ssh jia ~/homelab/backup/backup.sh check`.
-   Losing it makes every snapshot unreadable — the one unrecoverable failure.
-
-4. **Copy the SSH host key off.** `.sops.yaml` already lists this key as the
-   host's recipient, so carrying it over means secrets decrypt on first boot,
-   and nothing's `known_hosts` changes:
+2. **Copy the SSH host key off**, so secrets decrypt on first boot and
+   nothing's `known_hosts` changes
+   ([host keys](../../../README.md#secrets)):
 
    ```
    ssh -t jia 'sudo tar -C /etc/ssh -czf ~/hostkey.tgz ssh_host_ed25519_key ssh_host_ed25519_key.pub && sudo chown opena0 ~/hostkey.tgz'
@@ -180,14 +153,14 @@ The Debian box is replaced in place. Downtime is the install plus a restore.
 
    It's a private key: keep it off anything synced, and delete it after the install.
 
-5. **Take the final backup and freeze the box**, so nothing is written after
+3. **Take the final backup and freeze the box**, so nothing is written after
    the snapshot:
 
    ```
-   ssh -t jia '~/homelab/backup/backup.sh && sudo systemctl disable --now docker.socket docker.service'
+   ssh -t jia 'sudo ~/nixos/modules/programs/server/backup/backup.sh && sudo systemctl disable --now docker.socket docker.service kanidm.service'
    ```
 
-6. **Delete the `jia-opena0` node** in the Tailscale admin console. Otherwise
+4. **Delete the `jia-opena0` node** in the Tailscale admin console. Otherwise
    the new install joins as `jia-opena0-1` and the `jia` block in
    [`programs/tools/ssh`](../../programs/tools/ssh/home.nix) points at nothing.
 
@@ -196,7 +169,7 @@ The Debian box is replaced in place. Downtime is the install plus a restore.
 NixOS installer on USB, keyboard attached, the ethernet adapter plugged in.
 ext4 on the whole disk, **no LUKS**: after a long power cut nobody is there to
 type a passphrase into a closed laptop. The battery rides out short outages;
-a long one needs someone to press power, same as before.
+a long one needs someone to press power.
 
 ```
 sudo -i
@@ -216,9 +189,6 @@ nixos-generate-config --root /mnt --show-hardware-config \
 git -C /mnt/home/opena0/nixos add modules/hosts/homelab/hardware.nix
 ```
 
-The `jia-opena0` flake output doesn't exist until `hardware.nix` is added —
-the same `builtins.pathExists` guard the laptop uses.
-
 Set a password for the installer's `nixos` user (`passwd nixos`), copy the host
 key across from the desktop (`scp hostkey.tgz nixos@<installer-ip>:`), then:
 
@@ -236,9 +206,6 @@ boot once the host key has decrypted it; `users.mutableUsers` is off, so
 `passwd` on the box doesn't last. SSH never asks for it — key auth only — but
 nothing on this box works without sudo.
 
-The checkout has to stay at `/home/opena0/nixos`: `dotfiles.link` resolves
-against `$HOME/nixos`, and the live-linked nvim and tmux config dangle without it.
-
 ### First boot and restore
 
 ```
@@ -248,21 +215,23 @@ sudo ls /run/secrets    # populated: the carried-over host key decrypted them
 ```
 
 Nothing else is running yet. Restore the volumes and the data directories from
-the last Debian snapshot:
+the last snapshot:
 
 ```
 sudo docker run --rm --env-file /run/secrets/rendered/restic.env \
   -v forgejo_data:/data/forgejo_data \
-  -v kanidm_data:/data/kanidm_data \
-  -v kanidm_certs:/data/kanidm_certs \
   -v tuwunel_db:/data/tuwunel_db \
   -v uptime-kuma_data:/data/uptime-kuma_data \
   -v beszel_data:/data/beszel_data \
+  -v open-webui_data:/data/open-webui_data \
+  -v /var/lib/kanidm:/data/kanidm \
+  -v /var/lib/syncthing:/data/syncthing \
   -v /var/lib/homelab:/data/homelab \
   restic/restic restore latest --host jia --target / \
-    --include /data/forgejo_data --include /data/kanidm_data \
-    --include /data/kanidm_certs --include /data/tuwunel_db \
+    --include /data/forgejo_data --include /data/tuwunel_db \
     --include /data/uptime-kuma_data --include /data/beszel_data \
+    --include /data/open-webui_data --include /data/kanidm \
+    --include /data/syncthing \
     --include /data/homelab/bridges \
     --include /data/homelab/forgejo-runner/data \
     --include /data/homelab/terraria \
@@ -271,17 +240,18 @@ sudo touch /var/lib/homelab/.restored
 sudo reboot
 ```
 
-Only the data directories come back; the old tree's compose files, scripts and
-`.env` secrets stay in the snapshot. `tuwunel_db` carries the **federation
-signing key** and `forgejo_data` forgejo's **SSH host key**, which is why this
-is a restore and not a fresh install. The bridges' SQLite comes with
-`bridges/`, so their logins survive and nothing needs re-pairing.
+`tuwunel_db` carries the **federation signing key** and `forgejo_data`
+forgejo's **SSH host key**, which is why this is a restore and not a fresh
+install. The bridges' SQLite comes with `bridges/`, so their logins survive and
+nothing needs re-pairing. Kanidm's `domain` in `kanidm.nix` has to match the
+restored database: a mismatch makes the first start rename the domain, and
+every passkey stops working.
 
 ### After
 
 - `curl -sS https://whoami.jia.opena0.net` — the canary.
 - `sudo systemctl restart docker-uptime-kuma`: every container IP changed at
-  once, and Kuma holds stale ones (see Gotchas).
+  once, and Kuma holds stale ones (see [Gotchas](#gotchas)).
 - The bridges start alongside tuwunel and crash-loop until it answers; the units
   restart them. `systemctl list-units 'docker-*'` should settle on all running.
 - Federation tester against `matrix.opena0.net`.
@@ -290,18 +260,10 @@ is a restore and not a fresh install. The bridges' SQLite comes with
 - Commit `hardware.nix` and push.
 - Delete `hostkey.tgz` from the desktop.
 
-Rolling back means reinstalling Debian and following the old repo's
-`MIGRATION.md` restore phases.
-
 ## Secrets
 
-sops-nix, with this host's file at [`secrets.yaml`](secrets.yaml). It is
-encrypted to both YubiKeys ([which ones](../../programs/services/ssh-agent/README.md#age-identities-for-sops))
-and to this host's SSH key; edit it from the repo root with a YubiKey plugged in:
-
-```
-sops modules/hosts/homelab/secrets.yaml
-```
+[`secrets.yaml`](secrets.yaml); the workflow is in the
+[top-level README](../../../README.md#secrets).
 
 | Key | Used by |
 | --- | --- |
@@ -321,21 +283,6 @@ sops modules/hosts/homelab/secrets.yaml
 | `opena0/password_hash` | `opena0`'s login and sudo password, from `mkpasswd -m yescrypt` |
 | `tuwunel/oidc_client_secret` | substituted into `tuwunel.toml`, and the `tuwunel` client in Kanidm |
 | `uptime-kuma/username`, `uptime-kuma/password` | `setup-monitors.sh` only |
-
-Every key has to exist before the host builds: sops-nix checks the file against
-what the modules declare.
-
-Secrets reach a service through `config.sops.secrets.<name>.path` or a
-`sops.templates` file — an `--env-file`, or `tuwunel.toml` with placeholders
-filled in. Never the value as a Nix string: the store is world-readable and the
-repo is public. Templates that a container reads at start carry
-`restartUnits`, so editing a secret restarts what uses it.
-
-The host key in `.sops.yaml` is Debian's, carried over by the install. A
-reinstall that doesn't keep `/etc/ssh` makes a new key: get its recipient with
-`ssh-keyscan -p 7456 -t ed25519 jia-opena0 | ssh-to-age`, replace the
-`jia-opena0` entry, run `sops updatekeys modules/hosts/homelab/secrets.yaml`,
-and commit.
 
 ## Kanidm
 
@@ -402,31 +349,6 @@ verify.
 Kanidm upgrades one minor version at a time: 1.11 → 1.12 is a package bump to
 `kanidmWithSecretProvisioning_1_12` once nixpkgs has it, after reading the
 release notes. Diun doesn't watch it.
-
-### Moving from the container (once)
-
-Kanidm was the `kanidm` container until this module replaced it. The first
-switch to it needs the database copied out of the volume beforehand; copied,
-not moved, so a rollback brings the container back on its untouched volume:
-
-```
-sudo ls /var/lib/docker/volumes/kanidm_data/_data         # kanidm.db, server.toml
-sudo grep domain /var/lib/docker/volumes/kanidm_data/_data/server.toml
-sudo systemctl stop docker-kanidm
-sudo install -d -m 0700 /var/lib/kanidm
-sudo sh -c 'cp -a /var/lib/docker/volumes/kanidm_data/_data/kanidm.db* /var/lib/kanidm/'
-nh os switch
-```
-
-`domain` has to match `kanidm.nix`. A mismatch makes the first start rename
-the domain, and every passkey stops working. The `kanidm` user only exists
-after the switch; `StateDirectory` hands `/var/lib/kanidm` to it on start.
-Once a nightly backup has run, the old volumes can go:
-`sudo docker volume rm kanidm_data kanidm_certs`.
-
-The [install](#install-reinstalling-from-debian) restore predates this and
-restores `kanidm_data`. A restore from a later snapshot takes `/data/kanidm`
-into `/var/lib/kanidm` instead.
 
 ## Matrix bridges
 
@@ -541,10 +463,9 @@ sudo modules/programs/server/backup/backup.sh snapshots    # any restic command 
 sudo modules/programs/server/backup/backup.sh check
 ```
 
-Restoring a single service: stop its unit, restore into its volume with the
-`docker run … restic/restic restore` shape from the install above, start it.
-Kanidm is `kanidm.service`, and its snapshot path is `/data/kanidm`, restored
-with `-v /var/lib/kanidm:/data/kanidm`.
+Restoring a single service: stop its unit, run the
+[restore](#first-boot-and-restore) with only that service's mount and
+`--include`, start it.
 
 ## Monitoring
 

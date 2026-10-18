@@ -5,6 +5,20 @@ part of the shell half, so it lands on every machine. Plugins bootstrap on first
 launch at the commits pinned in `lazy-lock.json` — see the lockfile note in
 [`AGENTS.md`](../../../../AGENTS.md).
 
+`tree-sitter` in `home.nix` is the CLI, not the library neovim links —
+nvim-treesitter needs it and `:checkhealth` fails without it. `lazygit` backs
+`Snacks.lazygit`. `norg` is a permanent `:checkhealth` warning: nvim-treesitter
+has no parser by that name, so Snacks' hardcoded check list can only warn.
+
+## Images and diagrams
+
+`images/` is Snacks.image's and `plugins/diagrams.lua`'s rendering chain
+(ImageMagick for raster, Ghostscript for PDF, tectonic for LaTeX, mermaid-cli).
+It only draws in a terminal that speaks the kitty graphics protocol, so the
+hosts without one (WSL, behind Windows Terminal) don't import it.
+`plugins/diagrams.lua` has no `executable()` guard: if a diagram buffer there
+complains about a missing `mmdc`, that's this module not being imported.
+
 ## LSPs
 
 Mason is disabled (`plugins/mason.lua`). The language servers, formatters and

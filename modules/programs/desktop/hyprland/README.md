@@ -13,9 +13,8 @@ without the font the picker lists tofu boxes.
 
 ## Two machines
 
-This runs on a two-monitor desktop and on a laptop (`LAPTOP-ON9AU`, a
-16" Dell with one 3840x2400 panel and hybrid Intel/NVIDIA graphics). The
-settings that genuinely differ live in `hypr/hosts/<host>/`, one file per
+This runs on the two-monitor desktop and the laptop. The settings that
+genuinely differ live in `hypr/hosts/<host>/`, one file per
 topic, and `hypr/host.lua` picks the directory from the hostname. Everything
 else is shared.
 
@@ -31,8 +30,8 @@ else is shared.
 An unrecognised hostname falls through to `hosts/desktop/`. Adding a third
 machine is a new directory plus one entry in `host.lua`.
 
-`uwsm/env` has a per-hostname block for the same reason — see **Hybrid
-graphics** below.
+`uwsm/env` has a per-hostname block too, for the laptop's
+[hybrid graphics](../../../hosts/laptop/README.md#hybrid-graphics).
 
 ## Layout
 
@@ -231,14 +230,7 @@ hyprctl dispatch 'hl.dsp.focus({workspace = 3})' # ok
 ```
 
 This bites any program that shells out to `hyprctl dispatch` with the old
-syntax, and it is why **waybar is built from git HEAD instead of the 0.15.0
-release** — the `waybar` flake input, built with nixpkgs' recipe in
-`programs/desktop/waybar/home.nix`; `nix flake update waybar` moves it to the latest commit. Release builds send `dispatch workspace
-name:<n>` when you click a workspace, which is a parse error here, so clicking
-did nothing at all. Master detects a Lua config and emits
-`hl.dsp.focus({ workspace = "..." })` instead. Dropping the override for the
-release build silently loses workspace clicking again — until a release
-includes that change.
+syntax, and it is why [waybar tracks git HEAD](../waybar/README.md#built-from-git).
 
 A `~/.local/bin/hyprctl` shim translating the old syntax was tried and
 deliberately removed — shadowing a system binary for the whole graphical

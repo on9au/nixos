@@ -1,5 +1,18 @@
 # Waybar
 
+## Built from git
+
+waybar is the `waybar` flake input, built with nixpkgs' recipe in
+[`home.nix`](home.nix), rather than the 0.15.0 release. The release sends
+`hyprctl dispatch workspace name:<n>` when you click a workspace, which is a
+[parse error](../hyprland/README.md#the-lua-config-gotcha) under Hyprland's Lua
+config, so clicking did nothing. Master detects a Lua config and emits
+`hl.dsp.focus({ workspace = "..." })` instead. Going back to a release loses
+workspace clicking again until one includes that change.
+
+`nix flake update waybar` moves it to the latest commit, and can break the
+build when upstream adds a dependency nixpkgs' recipe doesn't have.
+
 ## Tray
 
 The tray hides fcitx5's language icon, because `custom/fcitx5` sits
@@ -15,35 +28,8 @@ bus name, category, icon name, id or title. Both spellings are there because
 the match is case-sensitive and fcitx5 uses `Fcitx` in its id and title but
 `fcitx` in its icon name.
 
-**This used to be done at the source, and that was the wrong side of it.**
-waybar had no ignore list when this was first set up, so the icon was
-suppressed by forcing `--disable=notificationitem` into fcitx5 itself, through
-two hand-written files that overrode the packaged ones:
-
-| file | start path |
-| --- | --- |
-| `local/share/dbus-1/services/org.fcitx.Fcitx5.service` | D-Bus activation — the live one |
-| `autostart/org.fcitx.Fcitx5.desktop` | XDG autostart |
-
-Both are deleted. Both hardcoded `Exec=/usr/bin/fcitx5`, and because the D-Bus
-one *overrides* the packaged service rather than adding to it, carrying it to a
-machine that puts fcitx5 anywhere else would not have cost the tray icon — it
-would have cost the input method, with the first app to ask for the
-`org.fcitx.Fcitx5` name activating a binary that is not there. Deleting them
-also hands input-method startup back to whatever packages it, which on NixOS is
-`i18n.inputMethod`.
-
-The findings underneath them still hold, if the addon ever needs switching off
-for real. `Enabled=False` in `fcitx5/addon/notificationitem.conf` does nothing
-— fcitx5 loads the addon anyway — and patching only the autostart entry does
-nothing either, because fcitx5 is D-Bus activated:
-`dbus-…-org.fcitx.Fcitx5@0.service` runs while
-`app-org.fcitx.Fcitx5@autostart.service` sits *inactive*. Check which path is
-live with:
-
-```bash
-systemctl --user list-units --all | grep -i fcitx
-```
+This is done in waybar rather than by disabling fcitx5's tray addon, which
+would mean overriding how fcitx5 starts ([input method](../input-method.md)).
 
 ## KDE Connect
 
@@ -64,7 +50,7 @@ It reads `charge` and `isCharging` straight off D-Bus with `gdbus`, since
 rather than `qdbus` because it comes from glib2, already pulled in by waybar,
 where qdbus would mean installing qt5-tools for two property reads.
 
-The daemon is **not** in `hypr/autostart.lua`, same reasoning as fcitx5 above:
+The daemon is **not** in `hypr/autostart.lua`, [like fcitx5](../input-method.md):
 `kdeconnectd` ships `/etc/xdg/autostart/org.kde.kdeconnect.daemon.desktop`,
 which uwsm starts, and it is D-Bus activatable besides. The script checks the
 bus name has an owner rather than calling into it blind, so a machine where the

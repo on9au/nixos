@@ -9,18 +9,11 @@ basically the main machine.
 
 ## Secrets
 
-sops-nix, with this host's file at [`secrets.yaml`](secrets.yaml), encrypted to
-both YubiKeys and to this host's SSH key. The desktop runs no sshd, so nothing
-generates a host key; it was made by hand once and sops-nix is pointed at it:
-
-```
-sudo ssh-keygen -t ed25519 -N "" -C "" -f /etc/ssh/ssh_host_ed25519_key
-nix shell nixpkgs#ssh-to-age -c ssh-to-age < /etc/ssh/ssh_host_ed25519_key.pub
-```
-
-That recipient is `&desktop-dylan` in [`.sops.yaml`](../../../.sops.yaml). Keep
-the private key in Bitwarden: a reinstall that restores it decrypts on first
-boot; one that doesn't needs a new recipient and `sops updatekeys`.
+[`secrets.yaml`](secrets.yaml); the workflow is in the
+[top-level README](../../../README.md#secrets). The desktop runs no sshd, so
+nothing generates a host key: it was made by hand once
+(`sudo ssh-keygen -t ed25519 -N "" -C "" -f /etc/ssh/ssh_host_ed25519_key`)
+and sops-nix is pointed at it. Its recipient is `&desktop-dylan`.
 
 | Key | Used by |
 | --- | --- |

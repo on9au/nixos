@@ -7,7 +7,7 @@ hence this file.
 | rule | what it does |
 | --- | --- |
 | **Left Option -> hyper** | held, sends `ctrl+opt+cmd` -- the single-key `SUPER` that drives AeroSpace |
-| **Caps Lock** | held: Ctrl. Tapped: Escape, for nvim and `mode-keys vi` in `~/.tmux.conf` |
+| **Caps Lock** | held: Ctrl. Tapped: Escape, for nvim and `mode-keys vi` in tmux |
 | **Ctrl <-> Cmd** | copy/paste/quit/tabs move to Control, like every Linux desktop. Terminals excluded |
 | **Cmd+Space** | always reaches the launcher, in or out of a terminal -- see below |
 | **Cmd+Tab** | no app switcher; Tab cycles tabs the Linux way |
@@ -23,8 +23,8 @@ Muscle memory is positional, not nominal. The bottom rows do not line up:
 
 The key sitting where `SUPER` lives on a PC is **Option**, so that is the one
 mapped to hyper. Reaching for `SUPER+H` lands on the right physical key with
-no retraining, and `../aerospace/aerospace.toml` binds it to `focus left` --
-the same thing `../hypr/binds.lua` binds `SUPER+H` to.
+no retraining, and `programs/macos/aerospace/config/aerospace.toml` binds it to `focus left` --
+the same thing Hyprland's `binds.lua` binds `SUPER+H` to.
 
 The cost is real and worth stating: **left Option stops being a text
 modifier.** macOS uses Option to type symbols (`Opt+3` -> `#`) and to move
@@ -55,7 +55,7 @@ modifier swap is not a trade worth making, so every terminal emulator is
 listed under `frontmost_application_unless` and keeps stock macOS behaviour:
 `Ctrl+C` interrupts, `Cmd+C`/`Cmd+V` copy and paste.
 
-`../ghostty/config` already covers the Linux terminal idiom on its own --
+`programs/macos/ghostty/config/config` already covers the Linux terminal idiom on its own --
 `copy-on-select = true` and `ctrl+shift+v` to paste, exactly as a Linux
 terminal does -- so the exclusion costs nothing there.
 
@@ -86,7 +86,7 @@ exclusion changes -- `Ctrl+C` is not touched, because that rule matches
 `spacebar` and nothing else.
 
 Safe here because `Ctrl+Space` is unclaimed in this terminal stack: the tmux
-prefix is `C-a` (`~/.tmux.conf`), nvim binds nothing to it, and ghostty's only
+prefix is `C-a` (`programs/tools/tmux/tmux.conf`), nvim binds nothing to it, and ghostty's only
 keybind is `ctrl+shift+v`. Check those three before adding a second chord to
 this rule.
 
@@ -157,7 +157,7 @@ app switcher, which is exactly the intent.
 
 Deliberately unconditional, unlike rule 3. Terminals are exempt from the swap
 but not from this: without the rule, Cmd+Tab would still summon the switcher
-in Ghostty alone. Nothing in `~/.tmux.conf` or `ghostty/config` binds Tab, so
+in Ghostty alone. Nothing in `tmux.conf` or the Ghostty config binds Tab, so
 there is nothing there to collide with.
 
 `L-Opt+Tab` is untouched -- it is AeroSpace's `workspace-back-and-forth`, and
@@ -194,7 +194,7 @@ they have on a stock Mac.
 
 What actually goes is Mission Control's `Ctrl+arrow` space switching
 (symbolic hotkeys 79-82). AeroSpace's workspaces replace Spaces wholesale and
-`darwin-defaults.sh` already turns off `mru-spaces`, so there was nothing
+`system/darwin/defaults.nix` already turns off `mru-spaces`, so there was nothing
 there to lose.
 
 Both directions carry `optional: ["shift"]`, so the selection variants follow

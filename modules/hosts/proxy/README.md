@@ -46,27 +46,19 @@ output. Redeploying the box is the same steps again.
 
 ### Host key and secrets
 
-The host decrypts `secrets.yaml` with its SSH host key, so the key is made
-before the box exists and injected by the install. Secrets then decrypt on the
-first boot, with no second pass through `.sops.yaml`.
+The host decrypts [`secrets.yaml`](secrets.yaml) with its SSH host key
+([how](../../../README.md#secrets)), so the key is made before the box exists
+and injected by the install. Secrets then decrypt on the first boot:
 
 ```
 mkdir -p ~/proxy-hostkey/etc/ssh
 ssh-keygen -t ed25519 -N "" -C "" -f ~/proxy-hostkey/etc/ssh/ssh_host_ed25519_key
-nix shell nixpkgs#ssh-to-age -c ssh-to-age < ~/proxy-hostkey/etc/ssh/ssh_host_ed25519_key.pub
 ```
 
-Add that recipient to [`.sops.yaml`](../../../.sops.yaml) as `&proxy-jia-opena0`
-and to the proxy's creation rule, then, with a YubiKey plugged in:
-
-```
-sops updatekeys modules/hosts/proxy/secrets.yaml
-```
-
-Commit `.sops.yaml` and `secrets.yaml`. Keep `~/proxy-hostkey` out of the repo
-and off anything synced; store the private key in Bitwarden so a redeploy keeps
-the same recipient and `known_hosts` entry, then delete the directory after the
-install.
+Its recipient goes in `.sops.yaml` as `&proxy-jia-opena0`. Keep
+`~/proxy-hostkey` out of the repo and off anything synced; store the private
+key in Bitwarden so a redeploy keeps the same recipient and `known_hosts`
+entry, then delete the directory after the install.
 
 ### Deploy
 
@@ -136,11 +128,8 @@ git clone https://github.com/on9au/nixos ~/nixos
 sudo ls /run/secrets    # once a module declares a secret; absent until then
 ```
 
-`ssh-keygen -R` drops the live ISO's host key from the deploy.
-
-The checkout has to be at `/home/opena0/nixos`: `dotfiles.link` resolves against
-`$HOME/nixos`, and the live-linked nvim and tmux config dangle without it.
-Cloned as `opena0`, it needs no `chown`.
+`ssh-keygen -R` drops the live ISO's host key from the deploy. Cloned as
+`opena0`, the checkout needs no `chown`.
 
 Rebuild from the desktop, not on the box: evaluating home-manager and neovim in
 1 GB runs out of memory. `opena0` is in `wheel`, so it is a trusted user and
@@ -159,20 +148,12 @@ Bitwarden, attach the ISO again (*Settings → Custom ISO*), and run
 
 ## SSH
 
-Port 7456 on `tailscale0` only, like the homelab, and `ssh proxy` from the
-[`programs/tools/ssh`](../../programs/tools/ssh/home.nix) block. Public 22
-belongs to Forgejo. When Tailscale is down, the way in is Vultr's web console
-with `opena0`'s password. nixos-anywhere talks to the live ISO's sshd, so
-none of this applies to the install.
-
-The same non-empty `authorizedKeys` assertion applies; see the homelab README.
-
-## Secrets
-
-sops-nix, with its own [`secrets.yaml`](secrets.yaml) and the same workflow as
-the [homelab](../homelab/README.md#secrets). The host's recipient goes into
-`.sops.yaml` before the install, not after — see
-[Host key and secrets](#host-key-and-secrets).
+Port 7456 on `tailscale0` only, and `ssh proxy` from the
+[`programs/tools/ssh`](../../programs/tools/ssh/home.nix) block; the
+[lockout guard](../homelab/README.md#ssh-and-the-lockout-guard) applies here
+too. Public 22 belongs to Forgejo. When Tailscale is down, the way in is
+Vultr's web console with `opena0`'s password. nixos-anywhere talks to the live
+ISO's sshd, so none of this applies to the install.
 
 ## The proxy itself
 

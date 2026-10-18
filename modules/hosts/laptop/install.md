@@ -77,7 +77,7 @@ wsl --unmount \\.\PHYSICALDRIVE0
 
 ### 3. Write a USB stick anyway
 
-[Step 4](#4-kexec-into-the-installer) avoids needing one, but a kexec that hangs
+[Step 1](#1-kexec-into-the-installer) avoids needing one, but a kexec that hangs
 on this VMD controller leaves you with a wiped disk and no installer. Write the
 NixOS minimal ISO to a stick and keep it in the bag.
 
