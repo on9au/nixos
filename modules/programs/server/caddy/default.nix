@@ -46,7 +46,6 @@ in {
     environmentFiles = [config.sops.templates."caddy.env".path];
     ports = [
       "443:443"
-      "443:443/udp"
       "80:80"
     ];
     volumes = [
@@ -63,6 +62,15 @@ in {
       "caddy.email" = "{$ACME_EMAIL}";
       # Built by Nix, so there is no registry tag for Diun to compare against.
       "diun.enable" = "false";
+
+      # The proxy VPS sends the client address in a PROXY header. Its
+      # connections arrive from the proxy network's gateway, because Tailscale
+      # masquerades what it forwards out of tailscale0 into a container. A
+      # header from anywhere else is ignored.
+      "caddy.servers.listener_wrappers.0_proxy_protocol.allow" = "172.18.0.1/32";
+      "caddy.servers.listener_wrappers.1_tls" = "";
+      # The proxy forwards TCP only, so no QUIC.
+      "caddy.servers.protocols" = "h1 h2";
     };
   };
 }

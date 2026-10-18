@@ -13,7 +13,7 @@ in a `README.md` next to the module they describe.
 | `G3JC7G4` | `modules/hosts/wsl` | NixOS-WSL, shell half only |
 | `MBP-DYLAN` | `modules/hosts/macbook` | nix-darwin |
 | `jia-opena0` | `modules/hosts/homelab` | headless server — only an output once `hardware.nix` exists |
-| `proxy-jia-opena0` | `modules/hosts/proxy` | headless proxy VPS — not deployed yet; installed with nixos-anywhere |
+| `proxy-jia-opena0` | `modules/hosts/proxy` | headless proxy VPS on Vultr; installed with nixos-anywhere |
 
 Input modules (disko, home-manager, lanzaboote, nix-flatpak, nixos-wsl, sops-nix) are added per
 host in `flake.nix`.
@@ -29,7 +29,8 @@ host in `flake.nix`.
   concern per file, imported per host.
 - `modules/devices/` — one file per physical device (e.g. WirePlumber rules).
 - `modules/programs/{apps,desktop,development,games,macos,server,services,tools}/`.
-  `server/` is the homelab's containers, one module per service.
+  `server/` is the servers' services: the homelab's containers, one module per
+  service, and the proxy's `haproxy.nix`.
 - `modules/users/djpro/` — `default.nix` (NixOS), `darwin.nix`, and `home.nix`
   (shared git identity).
 - `modules/home-manager/` — home-manager wiring (`default.nix`) and base config

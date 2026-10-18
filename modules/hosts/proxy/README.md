@@ -1,9 +1,9 @@
 # proxy-jia-opena0 (proxy VPS)
 
-A VPS to sit in front of [`jia-opena0`](../homelab) over Tailscale, planned as a
-Vultr High Performance AMD instance in Melbourne (`vhp-1c-1gb-amd`). Not
-deployed yet: the host config is ready to install, but no reverse proxy is
-configured.
+A VPS in front of [`jia-opena0`](../homelab) over Tailscale: a Vultr High
+Performance AMD instance in Melbourne (`vhp-1c-1gb-amd`), at `67.219.104.255`
+and `2401:c080:2000:2476:5400:6ff:fee0:ccbb`. It forwards jia's public ports
+as plain TCP; see [The proxy itself](#the-proxy-itself).
 
 Same shape as the homelab: headless, `users/opena0`,
 [`network-server.nix`](../../system/network-server.nix), sshd and Tailscale.
@@ -119,16 +119,24 @@ install.
 
 ### First boot
 
+sshd listens on Tailscale only, so the box can't be reached over SSH until it
+joins the tailnet. Log in as `opena0` in Vultr's web console with the password
+from step 4, and run:
+
 ```
-ssh-keygen -R <ip>
-ssh opena0@<ip>
-git clone https://github.com/on9au/nixos ~/nixos
 sudo tailscale up --hostname=proxy-jia-opena0
-sudo ls /run/secrets    # populated if the injected host key matches .sops.yaml
 ```
 
-`ssh-keygen -R` drops the live ISO's host key, since the installed system
-answers with the injected one.
+Then, from the desktop:
+
+```
+ssh-keygen -R <ip>
+ssh proxy
+git clone https://github.com/on9au/nixos ~/nixos
+sudo ls /run/secrets    # once a module declares a secret; absent until then
+```
+
+`ssh-keygen -R` drops the live ISO's host key from the deploy.
 
 The checkout has to be at `/home/opena0/nixos`: `dotfiles.link` resolves against
 `$HOME/nixos`, and the live-linked nvim and tmux config dangle without it.
@@ -139,7 +147,7 @@ Rebuild from the desktop, not on the box: evaluating home-manager and neovim in
 can receive the closure. nh asks for the sudo password over SSH:
 
 ```
-nh os switch -H proxy-jia-opena0 --target-host opena0@proxy-jia-opena0
+nh os switch -H proxy-jia-opena0 --target-host proxy
 ```
 
 ### Redeploying
@@ -151,11 +159,11 @@ Bitwarden, attach the ISO again (*Settings → Custom ISO*), and run
 
 ## SSH
 
-Default port 22, unlike the homelab's 7456 — nothing connects here yet, so
-there is no client config to match. Add a `proxy` block to
-[`programs/tools/ssh`](../../programs/tools/ssh) when the box exists, and set
-`services.openssh.ports` here to match if you move it. nixos-anywhere talks to
-the live ISO's sshd, so the port only matters after the first boot.
+Port 7456 on `tailscale0` only, like the homelab, and `ssh proxy` from the
+[`programs/tools/ssh`](../../programs/tools/ssh/home.nix) block. Public 22
+belongs to Forgejo. When Tailscale is down, the way in is Vultr's web console
+with `opena0`'s password. nixos-anywhere talks to the live ISO's sshd, so
+none of this applies to the install.
 
 The same non-empty `authorizedKeys` assertion applies; see the homelab README.
 
@@ -168,6 +176,36 @@ the [homelab](../homelab/README.md#secrets). The host's recipient goes into
 
 ## The proxy itself
 
-No reverse proxy is configured. It belongs in a new `modules/programs/server/`
-tree — flat `.nix` per service, since these have no home-manager half — with
-the TLS and upstream credentials in `secrets.yaml`.
+[`programs/server/haproxy.nix`](../../programs/server/haproxy.nix) forwards
+TCP to jia over Tailscale. It doesn't terminate anything:
+
+| Public | jia | PROXY header |
+| --- | --- | --- |
+| 80 | 80 | no: Caddy's HTTP→HTTPS redirect server takes no listener wrappers |
+| 443 | 443 | v2, so Caddy logs and passes on the real client address |
+| 22 | 2222 (Forgejo SSH) | no |
+| 7777 | 7777 (Terraria) | no: tshock can't read one |
+
+- **Why plain TCP, not a second Caddy here?** jia's Caddy already holds the
+  certificates and builds its routes from container labels. A TLS-terminating
+  proxy here would need the Cloudflare token on a public box and a copy of the
+  routing. As it is, the box holds no state or secrets: losing it loses
+  nothing, and a redeploy is the install again.
+- **Caddy trusts PROXY headers from `172.18.0.1` only** (labels in
+  [`caddy/`](../../programs/server/caddy/default.nix)). Tailscale masquerades
+  what it forwards out of `tailscale0`, so the proxy's connections reach the
+  container from the `proxy` network's gateway rather than from its `100.x`
+  address. A header from anywhere else is ignored, so traffic still arriving
+  through the router works too. If the network is ever recreated on another
+  subnet, client addresses fall back to the gateway's rather than breaking.
+- **No HTTP/3.** HAProxy forwards TCP only, so Caddy is set to `h1 h2` and
+  stops advertising QUIC to clients.
+- Forgejo SSH and Terraria see every client as `172.18.0.1` or docker's
+  default gateway.
+- haproxy resolves jia through MagicDNS at runtime (`init-addr none`), so it
+  starts before Tailscale is up and follows jia to a new address after a
+  reinstall.
+
+Public DNS: `jia.opena0.net` (A and AAAA) points here, **DNS only (grey
+cloud)**, since Cloudflare's proxy can't carry 22 or 7777. Every service's
+CNAME follows it.

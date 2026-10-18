@@ -13,7 +13,7 @@ that history — including the old GlazeWM config, `git log -- dot_glzr`).
 | `MBP-DYLAN` | macOS + nix-darwin | [`modules/hosts/macbook`](modules/hosts/macbook) | AeroSpace |
 | `G3JC7G4` | NixOS-WSL | [`modules/hosts/wsl`](modules/hosts/wsl) | none — shell only |
 | `jia-opena0` | NixOS (Debian until migrated) | [`modules/hosts/homelab`](modules/hosts/homelab) | none — headless |
-| `proxy-jia-opena0` | NixOS (not deployed yet) | [`modules/hosts/proxy`](modules/hosts/proxy) | none — headless |
+| `proxy-jia-opena0` | NixOS | [`modules/hosts/proxy`](modules/hosts/proxy) | none — headless |
 
 ## Layout
 
@@ -84,4 +84,4 @@ home-manager wants links and moves each aside as `<name>.chezmoi-bak`. Then:
 | MacBook: bring-up, keyboard, bar, defaults | [`hosts/macbook`](modules/hosts/macbook/README.md) |
 | WSL | [`hosts/wsl`](modules/hosts/wsl/README.md) |
 | Homelab: services, install and restore, bridges, backups, secrets | [`hosts/homelab`](modules/hosts/homelab/README.md) |
-| Proxy VPS: nixos-anywhere install, boot loader, what is still missing | [`hosts/proxy`](modules/hosts/proxy/README.md) |
+| Proxy VPS: hosting, nixos-anywhere install, the TCP forwarder | [`hosts/proxy`](modules/hosts/proxy/README.md) |

@@ -17,6 +17,12 @@
         Port = 7456;
         User = "opena0";
       };
+
+      proxy = {
+        HostName = "proxy-jia-opena0.tailc7b8fd.ts.net";
+        Port = 7456;
+        User = "opena0";
+      };
     };
   };
 }

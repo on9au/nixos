@@ -1,4 +1,4 @@
-# proxy-jia-opena0: a VPS fronting the homelab over Tailscale. Not built yet.
+# proxy-jia-opena0: a VPS fronting the homelab over Tailscale.
 # Installed with nixos-anywhere; see README.md.
 {...}: {
   # nix-style: ignore-order
@@ -9,6 +9,7 @@
 
     # System
     ../../system
+    ../../system/hardening.nix
     ../../system/network-server.nix
     ../../system/zram.nix
 
@@ -19,6 +20,9 @@
     # Services
     ../../programs/services/sshd.nix
     ../../programs/services/tailscale.nix
+
+    # Server
+    ../../programs/server/haproxy.nix
 
     # Shell and development
     ../../programs/development/neovim
@@ -41,7 +45,14 @@
     efiSupport = true;
   };
 
-  # The reverse proxy itself goes in programs/server/ once the box exists.
+  # Matches `Port 7456` in the proxy block of programs/tools/ssh/home.nix. Public
+  # 22 belongs to Forgejo (programs/server/haproxy.nix).
+  services.openssh.ports = [7456];
+  services.openssh.openFirewall = false;
+  networking.firewall.interfaces.tailscale0.allowedTCPPorts = [7456];
+
+  # A direct path to jia rather than through a DERP relay.
+  services.tailscale.openFirewall = true;
 
   sops.defaultSopsFile = ./secrets.yaml;
 

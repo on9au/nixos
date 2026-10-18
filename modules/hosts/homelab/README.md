@@ -61,7 +61,11 @@ and copy the `got:` line.
 
 Certificates come from Let's Encrypt over the Cloudflare DNS-01 challenge.
 Public DNS is separate: add a CNAME to `jia.opena0.net` in Cloudflare, or the
-name resolves nowhere. `.well-known/matrix/{client,server}` is served by a
+name resolves nowhere. `jia.opena0.net` itself points at the
+[proxy VPS](../proxy/README.md#the-proxy-itself), which forwards 80, 443, 22
+(to 2222) and 7777 here over Tailscale. Caddy reads the client address from
+its PROXY header and serves HTTP/1.1 and HTTP/2 only, since QUIC can't cross
+the proxy. `.well-known/matrix/{client,server}` is served by a
 **Cloudflare Worker on `opena0.net`**, not by this box — Matrix delegation can
 break without anything here changing, hence the Kuma monitor on it.
 
