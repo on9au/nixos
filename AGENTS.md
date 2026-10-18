@@ -68,7 +68,8 @@ Exceptions, read with `builtins.readFile` and so needing a rebuild:
 - A flake only sees files git knows about: `git add` first.
 - NixOS: `nix build .#nixosConfigurations.<host>.config.system.build.toplevel`.
 - Mac: `nix eval --raw .#darwinConfigurations.MBP-DYLAN.system.drvPath` (evaluates
-  on Linux, can't be built here).
+  on Linux, can't be built here; CI builds it, see `README.md`).
+- Every Linux host and the formatting at once: `nix flake check`.
 - Hyprland: `Hyprland --verify-config -c ~/nixos/modules/programs/desktop/hyprland/config/hypr/hyprland.lua`.
 - Switching needs sudo and a TTY. Build, and leave the switch to the user.
 

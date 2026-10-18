@@ -1,0 +1,61 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      lock:
+        description: An artifact holding a flake.lock to build with instead of the committed one
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      include: ${{ steps.checks.outputs.include }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: cachix/install-nix-action@v31
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+      # One job per check, so a new host is built without touching this file.
+      - id: checks
+        run: |
+          include=$(nix eval --json .#checks --apply 'builtins.mapAttrs (_: builtins.attrNames)' | jq -c '
+            [to_entries[] | .key as $system | .value[]
+              | {system: $system, check: ., runner: (if $system == "aarch64-darwin" then "macos-latest" else "ubuntu-latest" end)}]')
+          echo "include=$include" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: matrix
+    name: ${{ matrix.check }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.matrix.outputs.include) }}
+    steps:
+      - uses: actions/checkout@v7
+      # The desktop's closure is ~31 GiB; a stock Linux runner has ~14 GB free.
+      - if: runner.os == 'Linux'
+        uses: wimpysworld/nothing-but-nix@v10
+        with:
+          hatchet-protocol: carve
+      - uses: cachix/install-nix-action@v31
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+      - if: inputs.lock
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ inputs.lock }}
+          path: ${{ runner.temp }}/lock
+      - if: inputs.lock
+        run: cp "$RUNNER_TEMP/lock/flake.lock" flake.lock
+      - run: nix build --no-link -L ".#checks.${{ matrix.system }}.${{ matrix.check }}"

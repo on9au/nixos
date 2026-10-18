@@ -3,6 +3,7 @@
     ../nix/options.nix
     ./defaults.nix
     ./homebrew.nix
+    ./sudo.nix
   ];
 
   # With the Determinate installer: nix.enable = false, and drop gc/optimise.

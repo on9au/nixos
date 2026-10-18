@@ -1,0 +1,75 @@
+name: update
+
+on:
+  schedule:
+    - cron: "0 4 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lock:
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.update.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: cachix/install-nix-action@v31
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+      - id: update
+        run: |
+          nix flake update 2>&1 | tee update.log
+          if git diff --quiet flake.lock; then
+            echo changed=false >> "$GITHUB_OUTPUT"
+          else
+            echo changed=true >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/upload-artifact@v7
+        with:
+          name: flake-lock
+          path: |
+            flake.lock
+            update.log
+
+  build:
+    needs: lock
+    if: needs.lock.outputs.changed == 'true'
+    uses: ./.github/workflows/build.yml
+    with:
+      lock: flake-lock
+
+  # Opened only once every host has built with the new lock. A PR made with
+  # GITHUB_TOKEN starts no workflows, so it shows no checks of its own.
+  pr:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          name: flake-lock
+          path: ${{ runner.temp }}/lock
+      - id: body
+        run: |
+          cp "$RUNNER_TEMP/lock/flake.lock" flake.lock
+          {
+            echo 'body<<EOF'
+            echo 'Every host built with this lock.'
+            echo
+            echo '```'
+            grep -A2 "Updated input" "$RUNNER_TEMP/lock/update.log" || true
+            echo '```'
+            echo EOF
+          } >> "$GITHUB_OUTPUT"
+      - uses: peter-evans/create-pull-request@v8
+        with:
+          branch: update-flake-lock
+          commit-message: "chore: update flake.lock"
+          title: "chore: update flake.lock"
+          body: ${{ steps.body.outputs.body }}
+          delete-branch: true

@@ -57,6 +57,7 @@
     nixpkgs,
     ...
   } @ inputs: let
+    linuxPkgs = nixpkgs.legacyPackages.x86_64-linux;
     specialArgs = {
       inputs = inputs;
     };
@@ -158,7 +159,18 @@
       description = "Rust project — a cargo toolchain and rust-analyzer";
     };
 
+    # Every host, and the formatting; CI builds each one as its own job.
+    checks.aarch64-darwin.MBP-DYLAN = self.darwinConfigurations.MBP-DYLAN.system;
+    checks.x86_64-linux =
+      builtins.mapAttrs (_: host: host.config.system.build.toplevel) self.nixosConfigurations
+      // {
+        formatting = linuxPkgs.runCommand "formatting" {} ''
+          ${linuxPkgs.alejandra}/bin/alejandra --check ${self}
+          touch $out
+        '';
+      };
+
     formatter.aarch64-darwin = nixpkgs.legacyPackages.aarch64-darwin.alejandra;
-    formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.alejandra;
+    formatter.x86_64-linux = linuxPkgs.alejandra;
   };
 }

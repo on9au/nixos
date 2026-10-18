@@ -104,6 +104,20 @@ sops modules/hosts/<host>/secrets.yaml     # from the repo root, YubiKey plugged
   Replace the host's entry in `.sops.yaml`, run
   `sops updatekeys modules/hosts/<host>/secrets.yaml`, and commit both.
 
+## CI
+
+GitHub Actions builds every host on each push to `main` and each PR, one job
+per entry in the flake's `checks`: the NixOS hosts, the Mac on a macOS runner,
+and alejandra's formatting check. `nix flake check` builds the Linux ones
+locally.
+
+Every Monday [`update.yml`](.github/workflows/update.yml) runs
+`nix flake update`, builds every host against the new lock, and opens a
+`chore: update flake.lock` PR only once all of them pass. That PR shows no
+checks of its own, because a PR opened with `GITHUB_TOKEN` starts no workflows;
+the update run is its check. Opening it needs *Allow GitHub Actions to create
+and approve pull requests* under Settings → Actions → General.
+
 ## Notes
 
 | topic | where |
