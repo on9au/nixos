@@ -69,9 +69,18 @@
   networking.firewall.interfaces.tailscale0.allowedTCPPorts = [7456];
   networking.firewall.extraCommands = "iptables -A nixos-fw -p tcp -s 192.168.1.0/24 --dport 7456 -j nixos-fw-accept";
 
+  # Outbound traffic leaves through the proxy VPS, so federation and the like
+  # never see the home IP. Fails closed: with the proxy down, jia has no
+  # internet. LAN access keeps the router's DNS and LAN SSH.
+  services.tailscale.useRoutingFeatures = "client";
+  services.tailscale.extraSetFlags = [
+    "--exit-node-allow-lan-access"
+    "--exit-node=proxy-jia-opena0"
+  ];
+
   sops.defaultSopsFile = ./secrets.yaml;
 
-  # The router forwards 80, 443, 2222 and 7777 here. Overrides network-server.nix's DHCP.
+  # Overrides network-server.nix's DHCP.
   systemd.network.networks."30-lan" = {
     matchConfig.Name = "!veth*";
     matchConfig.Type = "ether";

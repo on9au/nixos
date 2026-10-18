@@ -88,6 +88,12 @@ break without anything here changing, hence the Kuma monitor on it.
 - **sshd answers on Tailscale and the LAN only**, and Docker's published ports
   never pass the NixOS firewall at all: 80, 443, 2222 and 7777 are open
   whatever `networking.firewall` says.
+- **Outbound traffic leaves through the proxy VPS**, which is jia's Tailscale
+  exit node (`--exit-node`, in `default.nix`). Matrix federation, the bridges,
+  Forgejo mirrors, ACME and restic would otherwise all come from the home IP.
+  It fails closed: with the proxy down, jia has no internet, but LAN access
+  stays (`--exit-node-allow-lan-access`), so DNS through the router and LAN SSH
+  still work. See [jia's exit node](../proxy/README.md#jias-exit-node).
 - **`opena0` is not in the docker group** and is not a nix trusted user; both
   are root without the sudo password. `sudo docker …`.
 
@@ -237,6 +243,7 @@ against `$HOME/nixos`, and the live-linked nvim and tmux config dangle without i
 
 ```
 sudo tailscale up --hostname=jia-opena0
+sudo systemctl restart tailscaled-set   # --exit-node needs the tailnet to resolve the proxy
 sudo ls /run/secrets    # populated: the carried-over host key decrypted them
 ```
 

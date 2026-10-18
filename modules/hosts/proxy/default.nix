@@ -54,6 +54,11 @@
   # A direct path to jia rather than through a DERP relay.
   services.tailscale.openFirewall = true;
 
+  # jia's exit node, so its outbound traffic leaves from here rather than the
+  # home IP. Approved once in the Tailscale admin console.
+  services.tailscale.useRoutingFeatures = "server";
+  services.tailscale.extraSetFlags = ["--advertise-exit-node"];
+
   sops.defaultSopsFile = ./secrets.yaml;
 
   homeManagerModules = [

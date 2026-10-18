@@ -195,9 +195,9 @@ TCP to jia over Tailscale. It doesn't terminate anything:
   [`caddy/`](../../programs/server/caddy/default.nix)). Tailscale masquerades
   what it forwards out of `tailscale0`, so the proxy's connections reach the
   container from the `proxy` network's gateway rather than from its `100.x`
-  address. A header from anywhere else is ignored, so traffic still arriving
-  through the router works too. If the network is ever recreated on another
-  subnet, client addresses fall back to the gateway's rather than breaking.
+  address. A header from anywhere else is ignored. If the network is ever
+  recreated on another subnet, client addresses fall back to the gateway's
+  rather than breaking.
 - **No HTTP/3.** HAProxy forwards TCP only, so Caddy is set to `h1 h2` and
   stops advertising QUIC to clients.
 - Forgejo SSH and Terraria see every client as `172.18.0.1` or docker's
@@ -205,6 +205,29 @@ TCP to jia over Tailscale. It doesn't terminate anything:
 - haproxy resolves jia through MagicDNS at runtime (`init-addr none`), so it
   starts before Tailscale is up and follows jia to a new address after a
   reinstall.
+
+### jia's exit node
+
+The box is also jia's Tailscale exit node (`--advertise-exit-node` here,
+`--exit-node` in jia's `default.nix`), so what jia starts itself leaves from
+here too, not just what it answers. Without it, every homeserver tuwunel
+federates with would log the home IP.
+
+- **Approve it once** in the Tailscale admin console (*Machines →
+  proxy-jia-opena0 → Edit route settings → Use as exit node*) after the first
+  switch, and again after a redeploy. Until then jia's `--exit-node` doesn't
+  take, and its traffic goes out from home.
+- **Tailscale's own traffic skips the exit route**, so jia can't cut off its
+  tunnel to here. Containers go through it too: docker masquerades them onto
+  `tailscale0`, then this box masquerades them out.
+- **Everything jia fetches or uploads counts against the 2 TB**: nightly
+  restic to R2, image pulls, substitutes jia fetches itself. Closures pushed
+  with `nh --target-host` come straight from the desktop.
+- **It's all or nothing.** `--exit-node` can't exempt a destination; that
+  would mean dropping it for hand-written `ip rule`s on jia.
+- To check, from jia: `curl -s ifconfig.me` and
+  `sudo docker run --rm --network proxy curlimages/curl -s ifconfig.me`
+  should both print this box's address.
 
 ### Public DNS and Cloudflare
 
