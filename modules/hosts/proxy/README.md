@@ -182,7 +182,7 @@ TCP to jia over Tailscale. It doesn't terminate anything:
 | Public | jia | PROXY header |
 | --- | --- | --- |
 | 80 | 80 | no: Caddy's HTTP→HTTPS redirect server takes no listener wrappers |
-| 443 | 443 | v2, so Caddy logs and passes on the real client address |
+| 443 | 443 | v2: the client, or the Cloudflare edge for orange-clouded names |
 | 22 | 2222 (Forgejo SSH) | no |
 | 7777 | 7777 (Terraria) | no: tshock can't read one |
 
@@ -206,6 +206,22 @@ TCP to jia over Tailscale. It doesn't terminate anything:
   starts before Tailscale is up and follows jia to a new address after a
   reinstall.
 
-Public DNS: `jia.opena0.net` (A and AAAA) points here, **DNS only (grey
-cloud)**, since Cloudflare's proxy can't carry 22 or 7777. Every service's
-CNAME follows it.
+### Public DNS and Cloudflare
+
+- **`jia.opena0.net`** (A and AAAA) points here, **DNS only (grey cloud)**:
+  Cloudflare's proxy carries HTTP only, not 22 or 7777. It is Forgejo's
+  `SSH_DOMAIN`, so clone URLs read `git@jia.opena0.net:…`, and it is the
+  Terraria address.
+- **Service names** (`git`, `matrix`, `idm`, …) are CNAMEs to it, **proxied
+  (orange)**: Cloudflare terminates TLS and connects here. The PROXY header
+  then carries a Cloudflare edge address, and Caddy, trusting
+  [Cloudflare's ranges](https://www.cloudflare.com/ips/), takes the visitor
+  from `CF-Connecting-IP`. The list is copied into
+  [`caddy/`](../../programs/server/caddy/default.nix); a range Cloudflare adds
+  just logs edge addresses until it's copied in.
+- **`whoami.jia.opena0.net` is grey too.** Cloudflare's free certificate only
+  covers one level below `opena0.net`, and as the canary it should test this
+  path without Cloudflare in it.
+- The VPS's address is public through `jia.opena0.net`, so Cloudflare's DDoS
+  protection can be bypassed by going to it directly. What it shields now is
+  the VPS, not the home connection.

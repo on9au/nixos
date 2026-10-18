@@ -12,7 +12,7 @@ holds the macOS/Colima and Debian eras and their runbooks.
 
 | Service | URL | Module | Notes |
 | --- | --- | --- | --- |
-| forgejo | `git.opena0.net` | [`forgejo.nix`](../../programs/server/forgejo.nix) | git; also SSH on 2222 |
+| forgejo | `git.opena0.net` | [`forgejo.nix`](../../programs/server/forgejo.nix) | git; SSH on 2222, public as `jia.opena0.net:22` |
 | forgejo-runner | none | [`forgejo-runner.nix`](../../programs/server/forgejo-runner.nix) | Actions runner, jobs on its own rootless docker daemon |
 | socket-proxy | none | [`socket-proxy.nix`](../../programs/server/socket-proxy.nix) | read-only docker API for caddy and diun |
 | kanidm | `idm.opena0.net` | [`kanidm.nix`](../../programs/server/kanidm.nix) | identity; OIDC provider for tuwunel, forgejo, open-webui and beszel. A NixOS service, not a container: see [Kanidm](#kanidm) |
@@ -63,9 +63,11 @@ Certificates come from Let's Encrypt over the Cloudflare DNS-01 challenge.
 Public DNS is separate: add a CNAME to `jia.opena0.net` in Cloudflare, or the
 name resolves nowhere. `jia.opena0.net` itself points at the
 [proxy VPS](../proxy/README.md#the-proxy-itself), which forwards 80, 443, 22
-(to 2222) and 7777 here over Tailscale. Caddy reads the client address from
-its PROXY header and serves HTTP/1.1 and HTTP/2 only, since QUIC can't cross
-the proxy. `.well-known/matrix/{client,server}` is served by a
+(to 2222) and 7777 here over Tailscale. Service names stay orange-clouded and
+`jia.opena0.net` grey; Caddy reads the client from the PROXY header, or
+`CF-Connecting-IP` behind Cloudflare, and serves HTTP/1.1 and HTTP/2 only,
+since QUIC can't cross the proxy. See
+[Public DNS and Cloudflare](../proxy/README.md#public-dns-and-cloudflare). `.well-known/matrix/{client,server}` is served by a
 **Cloudflare Worker on `opena0.net`**, not by this box — Matrix delegation can
 break without anything here changing, hence the Kuma monitor on it.
 

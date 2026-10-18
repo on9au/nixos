@@ -31,7 +31,9 @@
       FORGEJO__server__DOMAIN = "git.opena0.net";
       FORGEJO__server__HTTP_PORT = "3000";
       FORGEJO__server__ROOT_URL = "https://git.opena0.net/";
-      FORGEJO__server__SSH_DOMAIN = "git.opena0.net";
+      # git.opena0.net is behind Cloudflare's proxy, which carries no SSH;
+      # jia.opena0.net is DNS-only and points at the proxy VPS.
+      FORGEJO__server__SSH_DOMAIN = "jia.opena0.net";
       FORGEJO__server__SSH_LISTEN_PORT = "2222";
       FORGEJO__server__SSH_PORT = "22";
       FORGEJO__server__START_SSH_SERVER = "true";
