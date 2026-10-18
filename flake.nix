@@ -2,6 +2,10 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
+    # atuin 18.21.0 for the macbook: 18.23.0 fails its tests on darwin and isn't
+    # cached (nixpkgs#573527). Drop once nixpkgs has #574509.
+    nixpkgs-atuin.url = "github:NixOS/nixpkgs/e7439b6b14ad3cc35d05608ebca9bce01a25f5f8";
+
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
