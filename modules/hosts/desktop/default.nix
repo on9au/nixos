@@ -61,6 +61,7 @@
     ../../programs/apps/everyday.nix
     ../../programs/apps/spotify.nix
     ../../programs/apps/winapps
+    ../../programs/apps/wireshark.nix
     ../../programs/games
 
     # Shell and development

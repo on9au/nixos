@@ -60,6 +60,7 @@
     ../../programs/apps/discord.nix
     ../../programs/apps/spotify.nix
     ../../programs/apps/winapps
+    ../../programs/apps/wireshark.nix
 
     # Shell and development
     ../../programs/development/claude-code
