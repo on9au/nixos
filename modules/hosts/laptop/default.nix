@@ -57,6 +57,7 @@
     ../../programs/services/tailscale.nix
 
     # Apps
+    ../../programs/apps/actual.nix
     ../../programs/apps/discord.nix
     ../../programs/apps/spotify.nix
     ../../programs/apps/winapps

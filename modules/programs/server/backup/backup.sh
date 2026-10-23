@@ -5,7 +5,7 @@
 # were on the macOS and Debian hosts -- /data/<volume> and /data/homelab -- and
 # the retention policy keeps applying to one continuous series.
 #
-# tuwunel (RocksDB), forgejo, kanidm, open-webui and the bridges (SQLite) all
+# tuwunel (RocksDB), forgejo, kanidm, open-webui, actual and the bridges (SQLite) all
 # tear if their files are copied while running, so they are stopped for the
 # snapshot -- about 30 seconds. They are systemd units, so they are stopped
 # through systemctl: a bare `docker stop` would let the unit restart them
@@ -23,10 +23,10 @@ set -eu
 RESTIC_ENV=/run/secrets/rendered/restic.env
 HEALTHCHECK_URL=$(cat /run/secrets/backup/healthcheck_url)
 
-STATEFUL="tuwunel forgejo uptime-kuma beszel open-webui \
+STATEFUL="tuwunel forgejo uptime-kuma beszel open-webui actual \
   mautrix-telegram mautrix-whatsapp mautrix-discord \
   mautrix-gmessages mautrix-messenger mautrix-instagram"
-VOLUMES="forgejo_data tuwunel_db uptime-kuma_data beszel_data open-webui_data"
+VOLUMES="forgejo_data tuwunel_db uptime-kuma_data beszel_data open-webui_data actual_data"
 
 # kanidm runs on the host, not in a container.
 UNITS="kanidm.service"

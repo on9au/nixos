@@ -29,6 +29,7 @@
     ../../programs/services/tailscale.nix
 
     # Server
+    ../../programs/server/actual.nix
     ../../programs/server/backup
     ../../programs/server/beszel.nix
     ../../programs/server/bridges

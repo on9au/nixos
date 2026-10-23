@@ -55,6 +55,7 @@
     ../../programs/services/tailscale.nix
 
     # Apps
+    ../../programs/apps/actual.nix
     ../../programs/apps/brave
     ../../programs/apps/creative.nix
     ../../programs/apps/discord.nix

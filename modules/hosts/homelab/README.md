@@ -15,10 +15,11 @@ holds the macOS/Colima and Debian eras and their runbooks.
 | forgejo | `git.opena0.net` | [`forgejo.nix`](../../programs/server/forgejo.nix) | git; SSH on 2222, public as `jia.opena0.net:22` |
 | forgejo-runner | none | [`forgejo-runner.nix`](../../programs/server/forgejo-runner.nix) | Actions runner, jobs on its own rootless docker daemon |
 | socket-proxy | none | [`socket-proxy.nix`](../../programs/server/socket-proxy.nix) | read-only docker API for caddy and diun |
-| kanidm | `idm.opena0.net` | [`kanidm.nix`](../../programs/server/kanidm.nix) | identity; OIDC provider for tuwunel, forgejo, open-webui and beszel. See [Kanidm](#kanidm) |
+| kanidm | `idm.opena0.net` | [`kanidm.nix`](../../programs/server/kanidm.nix) | identity; OIDC provider for tuwunel, forgejo, open-webui, beszel and actual. See [Kanidm](#kanidm) |
 | tuwunel | `matrix.opena0.net` | [`tuwunel/`](../../programs/server/tuwunel) | Matrix homeserver, `server_name = opena0.net` |
 | cinny | `chat.opena0.net` | [`cinny/`](../../programs/server/cinny) | Matrix web client |
 | open-webui | `ai.opena0.net` | [`open-webui.nix`](../../programs/server/open-webui.nix) | chat client for the DeepSeek API; Kanidm login only |
+| actual | `budget.opena0.net` | [`actual.nix`](../../programs/server/actual.nix) | Actual Budget sync server; Kanidm login only. See [Actual Budget](#actual-budget) |
 | bridges | `<bridge>-media.opena0.net` | [`bridges/`](../../programs/server/bridges) | six mautrix bridges, see below |
 | uptime-kuma | `status.opena0.net` | [`uptime-kuma/`](../../programs/server/uptime-kuma) | monitoring, alerts to Discord |
 | beszel | `metrics.opena0.net` | [`beszel.nix`](../../programs/server/beszel.nix) | resource metrics; the agent runs on the host. Kanidm login, set up in PocketBase (see [Kanidm](#kanidm)) |
@@ -104,7 +105,7 @@ Kanidm already has, for declarative provisioning ([Kanidm](#kanidm)).
 
 | Where | What |
 | --- | --- |
-| docker volumes | `forgejo_data`, `tuwunel_db`, `uptime-kuma_data`, `beszel_data`, `open-webui_data`; unbacked `caddy_caddy_data`, `caddy_caddy_config`, `diun_data`, `forgejo-runner_dind` |
+| docker volumes | `forgejo_data`, `tuwunel_db`, `uptime-kuma_data`, `beszel_data`, `open-webui_data`, `actual_data`; unbacked `caddy_caddy_data`, `caddy_caddy_config`, `diun_data`, `forgejo-runner_dind` |
 | `/var/lib/kanidm` | Kanidm's database; `/var/lib/kanidm-tls`, its self-signed certificate, isn't backed up |
 | `/var/lib/homelab/bridges/<bridge>/data` | each bridge's config, registration and SQLite |
 | `/var/lib/homelab/tuwunel/appservices` | appservice registrations |
@@ -224,13 +225,15 @@ sudo docker run --rm --env-file /run/secrets/rendered/restic.env \
   -v uptime-kuma_data:/data/uptime-kuma_data \
   -v beszel_data:/data/beszel_data \
   -v open-webui_data:/data/open-webui_data \
+  -v actual_data:/data/actual_data \
   -v /var/lib/kanidm:/data/kanidm \
   -v /var/lib/syncthing:/data/syncthing \
   -v /var/lib/homelab:/data/homelab \
   restic/restic restore latest --host jia --target / \
     --include /data/forgejo_data --include /data/tuwunel_db \
     --include /data/uptime-kuma_data --include /data/beszel_data \
-    --include /data/open-webui_data --include /data/kanidm \
+    --include /data/open-webui_data --include /data/actual_data \
+    --include /data/kanidm \
     --include /data/syncthing \
     --include /data/homelab/bridges \
     --include /data/homelab/forgejo-runner/data \
@@ -267,6 +270,7 @@ every passkey stops working.
 
 | Key | Used by |
 | --- | --- |
+| `actual/oidc_client_secret` | the `actual` client in Kanidm; `openssl rand -hex 32` |
 | `backup/restic_repository`, `backup/restic_password` | restic; the password also lives in Bitwarden |
 | `backup/aws_access_key_id`, `backup/aws_secret_access_key` | R2 |
 | `backup/healthcheck_url` | backup check on healthchecks.io |
@@ -349,6 +353,49 @@ verify.
 Kanidm upgrades one minor version at a time: 1.11 → 1.12 is a package bump to
 `kanidmWithSecretProvisioning_1_12` once nixpkgs has it, after reading the
 release notes. Diun doesn't watch it.
+
+## Actual Budget
+
+The sync server from `actualbudget/actual-server`, on the public internet like
+everything else here, with Kanidm as its only login. The clients are the
+`actual-client` package on the desktop and laptop
+([`apps/actual.nix`](../../programs/apps/actual.nix)) and the `actual` cask on
+the Mac. The web app at `budget.opena0.net` does the same job anywhere else.
+
+- **The app's own OpenID, not a forward-auth gate in front.** The desktop
+  apps sync with a token header, not a browser cookie, so a forward-auth
+  redirect would break them. A gate in front would also be a second login
+  that guards nothing the app's own login doesn't. Kanidm decides who gets in
+  (`actual_users`), and passkeys and MFA live there.
+- **OpenID only.** `ACTUAL_ALLOWED_LOGIN_METHODS=openid` and
+  `ACTUAL_OPENID_ENFORCE` turn off the password and header logins. Configuring
+  OpenID through the environment makes the server set it up on every start,
+  before anyone could set a password. If that start-up step fails (Kanidm
+  unreachable on the very first boot), the server is left with no login method,
+  and its `/account/bootstrap` would accept a password from anyone. Caddy
+  answers that path with a 403.
+- **The first person to log in becomes the owner** (admin). Others in
+  `actual_users` get in only once the owner has made them a user of the same
+  name (`ACTUAL_USER_CREATION_MODE=manual`). That name is Kanidm's
+  `preferred_username`, short because of `preferShortUsername`: changing that
+  gives everyone a new, empty account.
+- **Sessions last a day** (`ACTUAL_TOKEN_EXPIRATION`); upstream's default never expires them.
+- **Kanidm signs this client's tokens RS256** (`enableLegacyCrypto`), because
+  Actual's OpenID library rejects Kanidm's default ES256.
+- **Encrypt each budget** (budget menu → *Encryption*). The password never
+  leaves the client, so the server, `actual_data` and the restic snapshots
+  hold only ciphertext. Losing the password loses the budget's server copy.
+- **The container** runs as the image's `actual` user (1001), with a
+  read-only root and no capabilities.
+- **Bank sync isn't set up.** Setting it up stores the provider's credentials in the
+  server's database, readable by anyone who gets its admin, so think about it
+  first.
+
+Bringing it up: put `actual/oidc_client_secret` in `secrets.yaml`, add
+`actual_users` with you in it to `kanidm/group_members`, add a proxied CNAME
+`budget` → `jia.opena0.net` in Cloudflare, switch, and log in once straight
+away so the owner is you. Then `sudo ./setup-monitors.sh` adds the Kuma
+monitor.
 
 ## Matrix bridges
 
@@ -450,7 +497,7 @@ restic → Cloudflare R2, nightly at 04:00 (`Persistent`, so a run missed while
 the box was down fires on boot), reporting to healthchecks.io. Retention 7
 daily / 4 weekly / 6 monthly.
 
-Backed up: the five stateful volumes, `/var/lib/kanidm`, `/var/lib/homelab` and `/var/lib/syncthing`
+Backed up: the six stateful volumes, `/var/lib/kanidm`, `/var/lib/homelab` and `/var/lib/syncthing`
 (not stopped: a file mid-sync is caught next night). restic runs in a
 container so the paths inside the repository — `/data/<volume>`,
 `/data/homelab` — are the ones the macOS and Debian hosts wrote, and the series
