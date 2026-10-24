@@ -19,8 +19,9 @@ holds the macOS/Colima and Debian eras and their runbooks.
 | tuwunel | `matrix.opena0.net` | [`tuwunel/`](../../programs/server/tuwunel) | Matrix homeserver, `server_name = opena0.net` |
 | cinny | `chat.opena0.net` | [`cinny/`](../../programs/server/cinny) | Matrix web client |
 | open-webui | `ai.opena0.net` | [`open-webui.nix`](../../programs/server/open-webui.nix) | chat client for the DeepSeek API; Kanidm login only |
-| actual | `budget.opena0.net` | [`actual.nix`](../../programs/server/actual.nix) | Actual Budget sync server; Kanidm login only. See [Actual Budget](#actual-budget) |
-| actual-ai | none | [`actual-ai/`](../../programs/server/actual-ai) | categorizes Actual transactions with DeepSeek; run by hand, see [Categorizing with actual-ai](#categorizing-with-actual-ai) |
+| actual | `budget.opena0.net` | [`actual/`](../../programs/server/actual) | Actual Budget sync server; Kanidm login only. See [Actual Budget](#actual-budget) |
+| actual-ai | none | [`actual/ai/`](../../programs/server/actual/ai) | categorizes Actual transactions with DeepSeek; run by hand, see [Categorizing with actual-ai](#categorizing-with-actual-ai) |
+| actual-up-import | none | [`actual/up-import/`](../../programs/server/actual/up-import) | Up Bank → Actual every six hours; see [Importing from Up](#importing-from-up) |
 | bridges | `<bridge>-media.opena0.net` | [`bridges/`](../../programs/server/bridges) | six mautrix bridges, see below |
 | uptime-kuma | `status.opena0.net` | [`uptime-kuma/`](../../programs/server/uptime-kuma) | monitoring, alerts to Discord |
 | beszel | `metrics.opena0.net` | [`beszel.nix`](../../programs/server/beszel.nix) | resource metrics; the agent runs on the host. Kanidm login, set up in PocketBase (see [Kanidm](#kanidm)) |
@@ -272,6 +273,7 @@ every passkey stops working.
 | Key | Used by |
 | --- | --- |
 | `actual/oidc_client_secret` | the `actual` client in Kanidm; `openssl rand -hex 32` |
+| `actual-up-import/up_token` | Up personal access token, read-only; from the Up app, Data sharing → Personal Access Token |
 | `backup/restic_repository`, `backup/restic_password` | restic; the password also lives in Bitwarden |
 | `backup/aws_access_key_id`, `backup/aws_secret_access_key` | R2 |
 | `backup/healthcheck_url` | backup check on healthchecks.io |
@@ -383,20 +385,32 @@ the Mac. The web app at `budget.opena0.net` does the same job anywhere else.
 - **Sessions last a day** (`ACTUAL_TOKEN_EXPIRATION`); upstream's default never expires them.
 - **Kanidm signs this client's tokens RS256** (`enableLegacyCrypto`), because
   Actual's OpenID library rejects Kanidm's default ES256.
-- **Encrypt each budget** (budget menu → *Encryption*). The password never
-  leaves the client, so the server, `actual_data` and the restic snapshots
-  hold only ciphertext. Losing the password loses the budget's server copy.
+- **Encryption** (budget menu → *Encryption*) would leave the server,
+  `actual_data` and the restic snapshots holding only ciphertext, but the
+  scheduled [Up import](#importing-from-up) needs the budget readable without
+  anyone at a terminal, so it refuses an encrypted budget. Encrypting means
+  giving up the import or keeping the password on jia, which defeats it.
 - **The container** runs as the image's `actual` user (1001), with a
   read-only root and no capabilities.
-- **Bank sync isn't set up.** Setting it up stores the provider's credentials in the
-  server's database, readable by anyone who gets its admin, so think about it
-  first.
+- **Actual's own bank sync isn't set up**: none of its providers covers
+  Australia. Up comes in through its own API instead, below.
 
 Bringing it up: put `actual/oidc_client_secret` in `secrets.yaml`, add
 `actual_users` with you in it to `kanidm/group_members`, add a proxied CNAME
 `budget` → `jia.opena0.net` in Cloudflare, switch, and log in once straight
 away so the owner is you. Then `sudo ./setup-monitors.sh` adds the Kuma
 monitor.
+
+### Jobs that log in
+
+Kanidm is the only login, and a job can't do one. Instead,
+[`session.sh`](../../programs/server/actual/session.sh) (`actual-session`)
+makes a session for the budget's owner straight in `account.sqlite`, with a
+three-hour expiry, and the unit deletes it when it stops. The budget's sync
+ID comes from the same database, so it expects exactly one budget. An
+encrypted budget's password is asked for on the terminal running
+`systemctl start`, and kept only in `/run` for that run. Both jobs reach
+Actual through `budget.opena0.net`, so the token goes over TLS.
 
 ### Categorizing with actual-ai
 
@@ -413,19 +427,54 @@ sudo systemctl start docker-actual-ai           # does it
 In the app, filter notes for `#actual-ai` to review what it set, and for
 `#actual-ai-miss` to see what it couldn't place.
 
-- **No password, no token to paste.** actual-ai only knows password login, so
-  [`session-token.cjs`](../../programs/server/actual-ai/session-token.cjs),
-  preloaded into it, hands `@actual-app/api` a session token instead. The
-  unit makes that session itself, for the owner, straight into
-  `account.sqlite`, with a three-hour expiry, and deletes it when it stops.
-  The budget's sync ID comes from the same database, so it expects exactly
-  one budget.
-- **An encrypted budget** has its password asked for on the terminal running
-  `systemctl start`, and kept only in `/run` for that run.
+- **It only knows password login**, so
+  [`session-token.cjs`](../../programs/server/actual/ai/session-token.cjs),
+  preloaded into it, hands `@actual-app/api` the [job's session](#jobs-that-log-in)
+  instead.
 - **Dry run has to be listed.** Upstream's README calls it the default, but
   an unlisted feature is off, so `docker-actual-ai` without `dryRun` writes.
-- It reaches Actual through `budget.opena0.net` rather than the `proxy`
-  network, so the token goes over TLS and nothing else is reachable from it.
+- It isn't on the `proxy` network, so nothing else here is reachable from it.
+
+### Importing from Up
+
+[`up-import.mjs`](../../programs/server/actual/up-import/up-import.mjs) reads
+Up's API with a personal access token and imports the individual spending
+account and every Saver; 2Up and home loans are left out. Up's token can read
+everything and categorise or tag, but can't move money.
+
+```
+sudo systemctl start actual-up-import-dry-run   # reports, changes nothing
+journalctl -u actual-up-import-dry-run
+sudo systemctl start actual-up-import-all       # the whole history, once
+```
+
+`actual-up-import-all` leaves `/var/lib/homelab/actual-up-import/.imported`,
+and only then does `actual-up-import.timer` start importing the last 14 days
+every six hours, so nothing reaches the budget before the dry run is read.
+
+- **Accounts** match by name (Up's *Spending*, the Savers' names, emoji and
+  all) and are made when missing; `accountNames` in the module maps a
+  different name.
+- **Categories are Up's.** Each Up category goes to the Actual category of
+  the same name, made under a group named for Up's parent (Good Life, Home,
+  Personal, Transport) if missing. Income and transfers have none in Up, which
+  leaves them for actual-ai.
+- **Settled only.** Held transactions can change amount before they settle,
+  so they wait; the fortnight's window catches them later.
+- **Transfers between two imported accounts** come from the receiving side
+  only, Round Ups included, and Actual makes the sending side. Importing both
+  would double them.
+- **Cashback** (Perk-Up, Happy Hour) has no Up transaction of its own, so it
+  is imported as a second one beside the purchase.
+- **Re-running is safe.** Each transaction carries Up's id as `imported_id`,
+  so a second import matches instead of duplicating, and Actual also
+  fuzzy-matches ones entered by hand or from a CSV.
+- **Balances are checked** after every run against Up's, less what is held.
+  A difference fails the unit (exit 3) with both figures in the journal.
+- It runs as a `DynamicUser` with the systemd sandbox on, the Up token
+  arriving as a credential. `@actual-app/api` in `package.json` has to match
+  the server's version: bump both, then `prefetch-npm-deps package-lock.json`
+  for `npmDepsHash`.
 
 ## Matrix bridges
 

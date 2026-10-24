@@ -1,0 +1,10 @@
+{
+  "name": "up-import",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "bin": {"up-import": "up-import.mjs"},
+  "dependencies": {
+    "@actual-app/api": "26.10.0"
+  }
+}

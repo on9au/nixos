@@ -3,6 +3,11 @@
   pkgs,
   ...
 }: {
+  imports = [
+    ./ai
+    ./up-import
+  ];
+
   # kanidm-provision reads it to set the client's secret.
   sops.secrets."actual/oidc_client_secret" = {
     owner = "kanidm";
