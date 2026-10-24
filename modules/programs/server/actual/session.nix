@@ -10,9 +10,7 @@ pkgs.writeShellApplication {
     coreutils
     gnugrep
     gnused
-    sqlite
     systemd
-    util-linux
   ];
   text = builtins.readFile ./session.sh;
 }
