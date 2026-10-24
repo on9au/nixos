@@ -22,16 +22,25 @@ sql() {
 
 case "$1" in
 mint)
-  owner=$(sql "SELECT id FROM users WHERE owner = 1 AND enabled = 1")
+  # The user with no name is the password-login owner the multi-user migration
+  # left behind; Actual skips it too.
+  owner=$(sql "SELECT id FROM users WHERE owner = 1 AND enabled = 1 AND user_name <> ''")
   if [ -z "$owner" ]; then
     echo "Actual has no owner yet: log in at https://budget.opena0.net first" >&2
     exit 1
   fi
   budget=$(sql "SELECT group_id FROM files WHERE owner = ? AND NOT deleted" "$owner")
-  if [ "$(printf '%s\n' "$budget" | grep -c .)" != 1 ]; then
+  case "$(printf '%s\n' "$budget" | grep -c .)" in
+  1) ;;
+  0)
+    echo "No budget on the server: open it in the app and upload it to https://budget.opena0.net" >&2
+    exit 1
+    ;;
+  *)
     echo "Expected one budget, found: $(sql "SELECT name FROM files WHERE owner = ? AND NOT deleted" "$owner" | paste -sd ,)" >&2
     exit 1
-  fi
+    ;;
+  esac
 
   token=$(cat /proc/sys/kernel/random/uuid)
   sql "INSERT INTO sessions (token, expires_at, user_id, auth_method) VALUES (?, ?, ?, 'openid')" "$token" "$(($(date +%s) + 10800))" "$owner"
