@@ -20,6 +20,7 @@ holds the macOS/Colima and Debian eras and their runbooks.
 | cinny | `chat.opena0.net` | [`cinny/`](../../programs/server/cinny) | Matrix web client |
 | open-webui | `ai.opena0.net` | [`open-webui.nix`](../../programs/server/open-webui.nix) | chat client for the DeepSeek API; Kanidm login only |
 | actual | `budget.opena0.net` | [`actual.nix`](../../programs/server/actual.nix) | Actual Budget sync server; Kanidm login only. See [Actual Budget](#actual-budget) |
+| actual-ai | none | [`actual-ai/`](../../programs/server/actual-ai) | categorizes Actual transactions with DeepSeek; run by hand, see [Categorizing with actual-ai](#categorizing-with-actual-ai) |
 | bridges | `<bridge>-media.opena0.net` | [`bridges/`](../../programs/server/bridges) | six mautrix bridges, see below |
 | uptime-kuma | `status.opena0.net` | [`uptime-kuma/`](../../programs/server/uptime-kuma) | monitoring, alerts to Discord |
 | beszel | `metrics.opena0.net` | [`beszel.nix`](../../programs/server/beszel.nix) | resource metrics; the agent runs on the host. Kanidm login, set up in PocketBase (see [Kanidm](#kanidm)) |
@@ -282,7 +283,7 @@ every passkey stops working.
 | `kanidm/group_members` | who is in each provisioned group, as a YAML block; see [Kanidm](#kanidm) |
 | `kanidm/idm_admin_password` | `idm_admin`, reset to this on every start |
 | `liveness/url` | heartbeat check on healthchecks.io |
-| `open-webui/deepseek_api_key`, `open-webui/oidc_client_secret` | DeepSeek, and the `open-webui` client in Kanidm |
+| `open-webui/deepseek_api_key`, `open-webui/oidc_client_secret` | DeepSeek (also actual-ai's), and the `open-webui` client in Kanidm |
 | `open-webui/secret_key` | open-webui session signing; `openssl rand -hex 32` |
 | `opena0/password_hash` | `opena0`'s login and sudo password, from `mkpasswd -m yescrypt` |
 | `tuwunel/oidc_client_secret` | substituted into `tuwunel.toml`, and the `tuwunel` client in Kanidm |
@@ -396,6 +397,35 @@ Bringing it up: put `actual/oidc_client_secret` in `secrets.yaml`, add
 `budget` → `jia.opena0.net` in Cloudflare, switch, and log in once straight
 away so the owner is you. Then `sudo ./setup-monitors.sh` adds the Kuma
 monitor.
+
+### Categorizing with actual-ai
+
+[actual-ai](https://github.com/sakowicz/actual-ai) sends each uncategorized
+transaction (payee, amount, notes, date) and the category list to DeepSeek's
+`deepseek-flash`, and sets the category it picks. It never runs on its own:
+
+```
+sudo systemctl start docker-actual-ai-dry-run   # logs what it would do, changes nothing
+journalctl -u docker-actual-ai-dry-run -f
+sudo systemctl start docker-actual-ai           # does it
+```
+
+In the app, filter notes for `#actual-ai` to review what it set, and for
+`#actual-ai-miss` to see what it couldn't place.
+
+- **No password, no token to paste.** actual-ai only knows password login, so
+  [`session-token.cjs`](../../programs/server/actual-ai/session-token.cjs),
+  preloaded into it, hands `@actual-app/api` a session token instead. The
+  unit makes that session itself, for the owner, straight into
+  `account.sqlite`, with a three-hour expiry, and deletes it when it stops.
+  The budget's sync ID comes from the same database, so it expects exactly
+  one budget.
+- **An encrypted budget** has its password asked for on the terminal running
+  `systemctl start`, and kept only in `/run` for that run.
+- **Dry run has to be listed.** Upstream's README calls it the default, but
+  an unlisted feature is off, so `docker-actual-ai` without `dryRun` writes.
+- It reaches Actual through `budget.opena0.net` rather than the `proxy`
+  network, so the token goes over TLS and nothing else is reachable from it.
 
 ## Matrix bridges
 
