@@ -1,4 +1,8 @@
-{config, ...}: {
+{
+  config,
+  pkgs,
+  ...
+}: {
   services.openssh = {
     enable = true;
 
@@ -8,6 +12,10 @@
       PermitRootLogin = "no";
     };
   };
+
+  # Ghostty (the macbook's terminal) sends TERM=xterm-ghostty; without its
+  # terminfo, zsh, tmux and nvim draw garbage over ssh.
+  environment.systemPackages = [pkgs.ghostty.terminfo];
 
   # openFirewall defaults on, so services.openssh.ports opens itself.
 
