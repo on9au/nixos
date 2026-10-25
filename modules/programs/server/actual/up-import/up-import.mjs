@@ -8,6 +8,7 @@
 //   UP_TOKEN_FILE     Up personal access token (default: the systemd credential)
 //   UP_SINCE_DAYS     only this many days back; unset imports everything
 //   UP_ACCOUNT_NAMES  JSON {"<Up name>": "<Actual name>"}; otherwise the same name
+//   UP_ALL_CATEGORIES=1  make every Up category, not only the ones transactions use
 //   DRY_RUN=1         change nothing, report what would happen
 import fs from "node:fs";
 import api from "@actual-app/api";
@@ -111,6 +112,11 @@ async function categoryFor(upId) {
   }
   categoryIds.set(upId, id);
   return id;
+}
+
+// Up's parent categories are the groups, so only the children become categories.
+if (env.UP_ALL_CATEGORIES === "1") {
+  for (const c of upCategories.values()) if (c.relationships.parent.data) await categoryFor(c.id);
 }
 
 const payees = await api.getPayees();

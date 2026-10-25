@@ -458,7 +458,8 @@ every six hours, so nothing reaches the budget before the dry run is read.
 - **Categories are Up's.** Each Up category goes to the Actual category of
   the same name, made under a group named for Up's parent (Good Life, Home,
   Personal, Transport) if missing. Income and transfers have none in Up, which
-  leaves them for actual-ai.
+  leaves them for actual-ai. A category only appears once a transaction uses
+  it; `sudo systemctl start actual-up-import-categories` makes all of them.
 - **Settled only.** Held transactions can change amount before they settle,
   so they wait; the fortnight's window catches them later.
 - **Transfers between two imported accounts** come from the receiving side

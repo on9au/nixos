@@ -32,6 +32,12 @@
     actual-up-import = {UP_SINCE_DAYS = "14";};
     # By hand: the whole history, once, after the dry run looks right.
     actual-up-import-all = {};
+    # By hand: every Up category, so there's one to budget against before
+    # anything is spent in it.
+    actual-up-import-categories = {
+      UP_ALL_CATEGORIES = "1";
+      UP_SINCE_DAYS = "14";
+    };
     actual-up-import-dry-run = {DRY_RUN = "1";};
   };
 
