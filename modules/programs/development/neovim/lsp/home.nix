@@ -16,6 +16,7 @@
     markdown-toc
     markdownlint-cli2
     marksman
+    maven # mvn, for the <leader>jt/jT test keymaps in plugins/java.lua
     netcoredbg
     nil
     omnisharp-roslyn

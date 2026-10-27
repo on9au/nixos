@@ -3,17 +3,25 @@
 -- mirrors that model rather than introducing Gradle, and keeps nvim and IntelliJ
 -- interchangeable on the same checkout.
 --
+-- Once a project adds the unit's pom.xml (for JUnit and Mockito), the sources
+-- move to src/main/java and the tests to src/test/java. jdtls then reads the
+-- source roots from the pom, building and running still go through plain javac
+-- on the main sources, and only the tests go through mvn, since they are the
+-- one part that needs the pom's dependencies.
+--
 -- Nothing here writes into the repo: jdtls keeps its Eclipse metadata under
 -- ~/.cache/nvim/jdtls/<project>/, so there is no .project/.classpath for tutors
--- or markers to trip over. The only artefact is bin/, which is gitignored.
+-- or markers to trip over. The only artefacts are bin/ and, for a Maven
+-- project, target/ -- both gitignored by the project.
 
 local home = os.getenv("HOME")
 
 -- Sources the project is not allowed to change: FIT2099 ships its engine under
--- src/edu/ and forbids editing it, so a warning there can never be actioned and
--- only buries the ones that can. Matched as a plain substring of the file path;
--- add an entry for any other project that vendors code the same way.
-local read_only_sources = { "/src/edu/" }
+-- src/edu/ (src/main/java/edu/ in the Maven layout) and forbids editing it, so a
+-- warning there can never be actioned and only buries the ones that can.
+-- Matched as a plain substring of the file path; add an entry for any other
+-- project that vendors code the same way.
+local read_only_sources = { "/src/edu/", "/src/main/java/edu/" }
 
 -- The javac side of the same rule, by package rather than path, since doclint is
 -- the only warning source the build turns on and -Xdoclint/package: is how it is
@@ -113,8 +121,19 @@ local function project_root()
   return vim.fs.root(buf ~= "" and buf or vim.uv.cwd(), { ".git", "src" }) or vim.uv.cwd()
 end
 
+--- Where the main (non-test) sources live: src/main/java in the Maven layout,
+--- otherwise src/ itself. Never src/ as a whole once the Maven layout exists,
+--- since that would sweep in src/test/java, which plain javac cannot compile
+--- without JUnit on its classpath.
+--- @param root string
+--- @return string
+local function source_root(root)
+  local maven = vim.fs.joinpath(root, "src", "main", "java")
+  return vim.uv.fs_stat(maven) and maven or vim.fs.joinpath(root, "src")
+end
+
 local function sources(root)
-  return vim.fn.glob(vim.fs.joinpath(root, "src", "**", "*.java"), true, true)
+  return vim.fn.glob(vim.fs.joinpath(source_root(root), "**", "*.java"), true, true)
 end
 
 --- The fully-qualified name of the class in `file`, if it declares a main.
@@ -134,7 +153,7 @@ local function main_in(file)
   return package and (package .. "." .. name) or name
 end
 
---- Every class under src/ declaring a main, project code before engine demos.
+--- Every main-source class declaring a main, project code before engine demos.
 --- @param root string
 --- @return { fqn: string, read_only: boolean }[]
 local function main_classes(root)
@@ -188,7 +207,7 @@ local function resolve_main(root, callback)
 
   local found = main_classes(root)
   if #found == 0 then
-    return vim.notify("No class with a main method found under src/", vim.log.levels.WARN)
+    return vim.notify("No class with a main method found under " .. source_root(root), vim.log.levels.WARN)
   end
   if #found == 1 then
     return chosen(found[1].fqn)
@@ -218,7 +237,7 @@ local function javac_run(run)
     local root = project_root()
     local files = sources(root)
     if #files == 0 then
-      return vim.notify("No .java files under " .. vim.fs.joinpath(root, "src"), vim.log.levels.WARN)
+      return vim.notify("No .java files under " .. source_root(root), vim.log.levels.WARN)
     end
 
     local jdk = project_jdk(root)
@@ -258,6 +277,41 @@ local function javac_run(run)
     resolve_main(root, function(main)
       launch(compile .. " && " .. vim.fn.shellescape(java) .. " -cp bin " .. vim.fn.shellescape(main))
     end)
+  end
+end
+
+-- Tests need JUnit and Mockito on the classpath, and only the pom knows where
+-- those come from, so they run through mvn rather than javac_run. JAVA_HOME is
+-- pinned to the .sdkmanrc JDK for the same reason javac_run resolves one: mvn
+-- otherwise runs on whichever JDK it finds first. With current_class, only the
+-- test class in the buffer runs (surefire matches -Dtest by simple class name).
+local function mvn_test(current_class)
+  return function()
+    -- Saved for the same reason as javac_run: mvn compiles from disk.
+    vim.cmd("silent! wall")
+
+    local root = project_root()
+    if not vim.uv.fs_stat(vim.fs.joinpath(root, "pom.xml")) then
+      return vim.notify("No pom.xml in " .. root .. ", so there is no test setup to run", vim.log.levels.WARN)
+    end
+
+    local parts = { "mvn", "-B", "test" }
+    if current_class then
+      local file = vim.api.nvim_buf_get_name(0)
+      local name = vim.fn.fnamemodify(file, ":t:r")
+      if not file:find("/src/test/java/", 1, true) then
+        return vim.notify(name .. " is not a test class under src/test/java", vim.log.levels.WARN)
+      end
+      table.insert(parts, vim.fn.shellescape("-Dtest=" .. name))
+    end
+
+    local jdk = project_jdk(root)
+    Snacks.terminal.open(table.concat(parts, " "), {
+      cwd = root,
+      env = jdk and { JAVA_HOME = jdk } or nil,
+      interactive = false,
+      win = { position = "bottom" },
+    })
   end
 end
 
@@ -311,6 +365,14 @@ return {
         config.handlers = vim.tbl_extend("force", config.handlers or {}, read_only_filter())
       end
 
+      -- Importing a pom.xml writes .project, .classpath and .settings/ into the
+      -- project root unless jdtls is told otherwise, which breaks the "nothing
+      -- writes into the repo" rule above. jdtls reads this from a JVM system
+      -- property, not an LSP setting (`java.import.*` in opts.settings is
+      -- ignored), and treats it being unset as true. False keeps the files in
+      -- the workspace dir under ~/.cache/nvim/jdtls/ instead.
+      table.insert(opts.cmd, "--jvm-arg=-Djava.import.generatesMetadataFilesAtProjectRoot=false")
+
       opts.settings = vim.tbl_deep_extend("force", opts.settings or {}, {
         java = {
           configuration = {
@@ -329,7 +391,8 @@ return {
           -- With no pom.xml/build.gradle, jdtls falls back to "invisible project"
           -- mode and otherwise has no idea src/ is a source root -- which is why
           -- it reports phantom errors on a perfectly valid file. This is the
-          -- equivalent of IntelliJ's "Mark Directory as > Sources Root".
+          -- equivalent of IntelliJ's "Mark Directory as > Sources Root". A Maven
+          -- project takes its source roots from the pom, so these go unused there.
           project = {
             sourcePaths = { "src" },
             outputPath = "bin",
@@ -368,6 +431,8 @@ return {
       { "<leader>j", "", desc = "+java", ft = "java" },
       { "<leader>jb", javac_run(false), desc = "Build (javac -> bin/)", ft = "java" },
       { "<leader>jr", javac_run(true), desc = "Build & Run main class", ft = "java" },
+      { "<leader>jt", mvn_test(false), desc = "Test all (mvn test)", ft = "java" },
+      { "<leader>jT", mvn_test(true), desc = "Test current class (mvn test)", ft = "java" },
     },
   },
 
