@@ -18,7 +18,7 @@
       displayName = "Open WebUI";
       # Kanidm takes PNG, JPEG, GIF, SVG or WebP, up to 1024x1024 and 256 KiB.
       imageFile = pkgs.fetchurl {
-        url = "https://raw.githubusercontent.com/open-webui/open-webui/v0.12.3/static/favicon.png";
+        url = "https://raw.githubusercontent.com/open-webui/open-webui/v0.12.4/static/favicon.png";
         hash = "sha256-Vpij45UT57YwTslsMJNzqzrw9w/nlCk0Yd45WpTeqmU=";
       };
       originLanding = "https://ai.opena0.net";
@@ -40,7 +40,7 @@
   };
 
   virtualisation.oci-containers.containers.open-webui = {
-    image = "ghcr.io/open-webui/open-webui:v0.12.3";
+    image = "ghcr.io/open-webui/open-webui:v0.12.4";
     environment = {
       CORS_ALLOW_ORIGIN = "https://ai.opena0.net";
       ENABLE_COMMUNITY_SHARING = "false";

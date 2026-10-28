@@ -1,6 +1,6 @@
 {...}: {
   virtualisation.oci-containers.containers.cinny = {
-    image = "ghcr.io/cinnyapp/cinny:v4.12.7";
+    image = "ghcr.io/cinnyapp/cinny:v4.12.8";
     volumes = ["${./config.json}:/app/config.json:ro"];
     networks = ["proxy"];
     # nginx: the master chowns its cache directories and drops the workers to nginx.

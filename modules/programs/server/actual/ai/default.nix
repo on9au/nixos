@@ -23,7 +23,7 @@ in {
 
   virtualisation.oci-containers.containers =
     lib.mapAttrs (name: features: {
-      image = "sakowicz/actual-ai:3.0.2";
+      image = "sakowicz/actual-ai:3.0.3";
       autoStart = false;
       # node directly rather than `npm run prod`, so the preload only loads in the app.
       cmd = ["node" "dist/app.js"];

@@ -9,7 +9,7 @@
   };
 
   virtualisation.oci-containers.containers.diun = {
-    image = "crazymax/diun:4.33.0";
+    image = "crazymax/diun:4.33.1";
     cmd = ["serve"];
     environment = {
       # Every image is pinned to an exact version, whose digest never moves, so

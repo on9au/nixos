@@ -11,7 +11,7 @@
     systems.oauth2.forgejo = {
       displayName = "Forgejo";
       imageFile = pkgs.fetchurl {
-        url = "https://codeberg.org/forgejo/forgejo/raw/tag/v16.0.5/public/assets/img/logo.svg";
+        url = "https://codeberg.org/forgejo/forgejo/raw/tag/v17.0.1/public/assets/img/logo.svg";
         hash = "sha256-mXvqG5TJtApPWdRbEnEZpRs2Ttt9nWiQRdSpeHZznok=";
       };
       originLanding = "https://git.opena0.net/";
@@ -23,7 +23,7 @@
   };
 
   virtualisation.oci-containers.containers.forgejo = {
-    image = "codeberg.org/forgejo/forgejo:16.0.5";
+    image = "codeberg.org/forgejo/forgejo:17.0.1";
     environment = {
       FORGEJO__database__DB_TYPE = "sqlite3";
       FORGEJO__openid__ENABLE_OPENID_SIGNIN = "false";

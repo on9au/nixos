@@ -9,7 +9,7 @@
   '';
 
   virtualisation.oci-containers.containers.uptime-kuma = {
-    image = "louislam/uptime-kuma:2.5.6";
+    image = "louislam/uptime-kuma:2.5.8";
     volumes = ["uptime-kuma_data:/app/data"];
     networks = ["proxy"];
     # For the beszel-agent monitor, which checks a port on the host.

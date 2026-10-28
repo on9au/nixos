@@ -16,7 +16,7 @@
       basicSecretFile = config.sops.secrets."beszel/oidc_client_secret".path;
       displayName = "Beszel";
       imageFile = pkgs.fetchurl {
-        url = "https://raw.githubusercontent.com/henrygd/beszel/v0.21.0/internal/site/public/static/icon.svg";
+        url = "https://raw.githubusercontent.com/henrygd/beszel/v0.21.1/internal/site/public/static/icon.svg";
         hash = "sha256-oJD3AvKaxN2EVnrxwRnMaDP4rZYFlEk/dWX2RYkGtNM=";
       };
       originLanding = "https://metrics.opena0.net/";
@@ -26,7 +26,7 @@
   };
 
   virtualisation.oci-containers.containers.beszel = {
-    image = "henrygd/beszel:0.21.0";
+    image = "henrygd/beszel:0.21.1";
     # Kanidm's beszel_users decides who gets in, so a first login makes the
     # account. PocketBase superusers (/_/) keep their password login.
     environment = {

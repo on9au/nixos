@@ -12,7 +12,7 @@
   # runs on is root wherever that daemon is. Rootless, so that is an
   # unprivileged user in this container.
   virtualisation.oci-containers.containers.forgejo-runner-dind = {
-    image = "docker:29.9.0-dind-rootless";
+    image = "docker:29.9.2-dind-rootless";
     # Plain TCP on 2375; the runner is the only other thing on the network.
     environment.DOCKER_TLS_CERTDIR = "";
     # rootlesskit needs mounts and user namespaces the default profile denies,

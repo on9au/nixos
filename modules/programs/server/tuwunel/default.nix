@@ -46,7 +46,7 @@
   };
 
   virtualisation.oci-containers.containers.tuwunel = {
-    image = "jevolk/tuwunel:v1.9.3";
+    image = "jevolk/tuwunel:v1.9.4";
     environment.TUWUNEL_CONFIG = "/etc/tuwunel.toml";
     volumes = [
       "${config.sops.templates."tuwunel.toml".path}:/etc/tuwunel.toml:ro"

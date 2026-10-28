@@ -8,23 +8,23 @@
     };
     # RCS media has no HTTP URL to hand out, so no direct media and no subdomain.
     gmessages = {
-      image = "dock.mau.dev/mautrix/gmessages:v26.09";
+      image = "dock.mau.dev/mautrix/gmessages:v26.10";
       mediaPort = null;
     };
     instagram = {
-      image = "dock.mau.dev/mautrix/meta:ig-v26.09";
+      image = "dock.mau.dev/mautrix/meta:ig-v26.10";
       mediaPort = 29322;
     };
     messenger = {
-      image = "dock.mau.dev/mautrix/meta:v26.09";
+      image = "dock.mau.dev/mautrix/meta:v26.10";
       mediaPort = 29321;
     };
     telegram = {
-      image = "dock.mau.dev/mautrix/telegram:v26.09";
+      image = "dock.mau.dev/mautrix/telegram:v26.10";
       mediaPort = 29317;
     };
     whatsapp = {
-      image = "dock.mau.dev/mautrix/whatsapp:v26.09";
+      image = "dock.mau.dev/mautrix/whatsapp:v26.10";
       mediaPort = 29318;
     };
   };
