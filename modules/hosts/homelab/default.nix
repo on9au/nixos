@@ -80,18 +80,21 @@
     "--exit-node=proxy-jia-opena0"
   ];
 
-  # Except the docker `vpn` network, where gluetun alone sits: its Mullvad
-  # tunnel leaves from the home IP, so torrents never cross the VPS's transfer
-  # allowance. Ahead of Tailscale's rules, which start at 5210.
+  # Ahead of Tailscale's rules, which start at 5210. The first keeps the LAN
+  # and docker bridges off the exit node: Tailscale's own exceptions for them
+  # are throw routes in its table, which networkd deletes as foreign routes
+  # when it reconfigures this link. The second is the docker `vpn` network,
+  # where gluetun alone sits: its Mullvad tunnel leaves from the home IP, so
+  # torrents never cross the VPS's transfer allowance.
   systemd.network.networks."30-lan".routingPolicyRules = [
     {
-      From = "10.200.0.0/24";
       Priority = 5200;
+      SuppressPrefixLength = 0;
       Table = "main";
     }
     {
-      To = "10.200.0.0/24";
-      Priority = 5200;
+      From = "10.200.0.0/24";
+      Priority = 5201;
       Table = "main";
     }
   ];
