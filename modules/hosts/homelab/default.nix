@@ -30,6 +30,7 @@
 
     # Server
     ../../programs/server/actual
+    ../../programs/server/anime
     ../../programs/server/backup
     ../../programs/server/beszel.nix
     ../../programs/server/bridges
@@ -77,6 +78,22 @@
   services.tailscale.extraSetFlags = [
     "--exit-node-allow-lan-access"
     "--exit-node=proxy-jia-opena0"
+  ];
+
+  # Except the docker `vpn` network, where gluetun alone sits: its Mullvad
+  # tunnel leaves from the home IP, so torrents never cross the VPS's transfer
+  # allowance. Ahead of Tailscale's rules, which start at 5210.
+  systemd.network.networks."30-lan".routingPolicyRules = [
+    {
+      From = "10.200.0.0/24";
+      Priority = 5200;
+      Table = "main";
+    }
+    {
+      To = "10.200.0.0/24";
+      Priority = 5200;
+      Table = "main";
+    }
   ];
 
   sops.defaultSopsFile = ./secrets.yaml;

@@ -12,6 +12,10 @@
     runner = "";
     # socket-proxy and its readers; no route out.
     socket = "--internal";
+    # gluetun alone. A fixed subnet, so hosts/homelab can route it past the exit
+    # node; outside docker's pools and Mullvad's 10.64.0.0/10. The bridge name
+    # is for gluetun.nix's egress rule.
+    vpn = "--subnet=10.200.0.0/24 --opt com.docker.network.bridge.name=br-vpn";
   };
 
   networkUnits = map (name: "docker-network-${name}.service") (lib.attrNames networks);

@@ -18,6 +18,7 @@ holds the macOS/Colima and Debian eras and their runbooks.
 | kanidm | `idm.opena0.net` | [`kanidm.nix`](../../programs/server/kanidm.nix) | identity; OIDC provider for tuwunel, forgejo, open-webui, beszel and actual. See [Kanidm](#kanidm) |
 | tuwunel | `matrix.opena0.net` | [`tuwunel/`](../../programs/server/tuwunel) | Matrix homeserver, `server_name = opena0.net` |
 | cinny | `chat.opena0.net` | [`cinny/`](../../programs/server/cinny) | Matrix web client |
+| anime | `jia-opena0:8096`, `:43211`, `:8080` (tailnet only) | [`anime/`](../../programs/server/anime) | Jellyfin, Seanime, and qBittorrent behind Mullvad. See [its README](../../programs/server/anime/README.md) |
 | open-webui | `ai.opena0.net` | [`open-webui.nix`](../../programs/server/open-webui.nix) | chat client for the DeepSeek API; Kanidm login only |
 | actual | `budget.opena0.net` | [`actual/`](../../programs/server/actual) | Actual Budget sync server; Kanidm login only. See [Actual Budget](#actual-budget) |
 | actual-ai | none | [`actual/ai/`](../../programs/server/actual/ai) | categorizes Actual transactions with DeepSeek; run by hand, see [Categorizing with actual-ai](#categorizing-with-actual-ai) |
@@ -91,7 +92,9 @@ break without anything here changing, hence the Kuma monitor on it.
   [exit node](../proxy/README.md#jias-exit-node). It fails closed: with the
   proxy down, jia has no internet, but LAN access stays
   (`--exit-node-allow-lan-access`), so DNS through the router and LAN SSH
-  still work.
+  still work. The one exception is the docker `vpn` network: gluetun's
+  Mullvad tunnel for the [anime](../../programs/server/anime/README.md#network)
+  downloads leaves from the home IP.
 - **`opena0` is not in the docker group** and is not a nix trusted user; both
   are root without the sudo password. `sudo docker …`.
 
@@ -114,6 +117,7 @@ Kanidm already has, for declarative provisioning ([Kanidm](#kanidm)).
 | `/var/lib/homelab/terraria/{config,worlds}` | tshock config and worlds |
 | `/var/lib/homelab/forgejo-runner/data` | runner registration and `config.yml` |
 | `/var/lib/syncthing` | synced folders, their `.stversions`, and syncthing's identity |
+| `/srv/anime`, `/var/lib/media` | the anime library and its apps' state; not backed up ([why](../../programs/server/anime/README.md#state)) |
 
 The volume names and the `/var/lib/homelab` layout are the old compose
 projects' names and tree, so a restore from the existing restic series lands
@@ -281,6 +285,7 @@ every passkey stops working.
 | `caddy/cloudflare_api_token` | ACME DNS-01 (DNS:Edit) |
 | `caddy/acme_email` | Let's Encrypt account |
 | `diun/discord_webhook` | Diun notifications |
+| `gluetun/wireguard_private_key`, `gluetun/wireguard_addresses`, `seanime/password` | Mullvad and Seanime, for the anime downloads; see [its README](../../programs/server/anime/README.md#secrets) |
 | `forgejo-runner/token` | runner registration; only read while `data/.runner` is missing |
 | `kanidm/group_members` | who is in each provisioned group, as a YAML block; see [Kanidm](#kanidm) |
 | `kanidm/idm_admin_password` | `idm_admin`, reset to this on every start |
