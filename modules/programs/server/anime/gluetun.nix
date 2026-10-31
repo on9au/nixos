@@ -15,6 +15,10 @@
   virtualisation.oci-containers.containers.gluetun = {
     image = "qmcgaw/gluetun:v3.41.3";
     environment = {
+      # Owner of the files it writes under /tmp/gluetun. Left at 1000, root
+      # without DAC_OVERRIDE can't open them again.
+      PGID = "0";
+      PUID = "0";
       SERVER_CITIES = "Melbourne";
       TZ = config.time.timeZone;
       VPN_SERVICE_PROVIDER = "mullvad";
