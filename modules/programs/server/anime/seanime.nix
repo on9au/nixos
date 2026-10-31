@@ -22,6 +22,10 @@
       Cmd = ["${start}"];
       Env = [
         "HOME=/data"
+        # VAAPI rather than QSV: nixpkgs' ffmpeg is built without QSV, and its
+        # runtime no longer covers the UHD 620. Same media engine either way.
+        "LIBVA_DRIVER_NAME=iHD"
+        "LIBVA_DRIVERS_PATH=${pkgs.intel-media-driver}/lib/dri"
         "PATH=/bin"
         "SEANIME_DATA_DIR=/data"
         # Published through gluetun, so it must listen beyond loopback.
@@ -53,7 +57,11 @@ in {
       "/var/lib/media/seanime:/data"
     ];
     dependsOn = ["gluetun"];
-    extraOptions = ["--network=container:gluetun"];
+    devices = ["/dev/dri:/dev/dri"];
+    extraOptions = [
+      "--group-add=${toString config.users.groups.render.gid}"
+      "--network=container:gluetun"
+    ];
     # Built by Nix, so there is no registry tag for Diun to compare against.
     labels."diun.enable" = "false";
   };
