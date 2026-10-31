@@ -14,12 +14,15 @@
   # from floating base tags.
   image = pkgs.dockerTools.streamLayeredImage {
     name = "homelab-seanime";
-    contents = [pkgs.cacert];
+    # ffmpeg for playing in the browser: ffprobe reads each file's tracks, and
+    # ffmpeg pulls out the fonts ASS subtitles need, even for direct play.
+    contents = [pkgs.cacert pkgs.ffmpeg-headless];
     extraCommands = "mkdir -m 1777 tmp";
     config = {
       Cmd = ["${start}"];
       Env = [
         "HOME=/data"
+        "PATH=/bin"
         "SEANIME_DATA_DIR=/data"
         # Published through gluetun, so it must listen beyond loopback.
         "SEANIME_SERVER_HOST=0.0.0.0"
