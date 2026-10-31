@@ -106,6 +106,10 @@ devices.
      — fake releases carry those, and nothing here needs them.
    - *BitTorrent*: a share ratio limit (2, then *Stop torrent*) so it doesn't
      seed forever.
+   - *Advanced*: network interface `tun0`, then restart `docker-qbittorrent`.
+     Left on *Any*, it announces from the container's own `eth0` address too,
+     which gluetun's firewall refuses ("Operation not permitted" on every
+     tracker).
 3. **Seanime** at `:43211`, with the `seanime/password` password. Log in to
    AniList, set the library to `/anime`, and set the torrent client to
    qBittorrent at `127.0.0.1:8080` with no credentials. The auto-downloader
