@@ -6,6 +6,9 @@
     uxplay # AirPlay receiver for mirroring an Apple device; run as `uxplay -p`
   ];
 
+  # screen and webcam recording
+  programs.obs-studio.enable = true;
+
   # uxplay advertises itself through Avahi, which refuses to publish by default.
   services.avahi.publish = {
     enable = true;
