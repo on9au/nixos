@@ -3,7 +3,6 @@
     bitwarden-desktop # password manager; handles bitwarden:// links (mimeapps.list)
     google-chrome # Chromium browser, for sites that only work properly in Chrome
     cinny-desktop # Matrix chat
-    jellyfin-mpv-shim # cast target for jia's Jellyfin, plays in mpv (hosts/desktop/autostart.lua)
     libreoffice-stable # opening and editing Office documents
     meld # side-by-side diffs and merge conflicts
     mpv # default video player (mimeapps.list)
