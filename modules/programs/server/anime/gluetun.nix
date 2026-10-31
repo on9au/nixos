@@ -1,4 +1,6 @@
-{config, ...}: {
+{config, ...}: let
+  image = "qmcgaw/gluetun:v3.41.3";
+in {
   sops.secrets."gluetun/wireguard_addresses" = {};
   sops.secrets."gluetun/wireguard_private_key" = {};
 
@@ -13,14 +15,12 @@
   # qBittorrent and Seanime share this container's network namespace, so they
   # have no way out but the tunnel, and their ports are published here.
   virtualisation.oci-containers.containers.gluetun = {
-    image = "qmcgaw/gluetun:v3.41.3";
+    image = image;
     environment = {
-      # Owner of the files it writes under /tmp/gluetun. Left at 1000, root
-      # without DAC_OVERRIDE can't open them again.
-      PGID = "0";
-      PUID = "0";
       SERVER_CITIES = "Melbourne";
       TZ = config.time.timeZone;
+      # Refreshes /gluetun/servers.json through the tunnel; see gluetun-servers.
+      UPDATER_PERIOD = "24h";
       VPN_SERVICE_PROVIDER = "mullvad";
       VPN_TYPE = "wireguard";
       # The default, pinned because the egress rule below allows only this.
@@ -31,6 +31,7 @@
       "127.0.0.1:43211:43211"
       "127.0.0.1:8080:8080"
     ];
+    volumes = ["/var/lib/media/gluetun:/gluetun"];
     # On its own subnet, which hosts/homelab routes out the home connection
     # rather than the exit node.
     networks = ["vpn"];
@@ -42,6 +43,33 @@
       NET_RAW = true;
     };
     devices = ["/dev/net/tun:/dev/net/tun"];
+    # gluetun makes /tmp/gluetun mode 0644, which root can only enter with
+    # the capabilities dropped above; an existing tmpfs is left alone.
+    extraOptions = ["--tmpfs=/tmp/gluetun"];
+  };
+
+  # The server list built into the image goes stale as Mullvad retires relays,
+  # and the updater above needs a working tunnel first. So the first start gets
+  # a fresh list, fetched outside the tunnel from Mullvad's API.
+  systemd.services.gluetun-servers = {
+    description = "Fetch gluetun's Mullvad server list";
+    after = ["docker.service"];
+    requires = ["docker.service"];
+    before = ["docker-gluetun.service"];
+    requiredBy = ["docker-gluetun.service"];
+    path = [config.virtualisation.docker.package];
+    unitConfig.ConditionPathExists = "!/var/lib/media/gluetun/servers.json";
+    script = ''
+      docker run --rm --cap-drop=ALL -v /var/lib/media/gluetun:/gluetun \
+        ${image} update -enduser -providers mullvad
+    '';
+    serviceConfig.Type = "oneshot";
+  };
+
+  systemd.tmpfiles.settings."10-anime"."/var/lib/media/gluetun".d = {
+    group = "root";
+    mode = "0700";
+    user = "root";
   };
 
   # gluetun's firewall is the kill switch; this backs it from the host. The

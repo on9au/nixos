@@ -29,6 +29,13 @@ anything else on the tailnet.
   that isn't UDP to port 51820, so not even a broken gluetun can send
   cleartext from the home IP. Seanime's nyaa and AniList requests go through
   Mullvad too, which also gets past ISP blocks on nyaa.
+- **The server list is fetched, not the image's.** The list built into each
+  gluetun release goes stale as Mullvad retires relays (v3.41.3's Melbourne
+  servers were all gone), and a dead relay just ignores the handshake.
+  `gluetun-servers.service` fetches a fresh list into
+  `/var/lib/media/gluetun` before the first start, outside the tunnel, and
+  gluetun refreshes it daily through the tunnel after that. Delete
+  `servers.json` there to fetch again on the next start.
 - **No port forwarding** (Mullvad dropped it), so peers can't connect in.
   Downloads of anything well-seeded are fine; seeding is mostly to peers that
   connect out.
@@ -59,7 +66,7 @@ anything else on the tailnet.
 
 ## State
 
-`/srv/anime` is the library, and `/var/lib/media/{qbittorrent,seanime,jellyfin}`
+`/srv/anime` is the library, and `/var/lib/media/{gluetun,qbittorrent,seanime,jellyfin}`
 the apps' state. None of it is backed up: it's outside `/var/lib/homelab`. AniList
 keeps watch progress, so a lost Seanime is a re-link, and a lost Jellyfin is a
 rescan. Everything runs as `media` (2000).
