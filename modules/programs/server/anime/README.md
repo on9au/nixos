@@ -33,9 +33,10 @@ anything else on the tailnet.
   gluetun release goes stale as Mullvad retires relays (v3.41.3's Melbourne
   servers were all gone), and a dead relay just ignores the handshake.
   `gluetun-servers.service` fetches a fresh list into
-  `/var/lib/media/gluetun` before the first start, outside the tunnel, and
-  gluetun refreshes it daily through the tunnel after that. Delete
-  `servers.json` there to fetch again on the next start.
+  `/var/lib/media/gluetun` before every start, outside the tunnel, and
+  gluetun refreshes it daily through the tunnel while it runs. Both accept
+  half the built-in server count rather than gluetun's default 80%, which
+  Mullvad shrinking has dropped below.
 - **No port forwarding** (Mullvad dropped it), so peers can't connect in.
   Downloads of anything well-seeded are fine; seeding is mostly to peers that
   connect out.

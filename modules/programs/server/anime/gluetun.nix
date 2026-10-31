@@ -19,6 +19,9 @@ in {
     environment = {
       SERVER_CITIES = "Melbourne";
       TZ = config.time.timeZone;
+      # Below the default 0.8, which a shrinking Mullvad fails against the
+      # list built into the image.
+      UPDATER_MIN_RATIO = "0.5";
       # Refreshes /gluetun/servers.json through the tunnel; see gluetun-servers.
       UPDATER_PERIOD = "24h";
       VPN_SERVICE_PROVIDER = "mullvad";
@@ -49,19 +52,19 @@ in {
   };
 
   # The server list built into the image goes stale as Mullvad retires relays,
-  # and the updater above needs a working tunnel first. So the first start gets
-  # a fresh list, fetched outside the tunnel from Mullvad's API.
+  # and the updater above needs a working tunnel first. So every start gets a
+  # fresh list, fetched outside the tunnel from Mullvad's API. A failed fetch
+  # doesn't hold gluetun back: it falls back to the last list saved.
   systemd.services.gluetun-servers = {
     description = "Fetch gluetun's Mullvad server list";
     after = ["docker.service"];
     requires = ["docker.service"];
     before = ["docker-gluetun.service"];
-    requiredBy = ["docker-gluetun.service"];
+    wantedBy = ["docker-gluetun.service"];
     path = [config.virtualisation.docker.package];
-    unitConfig.ConditionPathExists = "!/var/lib/media/gluetun/servers.json";
     script = ''
       docker run --rm --cap-drop=ALL -v /var/lib/media/gluetun:/gluetun \
-        ${image} update -enduser -providers mullvad
+        ${image} update -enduser -providers mullvad -minratio 0.5
     '';
     serviceConfig.Type = "oneshot";
   };
