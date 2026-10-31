@@ -117,7 +117,7 @@ Kanidm already has, for declarative provisioning ([Kanidm](#kanidm)).
 | `/var/lib/homelab/terraria/{config,worlds}` | tshock config and worlds |
 | `/var/lib/homelab/forgejo-runner/data` | runner registration and `config.yml` |
 | `/var/lib/syncthing` | synced folders, their `.stversions`, and syncthing's identity |
-| `/srv/anime`, `/var/lib/media` | the anime library and its apps' state; not backed up ([why](../../programs/server/anime/README.md#state)) |
+| `/srv/anime`, `/srv/manga`, `/var/lib/media` | the anime and manga libraries and their apps' state; not backed up ([why](../../programs/server/anime/README.md#state)) |
 
 The volume names and the `/var/lib/homelab` layout are the old compose
 projects' names and tree, so a restore from the existing restic series lands

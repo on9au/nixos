@@ -35,6 +35,16 @@ in {
       mode = "0775";
       user = "media";
     };
+    "/srv/manga/downloads".d = {
+      group = "media";
+      mode = "0775";
+      user = "media";
+    };
+    "/srv/manga/local".d = {
+      group = "media";
+      mode = "0775";
+      user = "media";
+    };
     "/var/lib/media".d = {
       group = "root";
       mode = "0755";

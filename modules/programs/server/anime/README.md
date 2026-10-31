@@ -67,14 +67,16 @@ anything else on the tailnet.
 
 ## State
 
-`/srv/anime` is the library, and `/var/lib/media/{gluetun,qbittorrent,seanime,jellyfin}`
-the apps' state. None of it is backed up: it's outside `/var/lib/homelab`. AniList
-keeps watch progress, so a lost Seanime is a re-link, and a lost Jellyfin is a
-rescan. Everything runs as `media` (2000).
+`/srv/anime` is the library, `/srv/manga` the manga (`downloads/` from
+Seanime's sources, `local/` for your own CBZ/folders, which Seanime's *Local*
+source reads), and `/var/lib/media/{gluetun,qbittorrent,seanime,jellyfin}`
+the apps' state. None of it is backed up: it's outside `/var/lib/homelab`.
+AniList keeps watch and read progress, so a lost Seanime is a re-link, and a
+lost Jellyfin is a rescan. Everything runs as `media` (2000).
 
 The internal disk is 512 GB with everything else on it. Delete watched
-episodes, or move `/srv/anime` to an external drive (a `fileSystems` entry
-mounted there, chowned to `media`).
+episodes, or move `/srv/anime` and `/srv/manga` to an external drive
+(`fileSystems` entries mounted there, chowned to `media`).
 
 ## Secrets
 

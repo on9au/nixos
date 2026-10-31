@@ -39,9 +39,14 @@ in {
     image = "${image.imageName}:${image.imageTag}";
     imageStream = image;
     user = "2000:2000";
+    # Manga goes over Seanime's default manga paths in /data, which only
+    # config.toml can change, so it sits with the library rather than the
+    # app's state.
     volumes = [
       "${config.sops.secrets."seanime/password".path}:/run/secrets/seanime_password:ro"
       "/srv/anime:/anime"
+      "/srv/manga/downloads:/data/manga"
+      "/srv/manga/local:/data/manga-local"
       "/var/lib/media/seanime:/data"
     ];
     dependsOn = ["gluetun"];
