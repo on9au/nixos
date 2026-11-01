@@ -45,12 +45,6 @@
     efiSupport = true;
   };
 
-  # Matches `Port 7456` in the proxy block of programs/tools/ssh/home.nix. Public
-  # 22 belongs to Forgejo (programs/server/haproxy.nix).
-  services.openssh.ports = [7456];
-  services.openssh.openFirewall = false;
-  networking.firewall.interfaces.tailscale0.allowedTCPPorts = [7456];
-
   # A direct path to jia rather than through a DERP relay.
   services.tailscale.openFirewall = true;
 

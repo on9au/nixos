@@ -208,6 +208,31 @@ nixpkgs' agent instead and point `SSH_AUTH_SOCK` at it.
 "download resident keys" in nixpkgs', and the legacy "store passphrase in the
 Keychain" in Apple's (now spelled `--apple-use-keychain`).
 
+## sshd on 7456
+
+The policy is the shared one
+([YubiKey only](../../programs/services/ssh-agent/README.md#sshd-yubikey-only-on-7456)),
+in `/etc/ssh/sshd_config.d/100-nix-darwin.conf`; Apple's `sshd_config`
+includes that directory first, and sshd keeps the first value it reads.
+
+**The port can't be set in `sshd_config`.** Remote Login is a launchd job
+(`com.openssh.sshd`) that owns the listening socket on 22 and starts `sshd -i`
+per connection, so `Port` and `ListenAddress` are never read, and its plist is
+under `/System`. [`system/darwin/sshd.nix`](../../system/darwin/sshd.nix)
+turns Remote Login off (`services.openssh.enable = false`) and adds the same
+job as `org.nixos.sshd`, with the socket on 7456. launchd binds it on every
+interface — the Tailscale address may not exist yet when the job loads — so
+the LAN can reach it too, and only the key check stands in the way.
+
+The job runs `sshd` through `/usr/libexec/sshd-keygen-wrapper`, as Apple's
+does. If a shell over ssh can't read `~/Documents` and the like, give the
+wrapper Full Disk Access.
+
+```bash
+sudo launchctl print system/org.nixos.sshd | grep state
+nc -z localhost 7456 && echo listening
+```
+
 ## Not ported
 
 Dropped because macOS has no equivalent to port *to*, not by oversight:

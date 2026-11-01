@@ -63,12 +63,8 @@
   networking.hostName = "jia-opena0";
   system.stateVersion = "26.11";
 
-  # Matches `Port 7456` in the jia block of programs/tools/ssh/home.nix.
-  services.openssh.ports = [7456];
-
-  # sshd for Tailscale and the LAN only, not for containers.
-  services.openssh.openFirewall = false;
-  networking.firewall.interfaces.tailscale0.allowedTCPPorts = [7456];
+  # sshd on the LAN as well as Tailscale (programs/services/sshd.nix), not for
+  # containers.
   networking.firewall.extraCommands = "iptables -A nixos-fw -p tcp -s 192.168.1.0/24 --dport 7456 -j nixos-fw-accept";
 
   # Outbound traffic leaves through the proxy VPS, so federation and the like

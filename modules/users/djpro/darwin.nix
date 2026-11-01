@@ -1,6 +1,7 @@
 {pkgs, ...}: {
   users.users.djpro = {
     home = "/Users/djpro";
+    openssh.authorizedKeys.keyFiles = [./authorized_keys];
     shell = pkgs.zsh;
   };
 

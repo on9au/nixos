@@ -127,7 +127,7 @@ and approve pull requests* under Settings → Actions → General.
 | Waybar: tray, KDE Connect, privacy, why it tracks git | [`programs/desktop/waybar`](modules/programs/desktop/waybar/README.md) |
 | GTK apps and theme | [`programs/desktop/general`](modules/programs/desktop/general/README.md) |
 | Input method (fcitx5) | [`programs/desktop/input-method.md`](modules/programs/desktop/input-method.md) |
-| Keyring, git credentials, SSH agent, YubiKeys, askpass | [`programs/services/ssh-agent`](modules/programs/services/ssh-agent/README.md) |
+| Keyring, git credentials, SSH agent, YubiKeys, askpass, sshd | [`programs/services/ssh-agent`](modules/programs/services/ssh-agent/README.md) |
 | Syncthing: synced folders, adding a device | [`programs/services/syncthing`](modules/programs/services/syncthing/README.md) |
 | Neovim, LSPs and marie-lsp | [`programs/development/neovim`](modules/programs/development/neovim/README.md) |
 | Roblox tooling | [`programs/development/roblox`](modules/programs/development/roblox/README.md) |

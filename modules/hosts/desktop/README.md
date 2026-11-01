@@ -10,10 +10,11 @@ basically the main machine.
 ## Secrets
 
 [`secrets.yaml`](secrets.yaml); the workflow is in the
-[top-level README](../../../README.md#secrets). The desktop runs no sshd, so
-nothing generates a host key: it was made by hand once
-(`sudo ssh-keygen -t ed25519 -N "" -C "" -f /etc/ssh/ssh_host_ed25519_key`)
-and sops-nix is pointed at it. Its recipient is `&desktop-dylan`.
+[top-level README](../../../README.md#secrets). The host key predates sshd
+here — it was made by hand once
+(`sudo ssh-keygen -t ed25519 -N "" -C "" -f /etc/ssh/ssh_host_ed25519_key`) —
+and sshd now serves that same file, so sops-nix finds it by default. Its
+recipient is `&desktop-dylan`.
 
 | Key | Used by |
 | --- | --- |

@@ -5,6 +5,7 @@
   imports = [
     # System
     ../../system/darwin
+    ../../system/darwin/sshd.nix
 
     # Users
     ../../users/djpro/darwin.nix

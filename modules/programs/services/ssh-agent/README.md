@@ -170,12 +170,34 @@ this repo's remote is HTTPS through the gh credential helper. Both sk keys need 
 be on GitHub and in every `authorized_keys`.
 
 The client config is [`programs/tools/ssh`](../../tools/ssh/home.nix), public
-along with the rest of the repo. The tailnet host name in it only resolves
+along with the rest of the repo. The tailnet host names in it only resolve
 inside the tailnet, and the handle it names is useless without the YubiKey.
 
 `pcscd` is on for Yubico Authenticator's OATH codes and the sops identities
 below — FIDO2 goes over hidraw and does not need it. Commit signing is still
 GPG key `3FCF1E93FFC208B5` rather than the YubiKey.
+
+## sshd: YubiKey only, on 7456
+
+Every host but WSL runs sshd on port 7456 —
+[`programs/services/sshd.nix`](../sshd.nix) on NixOS,
+[`system/darwin/sshd.nix`](../../../system/darwin/sshd.nix) on the Mac — and
+`ssh desktop`, `laptop`, `mbp`, `jia` and `proxy` reach them by tailnet name.
+On NixOS the port opens on `tailscale0` only, and jia also takes the LAN; the
+Mac listens on every interface
+([why](../../../hosts/macbook/README.md#sshd-on-7456)).
+
+The only way in is one of the two keys above.
+`PubkeyAcceptedAlgorithms sk-ssh-ed25519@openssh.com` refuses every other key
+type, so a plain `id_ed25519` that ends up in an `authorized_keys` still fails,
+and password and keyboard-interactive auth are off. Both keys are in
+[`users/djpro/authorized_keys`](../../../users/djpro/authorized_keys), which
+opena0 shares. sshd asks for a touch on every login, since nothing in that file
+says `no-touch-required`.
+
+The touch happens on the machine the key is plugged into, so for a second hop
+use `ssh -J jia proxy` rather than ssh from jia: jia has neither the key nor
+the handle file.
 
 ## age identities for sops
 

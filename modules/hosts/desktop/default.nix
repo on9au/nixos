@@ -51,6 +51,7 @@
     ../../programs/services/piper-tts.nix
     ../../programs/services/power-profiles-daemon.nix
     ../../programs/services/ssh-agent
+    ../../programs/services/sshd.nix
     ../../programs/services/syncthing
     ../../programs/services/tailscale.nix
 
@@ -106,9 +107,6 @@
   };
 
   sops.defaultSopsFile = ./secrets.yaml;
-  # No sshd here, so sops-nix finds no host key by default; this one is made by
-  # hand (see README.md).
-  sops.age.sshKeyPaths = ["/etc/ssh/ssh_host_ed25519_key"];
 
   greeterWallpaper = ./regreet-wallpaper.jpg;
 

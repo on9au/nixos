@@ -54,6 +54,7 @@
     ../../programs/services/piper-tts.nix
     ../../programs/services/power-profiles-daemon.nix
     ../../programs/services/ssh-agent
+    ../../programs/services/sshd.nix
     ../../programs/services/tailscale.nix
 
     # Apps

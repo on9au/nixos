@@ -667,8 +667,10 @@ network matches on `Type = ether` rather than a name.
 
 ## SSH, and the lockout guard
 
-`services.openssh.ports = [7456]`, matching the `Port 7456` already in the ssh
-client config. `openFirewall` defaults on, so the port opens itself.
+Port 7456 and YubiKey-only, as on every host
+([sshd](../../programs/services/ssh-agent/README.md#sshd-yubikey-only-on-7456)).
+Besides `tailscale0`, jia opens it to the LAN (`192.168.1.0/24`), but not to
+the docker bridges.
 
 `programs/services/sshd.nix` turns off password auth, which makes an empty
 `authorizedKeys` list a locked door on a headless machine. It therefore
@@ -680,9 +682,10 @@ Failed assertions:
   is disabled -- this switch would lock you out.
 ```
 
-Both YubiKeys' resident keys are in [`users/opena0`](../../users/opena0/default.nix),
-shared with the proxy, so the assertion passes; it stays to catch the list being
-emptied by mistake.
+Both YubiKeys' resident keys are in
+[`users/djpro/authorized_keys`](../../users/djpro/authorized_keys), shared by
+every host, so the assertion passes; it stays to catch the list being emptied
+by mistake.
 
 ## Gotchas
 
