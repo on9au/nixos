@@ -1,5 +1,6 @@
 # Anime from nyaa: Seanime picks releases, qBittorrent fetches them through
-# Mullvad, Jellyfin plays them. Tailnet only; see README.md.
+# Mullvad, Jellyfin plays them. Tailnet, plus the LAN for the two players; see
+# README.md.
 {
   config,
   lib,
@@ -10,6 +11,16 @@
     jellyfin = 8096;
     qbittorrent = 8080;
     seanime = 43211;
+  };
+
+  # hosts/homelab's static address. qBittorrent stays tailnet only.
+  lan = {
+    address = "192.168.1.247";
+    subnet = "192.168.1.0/24";
+  };
+  lanPorts = {
+    jellyfin = ports.jellyfin;
+    seanime = ports.seanime;
   };
 in {
   imports = [
@@ -72,27 +83,59 @@ in {
     };
   };
 
-  # Plain HTTP inside WireGuard, so no tailnet HTTPS certificates are needed.
-  # Reset first, so a port dropped here stops being served.
-  systemd.services.anime-tailscale-serve = {
-    description = "Serve Jellyfin, Seanime and qBittorrent on the tailnet";
-    after = ["tailscaled.service" "tailscaled-set.service"];
-    wants = ["tailscaled.service"];
-    wantedBy = ["multi-user.target"];
-    path = [config.services.tailscale.package];
-    script =
-      ''
-        tailscale serve reset
-      ''
-      + lib.concatMapStrings (port: ''
-        tailscale serve --bg --http=${toString port} http://127.0.0.1:${toString port}
-      '') (lib.attrValues ports);
-    serviceConfig = {
-      Type = "oneshot";
-      RemainAfterExit = true;
-      # tailscaled answers before it has logged in.
-      Restart = "on-failure";
-      RestartSec = 10;
+  # Jellyfin and Seanime on the LAN too, for the TV. A proxy on the host
+  # rather than a docker port: Seanime is in gluetun's namespace, which would
+  # route replies to the LAN into the tunnel. The NixOS firewall, which
+  # docker's published ports skip, lets in only the LAN.
+  systemd.sockets = lib.mapAttrs' (name: port:
+    lib.nameValuePair "anime-lan-${name}" {
+      wantedBy = ["sockets.target"];
+      listenStreams = ["${lan.address}:${toString port}"];
+      # Up before networkd has assigned the address.
+      socketConfig.FreeBind = true;
+    })
+  lanPorts;
+
+  systemd.services =
+    lib.mapAttrs' (name: port:
+      lib.nameValuePair "anime-lan-${name}" {
+        description = "Forward ${name} from the LAN to 127.0.0.1:${toString port}";
+        requires = ["anime-lan-${name}.socket"];
+        after = ["anime-lan-${name}.socket"];
+        serviceConfig = {
+          DynamicUser = true;
+          ExecStart = "${config.systemd.package}/lib/systemd/systemd-socket-proxyd 127.0.0.1:${toString port}";
+          PrivateTmp = true;
+        };
+      })
+    lanPorts
+    // {
+      # Plain HTTP inside WireGuard, so no tailnet HTTPS certificates are
+      # needed. Reset first, so a port dropped here stops being served.
+      anime-tailscale-serve = {
+        description = "Serve Jellyfin, Seanime and qBittorrent on the tailnet";
+        after = ["tailscaled.service" "tailscaled-set.service"];
+        wants = ["tailscaled.service"];
+        wantedBy = ["multi-user.target"];
+        path = [config.services.tailscale.package];
+        script =
+          ''
+            tailscale serve reset
+          ''
+          + lib.concatMapStrings (port: ''
+            tailscale serve --bg --http=${toString port} http://127.0.0.1:${toString port}
+          '') (lib.attrValues ports);
+        serviceConfig = {
+          Type = "oneshot";
+          RemainAfterExit = true;
+          # tailscaled answers before it has logged in.
+          Restart = "on-failure";
+          RestartSec = 10;
+        };
+      };
     };
-  };
+
+  networking.firewall.extraCommands = lib.concatMapStrings (port: ''
+    iptables -A nixos-fw -p tcp -s ${lan.subnet} --dport ${toString port} -j nixos-fw-accept
+  '') (lib.attrValues lanPorts);
 }

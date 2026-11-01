@@ -18,7 +18,7 @@ holds the macOS/Colima and Debian eras and their runbooks.
 | kanidm | `idm.opena0.net` | [`kanidm.nix`](../../programs/server/kanidm.nix) | identity; OIDC provider for tuwunel, forgejo, open-webui, beszel and actual. See [Kanidm](#kanidm) |
 | tuwunel | `matrix.opena0.net` | [`tuwunel/`](../../programs/server/tuwunel) | Matrix homeserver, `server_name = opena0.net` |
 | cinny | `chat.opena0.net` | [`cinny/`](../../programs/server/cinny) | Matrix web client |
-| anime | `jia-opena0:8096`, `:43211`, `:8080` (tailnet only) | [`anime/`](../../programs/server/anime) | Jellyfin, Seanime, and qBittorrent behind Mullvad. See [its README](../../programs/server/anime/README.md) |
+| anime | `jia-opena0:8096`, `:43211`, `:8080` (tailnet); Jellyfin and Seanime also on the LAN | [`anime/`](../../programs/server/anime) | Jellyfin, Seanime, and qBittorrent behind Mullvad. See [its README](../../programs/server/anime/README.md) |
 | open-webui | `ai.opena0.net` | [`open-webui.nix`](../../programs/server/open-webui.nix) | chat client for the DeepSeek API; Kanidm login only |
 | actual | `budget.opena0.net` | [`actual/`](../../programs/server/actual) | Actual Budget sync server; Kanidm login only. See [Actual Budget](#actual-budget) |
 | actual-ai | none | [`actual/ai/`](../../programs/server/actual/ai) | categorizes Actual transactions with DeepSeek; run by hand, see [Categorizing with actual-ai](#categorizing-with-actual-ai) |

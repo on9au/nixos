@@ -1,23 +1,29 @@
 # Anime
 
 Seanime keeps the AniList list and picks releases from nyaa, qBittorrent
-downloads them into `/srv/anime`, and Jellyfin plays them to the phone and
-anything else on the tailnet.
+downloads them into `/srv/anime`, and Jellyfin plays them to the phone, the TV
+and anything else on the tailnet or the LAN.
 
-| Container | Tailnet URL | Does |
-| --- | --- | --- |
-| gluetun | none | Mullvad WireGuard; the only network qBittorrent and Seanime have |
-| qbittorrent | `http://jia-opena0:8080` | downloads |
-| seanime | `http://jia-opena0:43211` | AniList, nyaa search, auto-downloader |
-| jellyfin | `http://jia-opena0:8096` | library and playback; reads `/srv/anime` read-only |
+| Container | Tailnet URL | LAN URL | Does |
+| --- | --- | --- | --- |
+| gluetun | none | none | Mullvad WireGuard; the only network qBittorrent and Seanime have |
+| qbittorrent | `http://jia-opena0:8080` | none | downloads |
+| seanime | `http://jia-opena0:43211` | `http://192.168.1.247:43211` | AniList, nyaa search, auto-downloader, playback |
+| jellyfin | `http://jia-opena0:8096` | `http://192.168.1.247:8096` | library and playback; reads `/srv/anime` read-only |
 
 ## Network
 
-- **Tailnet only.** Containers publish on `127.0.0.1`, and
-  `anime-tailscale-serve.service` serves those ports on jia's tailnet address
-  over plain HTTP, inside WireGuard. Nothing goes through Caddy or the proxy
-  VPS, so streams don't count against its transfer, and phone↔jia is a
-  direct Tailscale connection when it can be.
+- **Tailnet, and the LAN for the players.** Containers publish on
+  `127.0.0.1`, and `anime-tailscale-serve.service` serves those ports on
+  jia's tailnet address over plain HTTP, inside WireGuard. Nothing goes
+  through Caddy or the proxy VPS, so streams don't count against its
+  transfer, and phone↔jia is a direct Tailscale connection when it can be.
+  For devices that can't run Tailscale, like the TV, `anime-lan-jellyfin`
+  and `anime-lan-seanime` (`systemd-socket-proxyd`) forward jia's LAN
+  address to the same `127.0.0.1` ports, and the firewall lets in
+  `192.168.1.0/24` only. A proxy on the host rather than a docker port,
+  because Seanime is in gluetun's namespace, which would send replies to the
+  LAN into the tunnel. qBittorrent has no LAN port.
 - **Torrents leave from the home IP, inside Mullvad.** gluetun sits alone on
   the docker `vpn` network (`10.200.0.0/24`, bridge `br-vpn`), which a routing
   rule in [`hosts/homelab`](../../../hosts/homelab/default.nix) sends past the
@@ -48,7 +54,8 @@ anything else on the tailnet.
 ## Access
 
 - **Every app has its own login**, because the tailnet includes the proxy
-  VPS, which faces the internet. Seanime's password comes from sops (it
+  VPS, which faces the internet, and Jellyfin and Seanime are open to anything
+  on the LAN, guests and smart TVs included. Seanime's password comes from sops (it
   otherwise trusts any private or Tailscale address with everything). Jellyfin
   and qBittorrent set theirs on first start, so do that straight after the
   switch: until then Jellyfin's setup wizard belongs to whoever opens it first.
