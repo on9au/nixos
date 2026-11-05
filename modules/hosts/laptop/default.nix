@@ -93,9 +93,6 @@
     "nvme_core.io_timeout=5"
   ];
 
-  # systemd in initrd - required for the TPM2 LUKS unlock below.
-  boot.initrd.systemd.enable = true;
-
   # TPM2 is the only routine unlock. The passphrase in keyslot 0 stays as the
   # break-glass path and is deliberately never removed: a firmware update that
   # moves PCR 7 invalidates the TPM binding, and without the passphrase that is

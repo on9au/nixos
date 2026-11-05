@@ -88,8 +88,6 @@
 
   boot.kernelPackages = pkgs.linuxPackages_latest;
 
-  # systemd in initrd - required for FIDO2 LUKS unlock later
-  boot.initrd.systemd.enable = true;
   boot.initrd.luks.devices."cryptroot".crypttabExtraOpts = ["fido2-device=auto"];
 
   swapDevices = [{device = "/swap/swapfile";}];

@@ -9,7 +9,7 @@
       "github.com/caddy-dns/cloudflare@v0.2.4"
       "github.com/lucaslorentz/caddy-docker-proxy/v2@v2.13.1"
     ];
-    hash = "sha256-2n1gTvFm7/bOn6T/fFBkL6tt1xjOZ093DbxcHz1UaP4=";
+    hash = "sha256-0cQwxATPx/gJATp9BwO5D7WA8t0fCl6FaRJPcExr4I8=";
   };
 
   # https://www.cloudflare.com/ips/
