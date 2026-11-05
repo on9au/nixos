@@ -18,7 +18,7 @@ in {
   services.kanidm = {
     # The secret-provisioning patches let basicSecretFile and the idm_admin
     # password come from sops. Kanidm upgrades one minor version at a time.
-    package = pkgs.kanidmWithSecretProvisioning_1_11;
+    package = pkgs.kanidmWithSecretProvisioning_1_12;
 
     server.enable = true;
     server.settings = {
