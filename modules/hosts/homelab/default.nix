@@ -75,6 +75,11 @@
     "--exit-node-allow-lan-access"
     "--exit-node=proxy-jia-opena0"
   ];
+  # The exit node can't be resolved by name until tailscaled has its netmap.
+  systemd.services.tailscaled-set.serviceConfig = {
+    Restart = "on-failure";
+    RestartSec = 10;
+  };
 
   # Ahead of Tailscale's rules, which start at 5210. The first keeps the LAN
   # and docker bridges off the exit node: Tailscale's own exceptions for them
