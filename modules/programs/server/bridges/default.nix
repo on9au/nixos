@@ -1,5 +1,4 @@
 {lib, ...}: let
-  # Images must match scaffold.sh, which writes each bridge's config.
   # mediaPort is the appservice port, which also serves direct media.
   bridges = {
     discord = {
@@ -28,7 +27,17 @@
       mediaPort = 29318;
     };
   };
+  # scaffold.sh writes each bridge's config with its own copy of the image.
+  scaffold = builtins.readFile ./scaffold.sh;
+  unscaffolded = lib.filter (image: !lib.hasInfix "\"$M/${lib.removePrefix "dock.mau.dev/mautrix/" image}\"" scaffold) (lib.mapAttrsToList (_: b: b.image) bridges);
 in {
+  assertions = [
+    {
+      assertion = unscaffolded == [];
+      message = "programs/server/bridges: scaffold.sh doesn't have ${lib.concatStringsSep ", " unscaffolded}; bump it there too.";
+    }
+  ];
+
   virtualisation.oci-containers.containers = lib.mapAttrs' (name: bridge:
     lib.nameValuePair "mautrix-${name}" {
       image = bridge.image;

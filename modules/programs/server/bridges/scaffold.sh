@@ -3,9 +3,9 @@
 # and registrations are patched in place, never regenerated, so the tokens
 # tuwunel already knows stay valid.
 #
-# The containers are declared in default.nix; keep the images below in step
-# with it. Run as root -- the bridge data lives under /var/lib/homelab -- and
-# restart tuwunel afterwards to load new registrations.
+# The containers are declared in default.nix, whose build fails when an image
+# below falls out of step with it. Run as root -- the bridge data lives under
+# /var/lib/homelab -- and restart tuwunel afterwards to load new registrations.
 #
 # Two config schemas are in play. The date-versioned bridges (telegram,
 # whatsapp, gmessages, meta) are bridgev2: top-level `database` and
@@ -123,13 +123,13 @@ bridge() {
 
 M=dock.mau.dev/mautrix
 
-bridge telegram  "$M/telegram:v26.09"  29317 telegram  telegrambot  v2
-bridge whatsapp  "$M/whatsapp:v26.09"  29318 whatsapp  whatsappbot  v2
+bridge telegram  "$M/telegram:v26.10"  29317 telegram  telegrambot  v2
+bridge whatsapp  "$M/whatsapp:v26.10"  29318 whatsapp  whatsappbot  v2
 bridge discord   "$M/discord:v0.7.7"   29334 discord   discordbot   legacy
 # Google Messages is the one bridge that cannot do direct media: RCS media has
 # no HTTP URL the bridge could hand out, and the connector refuses to start
 # ("the network connector does not support it") rather than ignoring it.
-bridge gmessages "$M/gmessages:v26.09" 29336 gmessages gmessagesbot v2 \
+bridge gmessages "$M/gmessages:v26.10" 29336 gmessages gmessagesbot v2 \
   '.direct_media.enabled = false
    | .network.aggressive_reconnect = true'
 
@@ -137,9 +137,9 @@ bridge gmessages "$M/gmessages:v26.09" 29336 gmessages gmessagesbot v2 \
 # July 2026 (ig- prefixed tags). They must not share a user namespace, hence
 # the explicit username_template on each. Note username_template lives under
 # `appservice`, not `bridge`.
-bridge messenger "$M/meta:v26.09"      29321 messenger messengerbot v2 \
+bridge messenger "$M/meta:v26.10"      29321 messenger messengerbot v2 \
   '.network.mode = "messenger" | .appservice.username_template = "messenger_{{.}}"'
-bridge instagram "$M/meta:ig-v26.09"   29322 instagram instagrambot v2 \
+bridge instagram "$M/meta:ig-v26.10"   29322 instagram instagrambot v2 \
   '.appservice.username_template = "instagram_{{.}}"'
 
 echo
