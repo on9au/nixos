@@ -145,3 +145,13 @@ procedures and overviews:
 | Proxy VPS: hosting, install, the TCP forwarder, exit node, public DNS | [`hosts/proxy`](modules/hosts/proxy/README.md) |
 | YubiKeys: SSH, sops identities, troubleshooting | [`hardware/peripherals/yubikey`](modules/hardware/peripherals/yubikey/README.md) |
 | Syncthing: folders, adding a device | [`programs/services/syncthing`](modules/programs/services/syncthing/README.md) |
+
+## License
+
+[MIT](LICENSE), except:
+
+- [`modules/programs/development/neovim/config`](modules/programs/development/neovim/config),
+  from the LazyVim starter: Apache-2.0, in [its own `LICENSE`](modules/programs/development/neovim/config/LICENSE).
+- [`modules/hosts/desktop/regreet-wallpaper.jpg`](modules/hosts/desktop/regreet-wallpaper.jpg),
+  from [wallhaven](https://wallhaven.cc/w/je8p85): not covered; it belongs to
+  its artist.
