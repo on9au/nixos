@@ -1,6 +1,5 @@
 {
   config,
-  inputs,
   lib,
   pkgs,
   ...
@@ -59,11 +58,6 @@
   programs.atuin = {
     enable = true;
     flags = ["--disable-up-arrow"];
-    # See the nixpkgs-atuin input in flake.nix.
-    package =
-      if pkgs.stdenv.hostPlatform.isDarwin
-      then inputs.nixpkgs-atuin.legacyPackages.${pkgs.stdenv.hostPlatform.system}.atuin
-      else pkgs.atuin;
   };
 
   # Atuin owns Ctrl-R; fzf keeps Ctrl-T and Alt-C.
