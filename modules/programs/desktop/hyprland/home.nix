@@ -7,17 +7,28 @@
   link = config.lib.dotfiles.link;
 in {
   home.packages = with pkgs; [
+    # Wallpaper daemon.
     awww
+    # Emoji picker behind bin/emoji.
     bemoji
+    # Backlight keys and hypridle's dim.
     brightnessctl
+    # Clipboard history.
     cliphist
+    # What waybar's cpu/memory modules open.
     htop
     hypridle
+    # Colour picker behind bin/colorpicker.
     hyprpicker
+    # Screenshots.
     hyprshot
+    # What waybar's audio module opens.
     pavucontrol
+    # Media keys.
     playerctl
+    # Types the emoji picker's pick into the focused window.
     wtype
+    # Loads ~/.Xresources for X11 apps' cursor.
     xrdb
   ];
 

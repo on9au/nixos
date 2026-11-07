@@ -2,7 +2,7 @@
 # See ../hypr/binds.lua and ../hypr/looknfeel.lua for what this is ported
 # from.
 #
-# Mod key is hyper: LEFT OPTION, held. See ../karabiner/README.md for how that
+# Mod key is hyper: LEFT OPTION, held. See ../karabiner/config/README.md for how that
 # is built and why the binds below still work without it.
 #
 # Getting here took two steps. cmd is claimed system-wide (Cmd+Q, Cmd+W,

@@ -150,7 +150,7 @@ Bitwarden, attach the ISO again (*Settings → Custom ISO*), and run
 
 Port 7456 on `tailscale0` only, and `ssh proxy` from the
 [`programs/tools/ssh`](../../programs/tools/ssh/home.nix) block; the
-[lockout guard](../homelab/README.md#ssh-and-the-lockout-guard) applies here
+[lockout assertion](../../programs/services/sshd.nix) applies here
 too. Public 22 belongs to Forgejo. When Tailscale is down, the way in is
 Vultr's web console with `opena0`'s password. nixos-anywhere talks to the live
 ISO's sshd, so none of this applies to the install.

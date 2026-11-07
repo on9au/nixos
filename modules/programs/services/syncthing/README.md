@@ -16,6 +16,7 @@ together still sync through it.
 
 `Photos Library.photoslibrary` and `.DS_Store` are ignored everywhere: Apple
 Photos keeps its library, a database, in `~/Pictures`.
+
 ## Sync is not a backup
 
 A delete or an overwrite reaches every device. jia keeps what another device

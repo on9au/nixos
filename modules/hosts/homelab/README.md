@@ -132,8 +132,8 @@ needs.
 ### Updates
 
 Every image is pinned to an exact version in its module, so an update is a tag
-bump and a switch. Diun checks every running image daily at 08:00 and notifies
-Discord; it never updates anything.
+bump and a switch. Diun checks every running image daily and notifies Discord;
+it never updates anything.
 
 There is no `unattended-upgrades` equivalent: `nix flake update`, then
 `nh os switch`.
@@ -299,7 +299,7 @@ every passkey stops working.
 ## Kanidm
 
 Kanidm runs as `services.kanidm` rather than a container, built from nixpkgs'
-`kanidmWithSecretProvisioning_1_11`. Those patches let provisioning set OAuth2
+`kanidmWithSecretProvisioning_<version>`. Those patches let provisioning set OAuth2
 client secrets and the `idm_admin` password from sops, which the stock image
 can't. On every start, `kanidm-provision` makes Kanidm's groups and OAuth2
 clients match what the modules declare under `services.kanidm.provision`.
@@ -358,8 +358,8 @@ the route is a label `kanidm.nix` puts on the caddy container. Between the two
 is a self-signed certificate from `kanidm-tls.service`, which Caddy doesn't
 verify.
 
-Kanidm upgrades one minor version at a time: 1.11 → 1.12 is a package bump to
-`kanidmWithSecretProvisioning_1_12` once nixpkgs has it, after reading the
+Kanidm upgrades one minor version at a time: bump the package's `_1_<minor>`
+suffix in `kanidm.nix` once nixpkgs has the next one, after reading the
 release notes. Diun doesn't watch it.
 
 ## Actual Budget
@@ -420,8 +420,9 @@ Actual through `budget.opena0.net`, so the token goes over TLS.
 ### Categorizing with actual-ai
 
 [actual-ai](https://github.com/sakowicz/actual-ai) sends each uncategorized
-transaction (payee, amount, notes, date) and the category list to DeepSeek's
-`deepseek-flash`, and sets the category it picks. It never runs on its own:
+transaction (payee, amount, notes, date) and the category list to DeepSeek (the
+model is in [`ai/default.nix`](../../programs/server/actual/ai/default.nix)),
+and sets the category it picks. It never runs on its own:
 
 ```
 sudo systemctl start docker-actual-ai-dry-run   # logs what it would do, changes nothing
@@ -487,25 +488,16 @@ every six hours, so nothing reaches the budget before the dry run is read.
 Six mautrix bridges. They talk to tuwunel over the `proxy` network by container
 name; only direct media gives them a public name.
 
-| Bridge | Image | Port | Namespace |
-|---|---|---|---|
-| telegram | `mautrix/telegram:v26.09` | 29317 | `@telegram_*` |
-| whatsapp | `mautrix/whatsapp:v26.09` | 29318 | `@whatsapp_*` |
-| discord | `mautrix/discord:v0.7.7` | 29334 | `@discord_*` |
-| gmessages | `mautrix/gmessages:v26.09` | 29336 | `@gmessages_*` |
-| messenger | `mautrix/meta:v26.09` | 29321 | `@messenger_*` |
-| instagram | `mautrix/meta:ig-v26.09` | 29322 | `@instagram_*` |
+Telegram, WhatsApp, Discord, Google Messages, Messenger and Instagram; each
+bridge's users are `@<bridge>_*:opena0.net`.
 
-Instagram split out of mautrix-meta in July 2026 into its own bridge, published
-under `ig-` prefixed tags in the same repo. Messenger and Instagram therefore
-run as two containers and must not share a user namespace — hence the explicit
-`username_template` on each.
-
-The containers are declared in `bridges/default.nix`; their configs are written
-by [`bridges/scaffold.sh`](../../programs/server/bridges/scaffold.sh) (as root),
+The containers are declared in
+[`bridges/default.nix`](../../programs/server/bridges/default.nix); their
+configs are written by
+[`bridges/scaffold.sh`](../../programs/server/bridges/scaffold.sh) (as root),
 which is re-runnable: existing configs and registrations are patched in place,
 never regenerated, so tokens tuwunel already knows stay valid. A new image tag
-goes in both files.
+goes in both files, and the build fails until it does.
 
 ### Registration
 
@@ -531,7 +523,7 @@ gets that same token as its double-puppet secret, so your own messages appear
 as you rather than as a bot.
 
 The config key differs by bridge generation: bridgev2 bridges use
-`double_puppet.secrets`, while discord 0.7.6 predates that and uses
+`double_puppet.secrets`, while mautrix-discord isn't on bridgev2 yet and uses
 `bridge.login_shared_secret_map`. `double_puppet.servers` must **not** contain
 your own server — only the secret is needed for the local domain.
 
@@ -578,11 +570,12 @@ number, Discord by token, Messenger and Instagram by cookies.
 
 ## Backups
 
-restic → Cloudflare R2, nightly at 04:00 (`Persistent`, so a run missed while
-the box was down fires on boot), reporting to healthchecks.io. Retention 7
-daily / 4 weekly / 6 monthly.
+restic → Cloudflare R2, nightly (`Persistent`, so a run missed while the box
+was down fires on boot), reporting to healthchecks.io. The schedule is in
+[`backup/default.nix`](../../programs/server/backup/default.nix), retention in
+[`backup.sh`](../../programs/server/backup/backup.sh).
 
-Backed up: the six stateful volumes, `/var/lib/kanidm`, `/var/lib/homelab` and `/var/lib/syncthing`
+Backed up: the stateful volumes, `/var/lib/kanidm`, `/var/lib/homelab` and `/var/lib/syncthing`
 (not stopped: a file mid-sync is caught next night). restic runs in a
 container so the paths inside the repository — `/data/<volume>`,
 `/data/homelab` — are the ones the macOS and Debian hosts wrote, and the series
@@ -647,81 +640,24 @@ sudo docker exec -u git forgejo forgejo forgejo-cli actions generate-runner-toke
 
 ## A laptop as a server
 
-[`hardware/power/always-on.nix`](../../hardware/power/always-on.nix) ignores the
-lid and masks every sleep target; the lid is shut, so nothing else keeps it
-awake. [`devices/zenbook-ux433fn.nix`](../../devices/zenbook-ux433fn.nix):
-
-- **Battery capped at 60%.** It lives on AC, and the battery is the only UPS.
-  A battery above the cap reads `Not charging` and drifts down to it; that is
-  the feature working. The cap can reset when the adapter is replugged, which
-  the oneshot does not catch — `cat /sys/class/power_supply/BAT0/charge_control_end_threshold`
-  after moving power around.
-- **The MX150 is powered down.** Blacklisting nouveau alone leaves the card
-  unbound and `active`; the udev rule sets `power/control=auto`. Check with
-  `cat /sys/bus/pci/devices/0000:02:00.0/power/runtime_status` — `suspended`.
-- **No TLP.** `power/laptop.nix` is not imported: a power-saving daemon fights
-  a server on permanent AC over the ethernet adapter's wake behaviour.
-
-The USB ethernet adapter gets a MAC-derived name (`enx…`), so the `30-lan`
-network matches on `Type = ether` rather than a name.
-
-## SSH, and the lockout guard
-
-Port 7456 and YubiKey-only, as on every host
-([sshd](../../programs/services/ssh-agent/README.md#sshd-yubikey-only-on-7456)).
-Besides `tailscale0`, jia opens it to the LAN (`192.168.1.0/24`), but not to
-the docker bridges.
-
-`programs/services/sshd.nix` turns off password auth, which makes an empty
-`authorizedKeys` list a locked door on a headless machine. It therefore
-asserts the list is non-empty, so a missing key fails the build:
+After moving the power cable around, check the battery cap and the MX150 (see
+[`devices/zenbook-ux433fn.nix`](../../devices/zenbook-ux433fn.nix)):
 
 ```
-Failed assertions:
-- programs/services/sshd.nix: opena0 has no authorizedKeys and password auth
-  is disabled -- this switch would lock you out.
+cat /sys/class/power_supply/BAT0/charge_control_end_threshold   # 60
+cat /sys/bus/pci/devices/0000:02:00.0/power/runtime_status       # suspended
 ```
 
-Both YubiKeys' resident keys are in
-[`users/djpro/authorized_keys`](../../users/djpro/authorized_keys), shared by
-every host, so the assertion passes; it stays to catch the list being emptied
-by mistake.
+A battery above the cap reads `Not charging` and drifts down to it; that's the
+cap working.
 
 ## Gotchas
 
-- **tuwunel caches DNS for 3 hours** (`dns_min_ttl = 10800`), so a recreated
-  bridge container would keep receiving transactions at its old IP and report
-  `Homeserver -> appservice connection is not working`.
-  `dns_passthru_appservices = true` resolves appservices through the system
-  resolver instead.
 - **Uptime Kuma holds stale container IPs** after a recreate, reporting
   `ECONNREFUSED <old-ip>` for a service that is demonstrably healthy. Kuma's
   own `dnsCache` is already off, so this is Node's connection reuse;
   `sudo systemctl restart docker-uptime-kuma` clears it. Recreating several
   containers at once can make them swap IPs, so two monitors can fail pointing
   at each other's address.
-- **mautrix `username_template` lives under `appservice:`, not `bridge:`.**
-  Setting it in the wrong place silently does nothing and the namespace comes
-  out wrong.
-- **`oauth_aware_preferred` / `oidc_aware_preferred` are not tuwunel options.**
-  Both spellings log as unknown and are ignored.
-- **uptime-kuma-api is older than the hub**: `monitor.conditions` is NOT NULL in
-  the schema but the library neither sends nor accepts it, so *creating* a
-  monitor fails with a raw SQLITE_CONSTRAINT error while editing one works.
-  `setup-monitors.py` patches the payload builder.
-- **`terraria` is not on the `proxy` network**, so Kuma checks it via
-  `host.docker.internal:7777` rather than by container name.
-- **`docker attach terraria` can't send console commands.** Compose's
-  `stdin_open` has no systemd equivalent: `-i` makes docker demand a terminal
-  the unit doesn't have, so the container gets `--tty` alone.
-- **forgejo bind-mounts `/etc/timezone`**, which NixOS doesn't have and docker
-  would replace with an empty directory; `forgejo.nix` writes one.
-
-## Not imported, deliberately
-
-`filesystems/btrfs.nix` schedules a scrub of `/` and would fail on ext4.
-
-`system/network.nix` is NetworkManager; this host takes
-[`network-server.nix`](../../system/network-server.nix) — systemd-networkd plus
-resolved, since there is no user session to hand link management to — with the
-static `30-lan` network overriding its DHCP.
+- **`docker attach terraria` can't send console commands**: the container
+  has a tty but no stdin ([`terraria.nix`](../../programs/server/terraria.nix)).

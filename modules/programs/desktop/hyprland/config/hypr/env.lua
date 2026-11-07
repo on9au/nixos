@@ -1,8 +1,9 @@
 -- Environment variables exported to everything Hyprland launches.
 --
 -- Note: these apply to processes started *by the compositor*. If you launch
--- Hyprland through uwsm (recommended, see the README), variables that need to
--- exist before the compositor starts belong in ~/.config/uwsm/env instead.
+-- Hyprland through uwsm (pick "Hyprland (uwsm)" at the greeter), variables
+-- that need to exist before the compositor starts belong in
+-- ~/.config/uwsm/env instead.
 
 -- Cursor. Posy_Cursor_Black is an XCursor theme installed system-wide;
 -- hyprcursor has no matching theme, so it falls back to XCursor on its own.

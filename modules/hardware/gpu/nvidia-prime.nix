@@ -19,7 +19,7 @@
   };
 
   environment.systemPackages = [
-    # Arch's name for nvidia-offload, used in uwsm/env and the README.
+    # Arch's name for nvidia-offload, used in uwsm/env and hosts/laptop/README.md.
     (pkgs.writeShellScriptBin "prime-run" ''exec nvidia-offload "$@"'')
   ];
 }

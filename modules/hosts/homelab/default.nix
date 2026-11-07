@@ -13,7 +13,9 @@
     ../../devices/zenbook-ux433fn.nix
     ../../hardware/power/always-on.nix
 
-    # System
+    # System. Not filesystems/btrfs.nix, whose scrub fails on ext4; and not
+    # power/laptop.nix, whose TLP fights a server on AC over the ethernet
+    # adapter's wake behaviour.
     ../../system
     ../../system/boot/systemd-boot.nix
     ../../system/hardening.nix

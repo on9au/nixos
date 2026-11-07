@@ -28,13 +28,9 @@ btrbk's hourly snapshots in `/.snapshots` are for undoing a mistake, not a
 backup: they share the disk and the LUKS header with what they protect.
 
 [`programs/services/backup.nix`](../../programs/services/backup.nix) is the
-backup: restic → R2, daily (`Persistent`, so a day the desktop was off runs on
-the next boot), reporting to healthchecks.io. Retention 7 daily / 4 weekly /
-12 monthly. restic reads a read-only snapshot at `/.snapshots/restic/home`,
-taken for the run and deleted after, so paths in the repository start there.
-
-Left out: caches, anything with a `CACHEDIR.TAG` (cargo's `target/`),
-`node_modules`, games' data and `*.iso`.
+backup: restic → R2, daily, reporting to healthchecks.io; retention and
+exclusions are in the module. restic reads a read-only snapshot taken for the
+run, so paths in the repository start at `/.snapshots/restic/home`.
 
 ```
 sudo systemctl start restic-backups-r2        # run now

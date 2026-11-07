@@ -2,18 +2,24 @@
   user = config.system.primaryUser;
   home = config.system.primaryUserHome;
 in {
-  # Reasoning for these is in modules/hosts/macbook/README.md.
   system.defaults = {
     dock = {
+      # AeroSpace tiles inside visibleFrame, which a pinned Dock shrinks on
+      # every workspace.
       autohide = true;
       autohide-delay = 0.0;
       autohide-time-modifier = 0.15;
+      # AeroSpace numbers and switches workspaces itself; macOS reordering
+      # Spaces or switching on app activation fights it. Also
+      # workspaces-auto-swoosh below.
       expose-group-apps = false;
       mru-spaces = false;
       show-recents = false;
       tilesize = 40;
 
-      # 1 = off, 12 = Notification Centre.
+      # 1 = off, 12 = Notification Centre. Bottom-right ships as Quick Note,
+      # and focus-follows-mouse flings the pointer into corners. Top-right
+      # stands in for clicking the clock, which SketchyBar's doesn't do.
       wvous-bl-corner = 1;
       wvous-br-corner = 1;
       wvous-tl-corner = 1;
@@ -24,13 +30,17 @@ in {
       # 15 ms ticks: 30 ms repeat, 255 ms delay (hypr/input.lua has 40/s, 250 ms).
       KeyRepeat = 2;
       InitialKeyRepeat = 17;
+      # Otherwise holding a key opens the accent picker, and held hjkl in nvim
+      # does nothing.
       ApplePressAndHoldEnabled = false;
 
+      # SketchyBar draws in the native menu bar's strip.
       _HIHideMenuBar = true;
       AppleInterfaceStyle = "Dark";
       AppleShowAllExtensions = true;
       NSAutomaticWindowAnimationsEnabled = false;
 
+      # Smart quotes and dashes corrupt pasted code: `--flag` becomes an en dash.
       NSAutomaticCapitalizationEnabled = false;
       NSAutomaticDashSubstitutionEnabled = false;
       NSAutomaticPeriodSubstitutionEnabled = false;

@@ -42,10 +42,10 @@ PEACH=0xfffab387
 #
 # notch_width/notch_display_height are measured from this exact display via
 # NSScreen.main.safeAreaInsets (top=32) and auxiliaryTopLeftArea/
-# auxiliaryTopRightArea (notch spans x=665..850 -> 185pt wide) -- see the
-# swift snippet in the commit message if this ever needs re-measuring for a
-# different machine. topmost=window: without it, whichever app is focused
-# (Ghostty, a maximized Orion) draws in front of the bar, not behind it.
+# auxiliaryTopRightArea (notch spans x=665..850 -> 185pt wide) -- re-measure
+# on a different Mac, see hosts/macbook/README.md. topmost=window: without it,
+# whichever app is focused (Ghostty, a maximized Orion) draws in front of the
+# bar, not behind it.
 sketchybar --bar position=top height=32 margin=0 y_offset=0 \
   notch_width=185 notch_display_height=32 notch_offset=0 \
   topmost=window \

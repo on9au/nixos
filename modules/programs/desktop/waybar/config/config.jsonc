@@ -43,7 +43,7 @@
   // Clicking a number needs waybar git HEAD (../home.nix), not the 0.15.0 release: release
   // builds send `dispatch workspace name:<n>`, which is a parse error under a
   // Lua Hyprland config, so clicks silently did nothing. Upstream now emits
-  // `hl.dsp.focus({ workspace = "..." })`. See the README.
+  // `hl.dsp.focus({ workspace = "..." })`; 0.16.0 has it too.
   //
   // Still no "on-click" here on purpose -- setting one replaces waybar's own
   // click handler with a shell command and breaks clicking again.

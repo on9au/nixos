@@ -24,7 +24,8 @@
 
     # qt5ct/qt6ct, not the gtk3 platform theme this replaces (see uwsm/env):
     # gtk3 hands Qt the GTK palette, which paints over whatever the widget
-    # style draws, so Kvantum's colours would never show.
+    # style draws, so Kvantum's colours would never show. Never `kde`: outside
+    # Plasma, KIO's "Open With" dialog then lists nothing.
     platformTheme.name = "qtct";
     style.name = "kvantum";
 

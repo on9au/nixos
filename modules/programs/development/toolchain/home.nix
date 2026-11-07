@@ -14,8 +14,13 @@ in {
     cargo
     clippy
     dotnet-sdk
+    # Per-project node versions, on top of the nodejs below.
     fnm
+    # Always a Linux node: on WSL, a missing one resolves through the appended
+    # Windows PATH to Windows node, which can't build native modules here.
     nodejs
+    # Not inside nodejs, and the same Windows PATH trap. `corepack enable`
+    # can't stand in: it writes shims next to node, in the store.
     pnpm
     rustc
     rustfmt
