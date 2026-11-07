@@ -86,7 +86,8 @@
 
   boot.kernelPackages = pkgs.linuxPackages_latest;
 
-  # VMD stall stopgap, see ./nvme-vmd-stalls.md. Drop once VMD is off in firmware.
+  # TEMP(./nvme-vmd-stalls.md): VMD stall stopgap. Nothing can check this one;
+  # drop it once VMD is off in the firmware.
   boot.kernelParams = [
     "nvme.use_threaded_interrupts=1"
     "nvme_core.default_ps_max_latency_us=0"
