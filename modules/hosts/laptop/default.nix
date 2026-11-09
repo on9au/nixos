@@ -86,8 +86,33 @@
 
   boot.kernelPackages = pkgs.linuxPackages_latest;
 
-  # TEMP(./nvme-vmd-stalls.md): VMD stall stopgap. Nothing can check this one;
-  # drop it once VMD is off in the firmware.
+  # TEMP(./nvme-vmd-stalls.md): erratum MTL016 on this machine's VMD loses NVMe
+  # completion interrupts, and each one lost is a ~30s whole-machine freeze. The
+  # patch delays 4us in vmd_irq() before demuxing, gated to 8086:7d0b alone.
+  #
+  # Patched in-tree rather than shipped as a module replacing vmd.ko, because
+  # vmd is on the boot path (root sits behind it, see ./hardware.nix): the copy
+  # in the initrd has to be the patched one and has to match the running kernel.
+  # The price is that the kernel, and everything built against it (nvidia), stop
+  # coming from the binary cache, so a kernel bump becomes a local compile.
+  #
+  # The series gate below, not `patch` succeeding, is what keeps this honest:
+  # 7.3 took (1 << 6) for VMD_FEAT_USE_BIOS_INFO, the bit the 7.1 version of
+  # this patch used for the quirk. A rebase can therefore alias the flag onto an
+  # unrelated feature of the boot device's own controller and still apply
+  # cleanly, so re-read the flag list by hand on every series bump.
+  boot.kernelPatches = [
+    {
+      name = "vmd-mtl016";
+      patch = assert lib.assertMsg (lib.versions.majorMinor pkgs.linuxPackages_latest.kernel.version == "7.3")
+      "TEMP: linuxPackages_latest is ${pkgs.linuxPackages_latest.kernel.version}; re-port modules/hosts/laptop/vmd-mtl016.patch to that series, re-checking which VMD_FEAT bit is free, then widen this gate";
+        ./vmd-mtl016.patch;
+    }
+  ];
+
+  # TEMP(./nvme-vmd-stalls.md): backs up the patch above, which narrows the race
+  # rather than closing it. Nothing can check this one; drop it once VMD is off
+  # in the firmware.
   boot.kernelParams = [
     "nvme.use_threaded_interrupts=1"
     "nvme_core.default_ps_max_latency_us=0"

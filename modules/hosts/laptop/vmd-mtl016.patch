@@ -1,0 +1,115 @@
+PCI: vmd: work around erratum MTL016 losing NVMe completion interrupts
+
+The VMD at 8086:7d0b (Core Ultra 200H/200V) raises the MSI before the DMA'd
+completion data has landed, a PCIe write-ordering violation. A child driver
+samples a completion queue entry that is not yet valid, misses the completion,
+and nothing reaps it until the NVMe 30s timeout polls the queue -- which on
+LAPTOP-ON9AU is a ~30s whole-machine freeze per event.
+
+Add VMD_FEAT_INTERRUPT_QUIRK, gated to 0x7d0b alone, which delays 4us in
+vmd_irq() before demuxing. vmd_irq() is the hot path for every interrupt from
+every device behind any VMD, so the flag is cached per vector as a bool and
+costs unaffected hardware a single byte compare.
+
+This is the workaround upstream rejected in Sept 2024 (a delay makes the race
+much harder to lose; it does not enforce ordering -- the erratum text prescribes
+a dummy register read, which nobody has implemented with the required narrow
+device gating). No v2 was ever sent. Not submitted upstream; local only.
+
+Ported from the 7.1 version of this patch. Note bit 6 is NOT free here: 7.3
+took it for VMD_FEAT_USE_BIOS_INFO, so this uses bit 7. Re-check that on every
+rebase -- aliasing the quirk onto another flag would enable unrelated behaviour
+on the boot device's controller.
+
+See modules/hosts/laptop/nvme-vmd-stalls.md.
+
+Applies to: v7.3.1
+--- a/drivers/pci/controller/vmd.c
++++ b/drivers/pci/controller/vmd.c
+@@ -4,6 +4,7 @@
+  * Copyright (c) 2015, Intel Corporation.
+  */
+ 
++#include <linux/delay.h>
+ #include <linux/device.h>
+ #include <linux/interrupt.h>
+ #include <linux/irq.h>
+@@ -92,6 +93,13 @@
+ 	 * referred to as MEMBAR2 or MSI-X BAR.
+ 	 */
+ 	VMD_FEAT_USE_BIOS_INFO		= (1 << 6),
++
++	/*
++	 * Erratum MTL016: the VMD raises the MSI before the DMA'd completion
++	 * data has landed, so a child driver can sample a completion queue
++	 * entry that is not yet valid and miss the completion entirely.
++	 */
++	VMD_FEAT_INTERRUPT_QUIRK	= (1 << 7),
+ };
+ 
+ #define VMD_BIOS_PM_QUIRK_LTR	0x1003	/* 3145728 ns */
+@@ -132,12 +140,14 @@
+  * @count:	number of child IRQs assigned to this vector; used to track
+  *		sharing.
+  * @virq:	The underlying VMD Linux interrupt number
++ * @delay_irq:	Erratum MTL016 workaround; delay before demuxing this vector.
+  */
+ struct vmd_irq_list {
+ 	struct list_head	irq_list;
+ 	struct srcu_struct	srcu;
+ 	unsigned int		count;
+ 	unsigned int		virq;
++	bool			delay_irq;
+ };
+ 
+ struct vmd_dev {
+@@ -755,6 +765,13 @@
+ 	struct vmd_irq *vmdirq;
+ 	int idx;
+ 
++	/*
++	 * MTL016: let the posted completion writes land before dispatching,
++	 * otherwise the child driver may sample a stale completion queue.
++	 */
++	if (irqs->delay_irq)
++		udelay(4);
++
+ 	idx = srcu_read_lock(&irqs->srcu);
+ 	list_for_each_entry_rcu(vmdirq, &irqs->irq_list, node)
+ 		generic_handle_irq(vmdirq->virq);
+@@ -763,7 +780,7 @@
+ 	return IRQ_HANDLED;
+ }
+ 
+-static int vmd_alloc_irqs(struct vmd_dev *vmd)
++static int vmd_alloc_irqs(struct vmd_dev *vmd, unsigned long features)
+ {
+ 	struct pci_dev *dev = vmd->dev;
+ 	int i, err;
+@@ -789,6 +806,7 @@
+ 
+ 		INIT_LIST_HEAD(&vmd->irqs[i].irq_list);
+ 		vmd->irqs[i].virq = pci_irq_vector(dev, i);
++		vmd->irqs[i].delay_irq = !!(features & VMD_FEAT_INTERRUPT_QUIRK);
+ 		err = devm_request_irq(&dev->dev, vmd->irqs[i].virq,
+ 				       vmd_irq, IRQF_NO_THREAD,
+ 				       vmd->name, &vmd->irqs[i]);
+@@ -989,7 +1007,7 @@
+ 	 * remapping doesn't become a performance bottleneck.
+ 	 */
+ 	if (!(features & VMD_FEAT_CAN_BYPASS_MSI_REMAP) || vmd_in_guest) {
+-		ret = vmd_alloc_irqs(vmd);
++		ret = vmd_alloc_irqs(vmd, features);
+ 		if (ret)
+ 			return ret;
+ 
+@@ -1250,7 +1268,8 @@
+ 	{PCI_VDEVICE(INTEL, 0xa77f),
+ 		.driver_data = VMD_FEATS_CLIENT,},
+ 	{PCI_VDEVICE(INTEL, 0x7d0b),
+-		.driver_data = VMD_FEATS_CLIENT,},
++		.driver_data = VMD_FEATS_CLIENT |
++				VMD_FEAT_INTERRUPT_QUIRK,},
+ 	{PCI_VDEVICE(INTEL, 0xad0b),
+ 		.driver_data = VMD_FEATS_CLIENT,},
+ 	{PCI_VDEVICE(INTEL, PCI_DEVICE_ID_INTEL_VMD_9A0B),

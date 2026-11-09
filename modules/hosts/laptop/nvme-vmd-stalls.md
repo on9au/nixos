@@ -125,11 +125,18 @@ No data is at risk. Every affected I/O completed correctly, just late.
 
 There is no fix in mainline, and no patch pending.
 
-Current `drivers/pci/controller/vmd.c` defines six feature flags —
-`HAS_MEMBAR_SHADOW`, `HAS_BUS_RESTRICTIONS`, `HAS_MEMBAR_SHADOW_VSCAP`,
-`OFFSET_FIRST_VECTOR`, `CAN_BYPASS_MSI_REMAP`, `BIOS_PM_QUIRK` — none about
+Every `VMD_FEAT_*` flag in `drivers/pci/controller/vmd.c` is about membar
+shadowing, bus numbering, MSI remapping or power management; none is about
 interrupt ordering. `7d0b` gets plain `VMD_FEATS_CLIENT`, and `vmd_irq()` is a
 bare demultiplex loop with no `udelay` and no dummy read.
+
+Read the flag list from the tree rather than trusting a copy of it here — which
+bit is free is what the local patch depends on, and upstream does claim new
+ones (7.3 added `VMD_FEAT_USE_BIOS_INFO`):
+
+```bash
+sed -n '/^enum vmd_features/,/^};/p' drivers/pci/controller/vmd.c
+```
 
 One attempt was made in September 2024 ([patch][p], [review][r]): a
 `VMD_FEAT_INTERRUPT_QUIRK` flag gating a `udelay(4)` before
@@ -181,17 +188,8 @@ and the erratum cannot fire. Linux does not care — root is mounted by UUID.
 Does not fix the lost interrupt — turns a 30s freeze into a ~5s one, which is
 the difference between unusable and irritating.
 
-Boot is dracut + `kernel-install` + systemd-boot (Type #1 entries, **not** UKI
-— `/etc/kernel/cmdline` is the source, the ESP entry is generated). Add to
-`/etc/kernel/cmdline`:
-
-```
-nvme_core.io_timeout=5 nvme.use_threaded_interrupts=1 nvme_core.default_ps_max_latency_us=0
-```
-
-```bash
-sudo reinstall-kernels     # regenerates initrd + the loader entry
-```
+Deployed, as `boot.kernelParams` in [`default.nix`](default.nix). They stay on
+alongside the patch below, which narrows the race rather than closing it.
 
 | parameter | why |
 | --- | --- |
@@ -199,7 +197,7 @@ sudo reinstall-kernels     # regenerates initrd + the loader entry
 | `nvme.use_threaded_interrupts=1` | defers CQ processing into a threaded handler, giving the DMA time to land. Approximates the rejected upstream `udelay` patch |
 | `nvme_core.default_ps_max_latency_us=0` | disables APST. The drive otherwise descends to PS4 (45ms exit latency, permitted by the 100000 default). Aimed at the idle correlation |
 
-Revert by deleting the three parameters and re-running `reinstall-kernels`.
+Revert by deleting them from `default.nix` and rebuilding.
 
 To try a value before committing to it, there is a live per-queue knob in
 **milliseconds** that needs no reboot and reverts by itself:
@@ -240,3 +238,68 @@ freezing you, never touches them. It will change nothing.
 
 **Replacing the SSD.** The drive is healthy and the bug is in the VMD
 controller, on the CPU package. A new drive lands behind the same VMD.
+
+## The patch
+
+[`vmd-mtl016.patch`](vmd-mtl016.patch), applied via `boot.kernelPatches` in
+[`default.nix`](default.nix) — which is also where the reasoning for patching
+the kernel in-tree, rather than shipping a module that replaces `vmd.ko`,
+lives. It adds the `VMD_FEAT_INTERRUPT_QUIRK` flag upstream rejected, gated to
+`8086:7d0b` alone, and delays 4us in `vmd_irq()` before demuxing.
+
+It is the rejected workaround, not the fix that was asked for: expect the
+stalls to become rare, not to vanish. If they persist, the answer is the
+firmware route above, not a longer delay.
+
+Two consequences worth knowing before a kernel bump:
+
+- **The kernel is built from source.** It and everything built against it
+  (nvidia) stop coming from the binary cache, so `nh os build` on a kernel bump
+  is a local compile, not a download.
+- **The build fails on a new kernel series, deliberately.** The patch is gated
+  to the series it was verified against, and the assertion message says what to
+  do. The gate matters more than `patch` succeeding: the quirk occupies a free
+  `VMD_FEAT_*` bit, and a rebase that aliases it onto a flag upstream has since
+  claimed would apply cleanly and then enable unrelated behaviour on the boot
+  device's own controller. Re-read the flag list by hand, every time.
+
+### Re-porting it to a new series
+
+1. Get the new `drivers/pci/controller/vmd.c` and read the `vmd_features` enum.
+   **Pick a bit nothing else uses** and update the patch's flag.
+2. Re-apply the other edits — the include, the `vmd_irq_list` field and its
+   kernel-doc line, the `udelay` in `vmd_irq()`, the `vmd_alloc_irqs` signature,
+   its per-vector assignment, its call site, and the `0x7d0b` table entry.
+3. Regenerate the patch, confirm `patch -p1 --dry-run` is clean with no fuzz,
+   and widen the gate in `default.nix`.
+
+### Verifying it took
+
+The patch adds a delay and no log line, so it leaves no runtime fingerprint —
+nothing in `dmesg` or `/proc` will say whether it is in. There are two checks
+worth doing instead.
+
+That the booted kernel really is the patched build:
+
+```bash
+nix derivation show "$(nix-store -q --deriver "$(readlink -f /run/booted-system/kernel)")" \
+  | grep vmd-mtl016
+```
+
+And the symptom, which is the number that actually matters:
+
+```bash
+journalctl --no-pager _TRANSPORT=kernel | grep -c "timeout, completion polled"
+```
+
+Note `journalctl -k` implies `-b` and reports the current boot only. Compare
+against the baseline in **Confirming it** above — every boot affected. Under
+this same patch on EndeavourOS the count stopped advancing entirely, across
+roughly 85 boots.
+
+### Rollback
+
+Comment out `boot.kernelPatches` in [`default.nix`](default.nix) and rebuild;
+the next generation runs the stock kernel straight from the cache. The previous
+generation stays bootable in the meantime, which is the real rollback path if a
+patched kernel ever fails to boot.
