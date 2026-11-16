@@ -1,7 +1,11 @@
 # The proxy VPS's public ports, passed through to jia over Tailscale as plain
 # TCP, and the Minecraft servers' to the desktop. jia's Caddy still terminates
 # TLS, so this box holds no certificates.
-{lib, ...}: let
+{
+  config,
+  lib,
+  ...
+}: let
   desktop = "desktop-dylan.tailc7b8fd.ts.net";
   jia = "jia-opena0.tailc7b8fd.ts.net";
   minecraft = import ./minecraft/servers.nix;
@@ -50,6 +54,10 @@ in {
         minecraft)}
     '';
   };
+
+  # The module swaps /etc/haproxy.cfg on a switch but never tells haproxy, which
+  # keeps the old listeners until it next restarts. A reload is hitless.
+  systemd.services.haproxy.reloadTriggers = [config.environment.etc."haproxy.cfg".source];
 
   networking.firewall.allowedTCPPorts = [22 80 443 7777] ++ minecraftPorts;
 }
