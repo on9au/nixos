@@ -5,6 +5,7 @@
     ./hardware.nix
     ../../devices/apple-usb-c-dongle.nix
     ../../devices/aula-f87-pro.nix
+    ../../hardware/cooling/coolercontrol.nix
     ../../hardware/drives/smart.nix
     ../../hardware/drives/udisks.nix
     ../../hardware/gpu/graphics.nix
@@ -90,6 +91,10 @@
   system.stateVersion = "26.05";
 
   boot.kernelPackages = pkgs.linuxPackages_latest;
+
+  # The board's fan controller. Nothing loads it by itself, and without it the
+  # CPU and case fans are invisible to Linux and CoolerControl.
+  boot.kernelModules = ["nct6775"];
 
   boot.initrd.luks.devices."cryptroot".crypttabExtraOpts = ["fido2-device=auto"];
 
