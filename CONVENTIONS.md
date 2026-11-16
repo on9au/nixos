@@ -124,9 +124,6 @@ Exceptions, read with `builtins.readFile` and so needing a rebuild:
 - `lazy-lock.json` is committed and written by nvim. Scripts use
   `nvim --headless "+Lazy! restore" +qa`, never `Lazy! sync`.
 - The Hyprland config is Lua, so `hyprctl dispatch` takes `hl.dsp.*`.
-- waybar tracks git HEAD (`waybar` flake input) until nixpkgs has 0.16.0;
-  `nix flake update waybar` can break its build when upstream adds a
-  dependency.
 - Icons in config files and scripts: only Plane-15 Nerd Font glyphs (U+F0000
   and up). Private-use BMP glyphs (U+E000–U+F8FF) get written as empty
   strings. Check the font has one:

@@ -40,12 +40,6 @@
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
-    # Source only, built with nixpkgs' recipe in modules/programs/desktop/waybar/home.nix.
-    waybar = {
-      url = "github:Alexays/Waybar";
-      flake = false;
-    };
   };
 
   outputs = {

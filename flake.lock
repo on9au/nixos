@@ -310,8 +310,7 @@
         "nix-index-database": "nix-index-database",
         "nixos-wsl": "nixos-wsl",
         "nixpkgs": "nixpkgs_2",
-        "sops-nix": "sops-nix",
-        "waybar": "waybar"
+        "sops-nix": "sops-nix"
       }
     },
     "rust-overlay": {
@@ -367,22 +366,6 @@
       "original": {
         "owner": "nix-systems",
         "repo": "default",
-        "type": "github"
-      }
-    },
-    "waybar": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1794783081,
-        "narHash": "sha256-ADyN3hFKKyWMsELk1hz8R4+VuChROvh5NSzCaX/AlhY=",
-        "owner": "Alexays",
-        "repo": "Waybar",
-        "rev": "5b36b1a82f9630576dca2840b8dca15b2aca2cff",
-        "type": "github"
-      },
-      "original": {
-        "owner": "Alexays",
-        "repo": "Waybar",
         "type": "github"
       }
     }
