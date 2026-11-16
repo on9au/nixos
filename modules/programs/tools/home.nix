@@ -19,9 +19,17 @@
         builtins.filter (dep: (dep.pname or "") != "python-jose") old.dependencies
         ++ [pkgs.python3Packages.pyjwt];
       nativeCheckInputs = old.nativeCheckInputs ++ [pkgs.python3Packages.pysmart];
-      # Starts a server and queries it after a fixed 5s sleep; on a loaded
-      # builder the first queries arrive before it is listening.
-      disabledTestPaths = old.disabledTestPaths ++ ["tests/test_restful.py"];
+      # Each starts a server and queries it after a fixed 5s sleep; on a slow or
+      # loaded builder (CI's runners) the first queries arrive before it is
+      # listening.
+      disabledTestPaths =
+        old.disabledTestPaths
+        ++ [
+          "tests/test_browser_restful.py"
+          "tests/test_mcp.py"
+          "tests/test_restful.py"
+          "tests/test_xmlrpc.py"
+        ];
     });
 in {
   home.packages = with pkgs;
