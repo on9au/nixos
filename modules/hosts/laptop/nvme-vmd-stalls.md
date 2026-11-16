@@ -15,8 +15,8 @@ hitting the 30-second timeout.
 nvme nvme0: I/O tag 391 (8187) QID 4 timeout, completion polled
 ```
 
-There is no kernel fix and none planned — see **Upstream status**. Skip to
-**What to actually do** if you just want it to stop.
+Fixed in the kernel since 7.3.4 (7.4 in mainline) — see **Upstream status**.
+The rest is the diagnosis, kept for if the stalls ever come back.
 
 ## Reading that message
 
@@ -78,13 +78,8 @@ journalctl --no-pager _TRANSPORT=kernel | grep -c "timeout, completion polled"
 At time of writing: **634 across 20 boots, every boot affected**, 11 in the
 first 20 minutes of one ordinary session.
 
-Check that the running kernel still has no mitigation — if this ever prints an
-interrupt-related flag, the situation has changed:
-
-```bash
-sudo zstd -dc /lib/modules/$(uname -r)/kernel/drivers/pci/controller/vmd.ko.zst \
-  | strings | grep -oE "VMD_FEAT_[A-Z_]+" | sort -u
-```
+If it is still advancing, check the running kernel is 7.3.4 or later
+(`uname -r`); older ones lack the fix.
 
 ## Why it hits when the machine is idle
 
@@ -123,50 +118,29 @@ No data is at risk. Every affected I/O completed correctly, just late.
 
 ## Upstream status
 
-There is no fix in mainline, and no patch pending.
+Fixed by [`7307899e381c`][fix], "PCI: vmd: Flush DMA writes before handling
+MSI on Meteor Lake" (mainline from 7.4-rc1, backported to 7.3.4). It adds
+`VMD_FEAT_INTERRUPT_QUIRK`, set for `8086:7d0b` and, in a companion commit, for
+Arrow Lake's `ad0b` (erratum ARL004). With it set, `vmd_irq()` does the dummy
+read the erratum prescribes: a config-space read of the initiating device
+before demuxing to its handler. That read's completion cannot pass the
+device's earlier posted writes, so the completion queue is coherent by the
+time the NVMe handler looks. Only the affected device IDs pay for the round
+trip.
 
-Every `VMD_FEAT_*` flag in `drivers/pci/controller/vmd.c` is about membar
-shadowing, bus numbering, MSI remapping or power management; none is about
-interrupt ordering. `7d0b` gets plain `VMD_FEATS_CLIENT`, and `vmd_irq()` is a
-bare demultiplex loop with no `udelay` and no dummy read.
+An earlier attempt in September 2024 ([patch][p], [review][r]) used the same
+flag name to gate a `udelay(4)` and was rejected: a delay makes the race less
+likely without enforcing ordering, and reviewers asked for the register read
+and narrow device gating. Until 7.3.4 this machine ran that rejected delay as a
+local kernel patch; `git log -- modules/hosts/laptop/vmd-mtl016.patch` has it.
 
-Read the flag list from the tree rather than trusting a copy of it here — which
-bit is free is what the local patch depends on, and upstream does claim new
-ones (7.3 added `VMD_FEAT_USE_BIOS_INFO`):
-
-```bash
-sed -n '/^enum vmd_features/,/^};/p' drivers/pci/controller/vmd.c
-```
-
-One attempt was made in September 2024 ([patch][p], [review][r]): a
-`VMD_FEAT_INTERRUPT_QUIRK` flag gating a `udelay(4)` before
-`generic_handle_irq()`. It was rejected —
-
-- **Manivannan Sadhasivam:** *"Adding a delay for PCIe ordering is not going to
-  work always."*
-- **Keith Busch:** a register read is required because it *"flushes pending
-  device-to-host writes, which is most likely what the errata really requires"*.
-  Also that the quirk had to be device-specific rather than global.
-
-They are right: a delay makes the race less likely, it does not enforce
-ordering. Intel's own erratum text prescribes the dummy read. No v2 was ever
-sent; the thread trails off into a build-warning bot reply.
-
-It is unlikely to land soon, because the correct fix is awkward. `vmd_irq()` is
-the hot path for *every* interrupt from *every* device behind VMD, and a dummy
-MMIO read is a synchronous round trip to the device. Doing that per interrupt
-costs throughput for everyone, including unaffected hardware — hence the
-insistence on narrow device gating, which nobody has done.
-
-**Consequence: upgrading the kernel will not fix this.** A rolling Arch kernel
-buys nothing here. Do not wait it out.
-
+[fix]: https://git.kernel.org/torvalds/c/7307899e381c
 [p]: https://lkml.iu.edu/2409.0/02004.html
 [r]: https://lkml.iu.edu/hypermail/linux/kernel/2409.0/03089.html
 
 ## What to actually do
 
-### The real fix: turn VMD off in the Dell firmware
+### If it comes back: turn VMD off in the Dell firmware
 
 Set the storage/SATA mode from **RAID On / Intel RST with VMD** to
 **AHCI/NVMe**. The drive then attaches directly, the VMD interrupt path is gone,
@@ -189,7 +163,7 @@ Does not fix the lost interrupt — turns a 30s freeze into a ~5s one, which is
 the difference between unusable and irritating.
 
 Deployed, as `boot.kernelParams` in [`default.nix`](default.nix). They stay on
-alongside the patch below, which narrows the race rather than closing it.
+until the count under **Verifying the fix** stops rising on the fixed kernel.
 
 | parameter | why |
 | --- | --- |
@@ -234,72 +208,17 @@ stop using them — but Linux polled queues only serve `RWF_HIPRI` / io_uring
 high-priority submissions. Ordinary buffered I/O, which is what is actually
 freezing you, never touches them. It will change nothing.
 
-**Waiting for a kernel update.** See **Upstream status**.
-
 **Replacing the SSD.** The drive is healthy and the bug is in the VMD
 controller, on the CPU package. A new drive lands behind the same VMD.
 
-## The patch
+## Verifying the fix
 
-[`vmd-mtl016.patch`](vmd-mtl016.patch), applied via `boot.kernelPatches` in
-[`default.nix`](default.nix) — which is also where the reasoning for patching
-the kernel in-tree, rather than shipping a module that replaces `vmd.ko`,
-lives. It adds the `VMD_FEAT_INTERRUPT_QUIRK` flag upstream rejected, gated to
-`8086:7d0b` alone, and delays 4us in `vmd_irq()` before demuxing.
-
-It is the rejected workaround, not the fix that was asked for: expect the
-stalls to become rare, not to vanish. If they persist, the answer is the
-firmware route above, not a longer delay.
-
-Two consequences worth knowing before a kernel bump:
-
-- **The kernel is built from source.** It and everything built against it
-  (nvidia) stop coming from the binary cache, so `nh os build` on a kernel bump
-  is a local compile, not a download.
-- **The build fails on a new kernel series, deliberately.** The patch is gated
-  to the series it was verified against, and the assertion message says what to
-  do. The gate matters more than `patch` succeeding: the quirk occupies a free
-  `VMD_FEAT_*` bit, and a rebase that aliases it onto a flag upstream has since
-  claimed would apply cleanly and then enable unrelated behaviour on the boot
-  device's own controller. Re-read the flag list by hand, every time.
-
-### Re-porting it to a new series
-
-1. Get the new `drivers/pci/controller/vmd.c` and read the `vmd_features` enum.
-   **Pick a bit nothing else uses** and update the patch's flag.
-2. Re-apply the other edits — the include, the `vmd_irq_list` field and its
-   kernel-doc line, the `udelay` in `vmd_irq()`, the `vmd_alloc_irqs` signature,
-   its per-vector assignment, its call site, and the `0x7d0b` table entry.
-3. Regenerate the patch, confirm `patch -p1 --dry-run` is clean with no fuzz,
-   and widen the gate in `default.nix`.
-
-### Verifying it took
-
-The patch adds a delay and no log line, so it leaves no runtime fingerprint —
-nothing in `dmesg` or `/proc` will say whether it is in. There are two checks
-worth doing instead.
-
-That the booted kernel really is the patched build:
-
-```bash
-nix derivation show "$(nix-store -q --deriver "$(readlink -f /run/booted-system/kernel)")" \
-  | grep vmd-mtl016
-```
-
-And the symptom, which is the number that actually matters:
+The fix logs nothing, so the symptom is the measure:
 
 ```bash
 journalctl --no-pager _TRANSPORT=kernel | grep -c "timeout, completion polled"
 ```
 
-Note `journalctl -k` implies `-b` and reports the current boot only. Compare
-against the baseline in **Confirming it** above — every boot affected. Under
-this same patch on EndeavourOS the count stopped advancing entirely, across
-roughly 85 boots.
-
-### Rollback
-
-Comment out `boot.kernelPatches` in [`default.nix`](default.nix) and rebuild;
-the next generation runs the stock kernel straight from the cache. The previous
-generation stays bootable in the meantime, which is the real rollback path if a
-patched kernel ever fails to boot.
+`journalctl -k` implies `-b` and reports the current boot only. Compare against
+the baseline in **Confirming it** — every boot affected. Once it stops
+advancing across boots, the kernel parameters above can go.
