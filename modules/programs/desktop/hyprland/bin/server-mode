@@ -37,7 +37,8 @@ on() {
 
   mkdir -p "$saved"
   powerprofilesctl get >"$saved/profile"
-  powerprofilesctl set power-saver
+  # Not power-saver: the clocks it holds down cost the game servers ticks.
+  powerprofilesctl set balanced
   wpctl get-volume @DEFAULT_AUDIO_SINK@ >"$saved/volume"
   wpctl set-mute @DEFAULT_AUDIO_SINK@ 1
   if command -v rgb-state >/dev/null; then
