@@ -38,6 +38,7 @@ on() {
   mkdir -p "$saved"
   powerprofilesctl get >"$saved/profile"
   # Not power-saver: the clocks it holds down cost the game servers ticks.
+  # CoolerControl maps balanced to its Quiet fan mode (set in its Modes page).
   powerprofilesctl set balanced
   wpctl get-volume @DEFAULT_AUDIO_SINK@ >"$saved/volume"
   wpctl set-mute @DEFAULT_AUDIO_SINK@ 1
