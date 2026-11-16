@@ -2,7 +2,28 @@
   lib,
   pkgs,
   ...
-}: {
+}: let
+  # TEMP(nixpkgs#587533): glances 4.5.7 needs python-jose, which nixpkgs now
+  # marks insecure and refuses to evaluate; 4.5.9 uses pyjwt instead.
+  glances = assert lib.assertMsg (lib.versionOlder pkgs.glances.version "4.5.9")
+  "TEMP: nixpkgs has glances ${pkgs.glances.version}; drop the glances override in programs/tools/home.nix";
+    pkgs.glances.overridePythonAttrs (old: {
+      version = "4.5.9";
+      src = pkgs.fetchFromGitHub {
+        owner = "nicolargo";
+        repo = "glances";
+        tag = "v4.5.9";
+        hash = "sha256-CvT9GQ29xXTVxC7V2nGmfDhHLsAtF61+XMMLG8cmHww=";
+      };
+      dependencies =
+        builtins.filter (dep: (dep.pname or "") != "python-jose") old.dependencies
+        ++ [pkgs.python3Packages.pyjwt];
+      nativeCheckInputs = old.nativeCheckInputs ++ [pkgs.python3Packages.pysmart];
+      # Starts a server and queries it after a fixed 5s sleep; on a loaded
+      # builder the first queries arrive before it is listening.
+      disabledTestPaths = old.disabledTestPaths ++ ["tests/test_restful.py"];
+    });
+in {
   home.packages = with pkgs;
     [
       _7zz
