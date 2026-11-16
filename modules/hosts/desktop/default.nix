@@ -12,7 +12,7 @@
     ../../hardware/peripherals/bluetooth.nix
     ../../hardware/peripherals/keyd.nix
     ../../hardware/peripherals/printing.nix
-    ../../hardware/peripherals/rgb.nix
+    ../../hardware/peripherals/rgb
     ../../hardware/peripherals/tablet.nix
     ../../hardware/peripherals/yubikey
 

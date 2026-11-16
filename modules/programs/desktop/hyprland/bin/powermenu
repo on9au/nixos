@@ -12,8 +12,9 @@ choice=$(
     '󰗽  Log out' \
     '󰒲  Suspend' \
     '󰜉  Reboot' \
-    '󰐥  Shut down' |
-    fuzzel --dmenu --prompt='󰤁  ' --lines=5 --width=18
+    '󰐥  Shut down' \
+    '󰒋  Server mode' |
+    fuzzel --dmenu --prompt='󰤁  ' --lines=6 --width=18
 ) || exit 0 # dismissed with Escape
 
 [ -n "$choice" ] || exit 0
@@ -39,5 +40,8 @@ case "$choice" in
   ;;
 *'Shut down')
   systemctl poweroff
+  ;;
+*'Server mode')
+  "$HOME/.local/bin/server-mode" on
   ;;
 esac

@@ -63,7 +63,7 @@ hl.bind(mod .. " + N", hl.dsp.exec_cmd("swaync-client -t -sw"), { desc = "notifi
 -- window focus below.
 hl.bind(mod .. " + Escape", hl.dsp.exec_cmd("loginctl lock-session"), { desc = "lock screen" })
 
--- Power menu: lock / log out / suspend / reboot / shut down.
+-- Power menu: lock / log out / suspend / reboot / shut down / server mode.
 --
 -- Not a bare exit dispatcher: under uwsm the session is a systemd unit, and
 -- quitting the compositor directly leaves the rest of the user session units
@@ -73,6 +73,11 @@ hl.bind(mod .. " + Escape", hl.dsp.exec_cmd("loginctl lock-session"), { desc = "
 hl.bind(mod .. " + SHIFT + M",
     hl.dsp.exec_cmd(os.getenv("HOME") .. "/.local/bin/powermenu"),
     { desc = "power menu" })
+
+-- Outside server mode logind shuts down on this and the script does nothing.
+hl.bind("XF86PowerOff",
+    hl.dsp.exec_cmd(os.getenv("HOME") .. "/.local/bin/server-mode off"),
+    { locked = true, desc = "leave server mode" })
 
 -------------------
 ---- WINDOWS   ----

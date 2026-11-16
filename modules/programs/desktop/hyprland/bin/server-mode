@@ -1,0 +1,92 @@
+#!/bin/sh
+# server-mode on|off -- keep the machine running for its servers with the
+# screens, lights and sound off, until the power button is pressed.
+#
+# `on` is in the power menu, `off` is the XF86PowerOff bind in binds.lua.
+#
+# The server-mode user unit holds a logind handle-power-key inhibitor, so the
+# button reaches that bind instead of shutting down. It also turns the screens
+# back off whenever something turns them on: they have woken by themselves
+# after a DisplayPort hotplug with DPMS off, and stopping hypridle alone
+# doesn't rule out Hyprland doing that. If Hyprland goes away the unit exits,
+# and the power button shuts down again.
+
+set -eu
+
+unit=server-mode
+saved="${XDG_RUNTIME_DIR:?}/server-mode"
+
+screens() {
+  hyprctl dispatch "hl.dsp.dpms({action = \"$1\"})" >/dev/null
+}
+
+on() {
+  [ -d "$saved" ] && exit 0
+
+  loginctl lock-session
+  # hyprlock is hypridle's lock_cmd and runs in hypridle's scope, so kill the
+  # hypridle process alone, once hyprlock is up: stopping the scope, or
+  # killing hypridle first, would leave the session unlocked.
+  i=0
+  until pidof hyprlock >/dev/null; do
+    [ $i -lt 50 ] || exit 1
+    sleep 0.1
+    i=$((i + 1))
+  done
+  pkill -x hypridle || true
+
+  mkdir -p "$saved"
+  powerprofilesctl get >"$saved/profile"
+  powerprofilesctl set power-saver
+  wpctl get-volume @DEFAULT_AUDIO_SINK@ >"$saved/volume"
+  wpctl set-mute @DEFAULT_AUDIO_SINK@ 1
+  if command -v rgb-state >/dev/null; then
+    rgb-state save && rgb-state off || true
+  fi
+
+  systemd-run --user --unit="$unit" --collect --quiet -- \
+    systemd-inhibit --what=handle-power-key --who="server mode" \
+    --why="The power button leaves server mode" --mode=block \
+    "$HOME/.local/bin/server-mode" hold
+  screens off
+}
+
+hold() {
+  # hyprctl fails once Hyprland has gone, which ends the loop.
+  while monitors=$(hyprctl monitors); do
+    case $monitors in
+    *'dpmsStatus: 1'*) screens off ;;
+    esac
+    sleep 5
+  done
+}
+
+off() {
+  [ -d "$saved" ] || exit 0
+
+  systemctl --user stop "$unit" 2>/dev/null || true
+  screens on
+  powerprofilesctl set "$(cat "$saved/profile")"
+  case $(cat "$saved/volume") in
+  *MUTED*) ;;
+  *) wpctl set-mute @DEFAULT_AUDIO_SINK@ 0 ;;
+  esac
+  if command -v rgb-state >/dev/null; then
+    rgb-state restore || true
+  fi
+  rm -r "$saved"
+
+  # The way autostart.lua starts it.
+  pidof hypridle >/dev/null ||
+    hyprctl dispatch 'hl.dsp.exec_cmd("uwsm app -- hypridle")' >/dev/null
+}
+
+case "${1:-}" in
+on) on ;;
+off) off ;;
+hold) hold ;;
+*)
+  echo "usage: server-mode on|off" >&2
+  exit 2
+  ;;
+esac
