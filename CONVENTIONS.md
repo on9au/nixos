@@ -48,11 +48,12 @@ assertion together.
 - `modules/system/default.nix` goes on every NixOS host; the rest of
   `system/`, and all of `hardware/`, is imported per host.
 - `modules/programs/server/` is the servers' services: the homelab's
-  containers, one module per service, and the proxy's `haproxy.nix`.
+  containers, one module per service, the proxy's `haproxy.nix`, and the
+  desktop's game servers (`minecraft/`).
 - `modules/users/djpro/` — `default.nix` (NixOS), `darwin.nix`, and `home.nix`
   (shared git identity).
-- Input modules (disko, home-manager, lanzaboote, nix-flatpak, nixos-wsl,
-  sops-nix) are added per host in `flake.nix`.
+- Input modules (disko, home-manager, lanzaboote, nix-flatpak, nix-minecraft,
+  nixos-wsl, sops-nix) are added per host in `flake.nix`.
 
 ## Program modules
 

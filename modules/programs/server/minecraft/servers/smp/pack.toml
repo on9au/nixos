@@ -1,0 +1,13 @@
+name = "smp"
+author = "on9au"
+version = "1.0.0"
+pack-format = "packwiz:1.1.0"
+
+[index]
+file = "index.toml"
+hash-format = "sha256"
+hash = "72e0b4fcd65ae6c6582f888751c5229f9a473b46546cbd76224d359d56699f41"
+
+[versions]
+fabric = "0.20.1"
+minecraft = "26.3"

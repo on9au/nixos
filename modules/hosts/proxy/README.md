@@ -158,14 +158,16 @@ ISO's sshd, so none of this applies to the install.
 ## The proxy itself
 
 [`programs/server/haproxy.nix`](../../programs/server/haproxy.nix) forwards
-TCP to jia over Tailscale. It doesn't terminate anything:
+TCP to jia over Tailscale, and the Minecraft servers' ports to the desktop. It
+doesn't terminate anything:
 
-| Public | jia | PROXY header |
+| Public | Goes to | PROXY header |
 | --- | --- | --- |
-| 80 | 80 | no: Caddy's HTTP→HTTPS redirect server takes no listener wrappers |
-| 443 | 443 | v2: the client, or the Cloudflare edge for orange-clouded names |
-| 22 | 2222 (Forgejo SSH) | no |
-| 7777 | 7777 (Terraria) | no: tshock can't read one |
+| 80 | jia 80 | no: Caddy's HTTP→HTTPS redirect server takes no listener wrappers |
+| 443 | jia 443 | v2: the client, or the Cloudflare edge for orange-clouded names |
+| 22 | jia 2222 (Forgejo SSH) | no |
+| 7777 | jia 7777 (Terraria) | no: tshock can't read one |
+| [`minecraft/servers`](../../programs/server/minecraft/servers) ports | the same port on the desktop | no: lazymc can't read one |
 
 - **Why plain TCP, not a second Caddy here?** jia's Caddy already holds the
   certificates and builds its routes from container labels. A TLS-terminating

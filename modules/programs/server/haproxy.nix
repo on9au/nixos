@@ -1,7 +1,11 @@
 # The proxy VPS's public ports, passed through to jia over Tailscale as plain
-# TCP. jia's Caddy still terminates TLS, so this box holds no certificates.
-{...}: let
+# TCP, and the Minecraft servers' to the desktop. jia's Caddy still terminates
+# TLS, so this box holds no certificates.
+{lib, ...}: let
+  desktop = "desktop-dylan.tailc7b8fd.ts.net";
   jia = "jia-opena0.tailc7b8fd.ts.net";
+  minecraft = import ./minecraft/servers.nix;
+  minecraftPorts = lib.mapAttrsToList (_: server: server.port) minecraft;
 in {
   services.haproxy = {
     enable = true;
@@ -36,8 +40,16 @@ in {
       listen terraria
         bind :::7777 v4v6
         server jia ${jia}:7777 resolvers tailscale init-addr none
+
+      # lazymc holds these ports and can't read a PROXY header.
+      ${lib.concatStrings (lib.mapAttrsToList (name: server: ''
+          listen minecraft-${name}
+            bind :::${toString server.port} v4v6
+            server desktop ${desktop}:${toString server.port} resolvers tailscale init-addr none
+        '')
+        minecraft)}
     '';
   };
 
-  networking.firewall.allowedTCPPorts = [22 80 443 7777];
+  networking.firewall.allowedTCPPorts = [22 80 443 7777] ++ minecraftPorts;
 }

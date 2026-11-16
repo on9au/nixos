@@ -31,6 +31,11 @@
 
     nix-flatpak.url = "github:gmodena/nix-flatpak/?ref=latest";
 
+    nix-minecraft = {
+      url = "github:Infinidoge/nix-minecraft";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     disko = {
       url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -64,6 +69,7 @@
             inputs.home-manager.nixosModules.home-manager
             inputs.lanzaboote.nixosModules.lanzaboote
             inputs.nix-flatpak.nixosModules.nix-flatpak
+            inputs.nix-minecraft.nixosModules.minecraft-servers
             inputs.sops-nix.nixosModules.sops
           ];
         };

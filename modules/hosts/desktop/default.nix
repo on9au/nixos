@@ -66,6 +66,9 @@
     ../../programs/apps/wireshark.nix
     ../../programs/games
 
+    # Servers
+    ../../programs/server/minecraft
+
     # Shell and development
     ../../programs/development/claude-code
     ../../programs/development/neovim

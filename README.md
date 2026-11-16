@@ -142,6 +142,7 @@ procedures and overviews:
 | WSL | [`hosts/wsl`](modules/hosts/wsl/README.md) |
 | Homelab: services, reinstall and restore, Kanidm, Actual, bridges, backups | [`hosts/homelab`](modules/hosts/homelab/README.md) |
 | Homelab: anime downloads and Jellyfin | [`programs/server/anime`](modules/programs/server/anime/README.md) |
+| Minecraft servers on the desktop: mods, adding one, names, whitelist, running them | [`programs/server/minecraft`](modules/programs/server/minecraft/README.md) |
 | Proxy VPS: hosting, install, the TCP forwarder, exit node, public DNS | [`hosts/proxy`](modules/hosts/proxy/README.md) |
 | YubiKeys: SSH, sops identities, troubleshooting | [`hardware/peripherals/yubikey`](modules/hardware/peripherals/yubikey/README.md) |
 | Syncthing: folders, adding a device | [`programs/services/syncthing`](modules/programs/services/syncthing/README.md) |
