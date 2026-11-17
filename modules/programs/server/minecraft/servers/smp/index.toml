@@ -1,8 +1,28 @@
 hash-format = "sha256"
 
 [[files]]
+file = "mods/appleskin.pw.toml"
+hash = "ff675667f4c6924a9eaebc42dc2df5306dc5e8b005e931d9d8b73cebad67d5eb"
+metafile = true
+
+[[files]]
+file = "mods/c2me-fabric.pw.toml"
+hash = "e07c6a592ba844c3bd26e8ee73a21771dfa49396292ecca6eb77d48a17c0fb7d"
+metafile = true
+
+[[files]]
+file = "mods/chunky.pw.toml"
+hash = "b6e76b7a0d0355c542e5a6fca02e4ef452f6d9c0610da3b02f8554177e3bec31"
+metafile = true
+
+[[files]]
 file = "mods/fabric-api.pw.toml"
 hash = "fb72a70cb53c63f1da4520c25c8a7d806cc1c733e827016615623b65d751852d"
+metafile = true
+
+[[files]]
+file = "mods/fabric-language-kotlin.pw.toml"
+hash = "1811d49906aa7a1e7f1230535c6fec91be45129d028f7900cf35571a497e42b3"
 metafile = true
 
 [[files]]
@@ -11,6 +31,41 @@ hash = "069d81cab53c0141459ad4d70bcf3e10f17652f24cc62d3b4a0fc2cd2b700871"
 metafile = true
 
 [[files]]
+file = "mods/krypton.pw.toml"
+hash = "4d8432eed6984a86acf6c9f056755b3f9082eb8fcb5b3f37e96498e7871e40c9"
+metafile = true
+
+[[files]]
+file = "mods/ledger.pw.toml"
+hash = "df4cb0139afb9ca1357a821ab4f80f0cb24c932188b6f8e4c7a51dd80b9ec238"
+metafile = true
+
+[[files]]
 file = "mods/lithium.pw.toml"
 hash = "b44f3ab71e52f1aaae97cf8644f2316042de8b7777d6b6794567c8c7d220bd2b"
+metafile = true
+
+[[files]]
+file = "mods/no-chat-reports.pw.toml"
+hash = "54019b98e621d0ab792d7a2de0f8f2714660e367790b17ffa0ac902344166396"
+metafile = true
+
+[[files]]
+file = "mods/scalablelux.pw.toml"
+hash = "8ab8d9da45456dfc8146a7d4b4b4243c69ba5b4375d086f361bf23df6e14988a"
+metafile = true
+
+[[files]]
+file = "mods/servercore.pw.toml"
+hash = "3cd9ca7caa8775501b7779f9558d9632004809f2bff6923798c8e254c9eb8f45"
+metafile = true
+
+[[files]]
+file = "mods/spark.pw.toml"
+hash = "9b0969e4afbc18124775c008361dc1cfb9a17e49098d93d067b6342a4a54427c"
+metafile = true
+
+[[files]]
+file = "mods/styled-chat.pw.toml"
+hash = "f6160cfc8d01bd13bcb05d7cb16f63431bd4d244e2993397fe424810cd34750e"
 metafile = true
