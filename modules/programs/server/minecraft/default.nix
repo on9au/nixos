@@ -112,21 +112,46 @@ in {
       servers;
   };
 
+  # The worlds go in the daily backup (programs/services/backup.nix); /srv is
+  # its own subvolume. An awake server writes out every chunk it holds first,
+  # so the snapshot catches a whole save rather than one half-written.
+  # A sleeping one has nothing unsaved, and lazymc's stdin would hold the
+  # command for its next start.
+  backupSubvolumes = ["/srv"];
+  backupPrepare = lib.concatStrings (lib.mapAttrsToList (name: server: ''
+      if ss -ltnH "sport = :${toString (internalPort server)}" | grep -q .; then
+        echo 'save-all flush' > ${config.services.minecraft-servers.managementSystem.systemd-socket.stdinSocket.path name}
+        sleep 15
+      fi
+    '')
+    servers);
+  # The server downloads these again by itself.
+  services.restic.backups.r2.exclude = [
+    "minecraft/*/.fabric"
+    "minecraft/*/libraries"
+    "minecraft/*/versions"
+  ];
+
   systemd.slices.minecraft.sliceConfig = {
     # Below the default 100, so a game being played on the desktop wins.
     CPUWeight = 50;
     MemoryMax = "12G";
   };
 
-  systemd.services = lib.mapAttrs' (name: server:
-    lib.nameValuePair "minecraft-server-${name}" {
-      serviceConfig = {
-        # The heap plus the JVM's own overhead.
-        MemoryMax = "${toString (server.memory * 1024 + 1536)}M";
-        Slice = "minecraft.slice";
-      };
-    })
-  servers;
+  systemd.services =
+    lib.mapAttrs' (name: server:
+      lib.nameValuePair "minecraft-server-${name}" {
+        serviceConfig = {
+          # The heap plus the JVM's own overhead.
+          MemoryMax = "${toString (server.memory * 1024 + 1536)}M";
+          Slice = "minecraft.slice";
+        };
+      })
+    servers
+    // {
+      # `ss` for backupPrepare above.
+      restic-backups-r2.path = [pkgs.iproute2];
+    };
 
   # Players come in through the proxy VPS over Tailscale, or straight in on the
   # desktop's LAN port, enp8s0, rather than out to the VPS and back.

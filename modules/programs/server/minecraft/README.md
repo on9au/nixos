@@ -70,8 +70,23 @@ sudo systemctl restart minecraft-server-<name>  # also picks up a changed server
 ```
 
 Worlds and everything the server writes are under `/srv/minecraft/<name>`.
-Only btrbk's hourly snapshots of `/` cover them; the restic backup is `/home`
-only.
+btrbk snapshots `/srv` hourly into `/.snapshots/srv`, for undoing griefing or a
+bad mod, and the desktop's daily restic backup uploads it
+([Backups](../../hosts/desktop/README.md#backups)).
+
+To roll a world back to a snapshot:
+
+```
+sudo systemctl stop minecraft-server-<name>
+sudo ls /.snapshots/srv                          # srv.<date>T<time>
+sudo mv /srv/minecraft/<name>/world /srv/minecraft/<name>/world.bad
+sudo cp -a --reflink=always /.snapshots/srv/srv.<stamp>/minecraft/<name>/world /srv/minecraft/<name>/
+sudo systemctl start minecraft-server-<name>
+```
+
+From the off-site backup instead, restore
+`/.snapshots/restic/srv/minecraft/<name>/world` with `restic-r2` as in that
+section, and copy it into place the same way.
 
 Every player shows up as the proxy's address: lazymc can't read the PROXY
 header that would carry theirs. Ban by name, not IP.

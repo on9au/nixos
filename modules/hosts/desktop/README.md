@@ -29,8 +29,9 @@ backup: they share the disk and the LUKS header with what they protect.
 
 [`programs/services/backup.nix`](../../programs/services/backup.nix) is the
 backup: restic → R2, daily, reporting to healthchecks.io; retention and
-exclusions are in the module. restic reads a read-only snapshot taken for the
-run, so paths in the repository start at `/.snapshots/restic/home`.
+exclusions are in the module. It covers `/home` and `/srv` (the Minecraft
+worlds). restic reads read-only snapshots taken for the run, so paths in the
+repository start at `/.snapshots/restic/home` and `/.snapshots/restic/srv`.
 
 ```
 sudo systemctl start restic-backups-r2        # run now

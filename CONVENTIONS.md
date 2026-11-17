@@ -86,7 +86,8 @@ Exceptions, read with `builtins.readFile` and so needing a rebuild:
 ## Custom options
 
 `modules/system/nix/options.nix`: `primaryUser`, `greeterWallpaper`,
-`homeManagerModules`. Add repo-wide options there.
+`homeManagerModules`, `backupSubvolumes`, `backupPrepare`. Add repo-wide
+options there.
 
 ## Style
 

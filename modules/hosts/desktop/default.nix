@@ -100,16 +100,19 @@
 
   swapDevices = [{device = "/swap/swapfile";}];
 
-  # Nested subvolumes (/nix, /home, /swap) are not captured by a snapshot of
-  # /, so /home is taken separately. btrbk won't create the target dirs.
+  # Nested subvolumes (/nix, /home, /srv, /swap) are not captured by a
+  # snapshot of /, so /home and /srv (the Minecraft worlds) are taken
+  # separately. btrbk won't create the target dirs.
   services.btrbk.instances.default.settings.subvolume = {
     "/".snapshot_dir = "/.snapshots/root";
     "/home".snapshot_dir = "/.snapshots/home";
+    "/srv".snapshot_dir = "/.snapshots/srv";
   };
 
   systemd.tmpfiles.settings."btrbk-snapshot-dirs" = {
     "/.snapshots/root".d = {};
     "/.snapshots/home".d = {};
+    "/.snapshots/srv".d = {};
   };
 
   sops.defaultSopsFile = ./secrets.yaml;

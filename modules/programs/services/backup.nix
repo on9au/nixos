@@ -1,17 +1,29 @@
-# Daily restic backup of /home to R2. restic reads a read-only btrfs snapshot
-# rather than the live tree, so the backup is one point in time; that needs
-# /home and /.snapshots on the same btrfs filesystem (desktop and laptop layout).
+# Daily restic backup of backupSubvolumes (/home, and whatever other modules
+# add) to R2. restic reads read-only btrfs snapshots rather than the live trees,
+# so the backup is one point in time; that needs them and /.snapshots on the
+# same btrfs filesystem (desktop and laptop layout).
 {
   config,
+  lib,
   pkgs,
   ...
 }: let
-  # A fixed path, so each run finds the last snapshot as its parent and only
-  # rescans what changed. Restores see files under this path, not /home.
-  snapshot = "/.snapshots/restic/home";
+  # Fixed paths, so each run finds the last snapshot as its parent and only
+  # rescans what changed. Restores see files under these, not /home or /srv.
+  snapshotOf = subvolume: "/.snapshots/restic/${baseNameOf subvolume}";
+  snapshot = snapshotOf "/home";
+  snapshots = map snapshotOf config.backupSubvolumes;
+
+  deleteSnapshots =
+    lib.concatMapStrings (s: ''
+      if [ -e ${s} ]; then btrfs subvolume delete ${s}; fi
+    '')
+    snapshots;
   healthcheck = config.sops.secrets."backup/healthcheck_url".path;
   ping = path: ''curl -fsS -m 10 --retry 3 -o /dev/null "$(cat ${healthcheck})${path}" || true'';
 in {
+  backupSubvolumes = ["/home"];
+
   sops.secrets."backup/aws_access_key_id" = {};
   sops.secrets."backup/aws_secret_access_key" = {};
   sops.secrets."backup/healthcheck_url" = {};
@@ -28,7 +40,7 @@ in {
     initialize = true;
     inhibitsSleep = true;
     passwordFile = config.sops.secrets."backup/restic_password".path;
-    paths = [snapshot];
+    paths = snapshots;
     repositoryFile = config.sops.secrets."backup/restic_repository".path;
 
     # Skips any directory holding a CACHEDIR.TAG: cargo's target/ and registry.
@@ -65,17 +77,21 @@ in {
       RandomizedDelaySec = "1h";
     };
 
-    # A snapshot left behind by an interrupted run is replaced.
+    # Snapshots left behind by an interrupted run are replaced.
     backupPrepareCommand = ''
       ${ping "/start"}
-      if [ -e ${snapshot} ]; then btrfs subvolume delete ${snapshot}; fi
+      ${config.backupPrepare}
+      ${deleteSnapshots}
       mkdir -p ${dirOf snapshot}
-      btrfs subvolume snapshot -r /home ${snapshot}
+      ${lib.concatMapStrings (subvolume: ''
+          btrfs subvolume snapshot -r ${subvolume} ${snapshotOf subvolume}
+        '')
+        config.backupSubvolumes}
     '';
 
     # Runs as ExecStopPost, so also after a failed prepare or backup.
     backupCleanupCommand = ''
-      if [ -e ${snapshot} ]; then btrfs subvolume delete ${snapshot}; fi
+      ${deleteSnapshots}
       if [ "$SERVICE_RESULT" = success ]; then
         ${ping ""}
       else
