@@ -45,12 +45,14 @@ x-scheme-handler/https=firefox.desktop;
 x-scheme-handler/discord-1216669957799018608=discord-1216669957799018608.desktop;
 text/html=firefox.desktop;
 application/pdf=org.gnome.Papers.desktop;
+application/x-zerosize=nvim.desktop;
 
 [Default Applications]
 application/json=nvim.desktop;
 application/x-docbook+xml=nvim.desktop;
 application/x-matroska=mpv.desktop;
 application/x-yaml=nvim.desktop;
+application/x-zerosize=nvim.desktop;
 text/calendar=nvim.desktop;
 text/markdown=nvim.desktop;
 text/plain=nvim.desktop;
