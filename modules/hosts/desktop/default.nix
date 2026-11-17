@@ -5,6 +5,7 @@
     ./hardware.nix
     ../../devices/apple-usb-c-dongle.nix
     ../../devices/aula-f87-pro.nix
+    ../../devices/monitor-usb-hub.nix
     ../../hardware/cooling/coolercontrol.nix
     ../../hardware/drives/smart.nix
     ../../hardware/drives/udisks.nix

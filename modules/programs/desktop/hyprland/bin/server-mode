@@ -1,6 +1,7 @@
 #!/bin/sh
 # server-mode on|off -- keep the machine running for its servers with the
-# screens, lights and sound off, until the power button is pressed.
+# screens, lights, sound and the monitors' USB (keyboard and mouse included)
+# off, until the power button is pressed.
 #
 # `on` is in the power menu, `off` is the XF86PowerOff bind in binds.lua.
 #
@@ -18,6 +19,19 @@ saved="${XDG_RUNTIME_DIR:?}/server-mode"
 
 screens() {
   hyprctl dispatch "hl.dsp.dpms({action = \"$1\"})" >/dev/null
+}
+
+sink() {
+  wpctl inspect @DEFAULT_AUDIO_SINK@ 2>/dev/null |
+    sed -n 's/.*node\.name = "\(.*\)"/\1/p'
+}
+
+# devices/monitor-usb-hub.nix, on the desktop: the monitors' USB hub, with the
+# keyboard, mouse, webcam and IEMs behind it. Absent elsewhere.
+usb() {
+  if systemctl cat monitor-usb-off.service >/dev/null 2>&1; then
+    systemctl "$1" monitor-usb-off.service || true
+  fi
 }
 
 on() {
@@ -41,7 +55,9 @@ on() {
   # CoolerControl maps balanced to its Quiet fan mode (set in its Modes page).
   powerprofilesctl set balanced
   wpctl get-volume @DEFAULT_AUDIO_SINK@ >"$saved/volume"
+  sink >"$saved/sink"
   wpctl set-mute @DEFAULT_AUDIO_SINK@ 1
+  # Before the hub goes: the keyboard and mouse are on it.
   if command -v rgb-state >/dev/null; then
     rgb-state save && rgb-state off || true
   fi
@@ -50,6 +66,9 @@ on() {
     systemd-inhibit --what=handle-power-key --who="server mode" \
     --why="The power button leaves server mode" --mode=block \
     "$HOME/.local/bin/server-mode" hold
+  # Only once the power button is held for leaving: with the keyboard gone
+  # it's the one way out.
+  usb start
   screens off
 }
 
@@ -67,20 +86,29 @@ off() {
   [ -d "$saved" ] || exit 0
 
   systemctl --user stop "$unit" 2>/dev/null || true
+  usb stop
   screens on
   powerprofilesctl set "$(cat "$saved/profile")"
+  # The way autostart.lua starts it.
+  pidof hypridle >/dev/null ||
+    hyprctl dispatch 'hl.dsp.exec_cmd("uwsm app -- hypridle")' >/dev/null
+
+  # If the default output was the IEMs' adapter, it comes back muted with the
+  # hub; wait for it to be the default again before unmuting.
+  i=0
+  until [ "$(sink)" = "$(cat "$saved/sink")" ] || [ $i -ge 50 ]; do
+    sleep 0.2
+    i=$((i + 1))
+  done
   case $(cat "$saved/volume") in
   *MUTED*) ;;
   *) wpctl set-mute @DEFAULT_AUDIO_SINK@ 0 ;;
   esac
+  # Last: it waits for the keyboard and mouse to be found again.
   if command -v rgb-state >/dev/null; then
     rgb-state restore || true
   fi
   rm -r "$saved"
-
-  # The way autostart.lua starts it.
-  pidof hypridle >/dev/null ||
-    hyprctl dispatch 'hl.dsp.exec_cmd("uwsm app -- hypridle")' >/dev/null
 }
 
 case "${1:-}" in
