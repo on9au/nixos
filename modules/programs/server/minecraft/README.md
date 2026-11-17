@@ -51,7 +51,8 @@ players type a name instead:
 | SRV | `_minecraft._tcp.<name>` | 0, 0 | its port | `jia.opena0.net` |
 
 Then `<name>.opena0.net` reaches that server. The server on 25565 also answers
-on plain `jia.opena0.net`.
+on plain `jia.opena0.net`. On the home network, join on the desktop's LAN
+address and the port instead; that skips the trip out to the VPS and back.
 
 ## Whitelist
 

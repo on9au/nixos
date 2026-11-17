@@ -128,7 +128,9 @@ in {
     })
   servers;
 
-  # Players come in through the proxy VPS, over Tailscale.
-  networking.firewall.interfaces.tailscale0.allowedTCPPorts =
-    lib.mapAttrsToList (_: server: server.port) servers;
+  # Players come in through the proxy VPS over Tailscale, or straight in on the
+  # desktop's LAN port, enp8s0, rather than out to the VPS and back.
+  networking.firewall.interfaces = lib.genAttrs ["enp8s0" "tailscale0"] (_: {
+    allowedTCPPorts = lib.mapAttrsToList (_: server: server.port) servers;
+  });
 }
