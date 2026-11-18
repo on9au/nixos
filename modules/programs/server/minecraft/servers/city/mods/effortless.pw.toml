@@ -1,0 +1,13 @@
+name = "Effortless Structure"
+filename = "effortless-1.20.4-3.4.0.jar"
+side = "both"
+
+[download]
+url = "https://cdn.modrinth.com/data/EF68hjiy/versions/ixkuNO1j/effortless-1.20.4-3.4.0.jar"
+hash-format = "sha512"
+hash = "203ffed8a935effff3c414c5b54989f035607dfa5e539fe8f6295c12efdcd5e962bcf0d1cc3137c14c48fca48164708219213c9894c38458e875078418488016"
+
+[update]
+[update.modrinth]
+mod-id = "EF68hjiy"
+version = "ixkuNO1j"

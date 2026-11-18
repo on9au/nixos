@@ -20,29 +20,36 @@
 
   # TEMP(nix-minecraft#211): its Fabric servers launch nixpkgs' default
   # jre_headless rather than the Java the game needs; 26.x won't start on 21.
-  serverPackage = name:
+  serverPackage = name: let
+    version = (pack name).versions.minecraft;
+    package = pkgs.fabricServers."fabric-${lib.replaceStrings ["."] ["_"] version}";
+  in
     assert lib.assertMsg (lib.versionOlder pkgs.jre_headless.version "25")
     "TEMP: nixpkgs' jre_headless is ${pkgs.jre_headless.version}; drop the jre_headless override in programs/server/minecraft/default.nix";
-      pkgs.fabricServers."fabric-${lib.replaceStrings ["."] ["_"] (pack name).versions.minecraft}".override {
-        jre_headless = pkgs.jdk25_headless;
-      };
+      if lib.versionAtLeast version "26"
+      then package.override {jre_headless = pkgs.jdk25_headless;}
+      else package;
 
-  # The pack's mods, from the url and hash packwiz recorded, less client-only ones.
-  mods = name: let
-    dir = ./servers/${name}/mods;
+  # The pack's files (mods, and anything packwiz puts elsewhere, such as
+  # datapacks), each at its place in the server's folder, from the url and hash
+  # packwiz recorded, less client-only ones.
+  packFiles = name: let
+    dir = ./servers/${name};
+    index = builtins.fromTOML (builtins.readFile (dir + "/index.toml"));
   in
-    lib.pipe (builtins.readDir dir) [
-      (lib.filterAttrs (file: _: lib.hasSuffix ".pw.toml" file))
-      (lib.mapAttrsToList (file: _: builtins.fromTOML (builtins.readFile (dir + "/${file}"))))
+    lib.pipe index.files [
+      (lib.filter (entry: entry.metafile or false))
+      (map (entry: builtins.fromTOML (builtins.readFile (dir + "/${entry.file}")) // {dir = dirOf entry.file;}))
       (lib.filter (mod: (mod.side or "both") != "client"))
       (map (mod:
         assert lib.assertMsg (mod.download ? url)
-        "${name}: ${mod.name} has no download url; packwiz leaves it out for CurseForge-only mods, so use the Modrinth one";
-          pkgs.fetchurl {
+        "${name}: ${mod.name} has no download url; packwiz leaves it out for CurseForge-only mods, so use the Modrinth one or write it by hand (README.md)";
+          lib.nameValuePair "${mod.dir}/${mod.filename}" (pkgs.fetchurl {
             name = mod.filename;
             url = mod.download.url;
             ${mod.download.hash-format} = mod.download.hash;
-          }))
+          })))
+      lib.listToAttrs
     ];
 
   lazymcConfig = name: server:
@@ -98,6 +105,7 @@ in {
         stopCommand = null;
         # lazymc wakes the server only for a player on it.
         whitelist = lib.optionalAttrs server.whitelist players;
+        operators = lib.optionalAttrs server.op players;
         serverProperties =
           {
             enforce-whitelist = server.whitelist;
@@ -108,9 +116,9 @@ in {
           }
           // server.properties;
         symlinks =
-          # Each jar on its own, so mods/ stays writable: LuckPerms keeps its
-          # data in mods/luckperms.
-          lib.listToAttrs (map (mod: lib.nameValuePair "mods/${mod.name}" mod) (mods name))
+          # Each file on its own rather than a store-path mods/ or config/, which
+          # mods write into.
+          packFiles name
           # servers/<name>/datapack, loaded into the world. The world picks up a
           # new pack by itself.
           // lib.optionalAttrs (builtins.pathExists ./servers/${name}/datapack) {

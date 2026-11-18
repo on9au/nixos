@@ -27,8 +27,9 @@ git add .                            # the flake only sees files git knows
 ```
 
 Then build and switch; the server picks the new mods up when it next starts.
-Modrinth only: packwiz records no download URL for a CurseForge mod, and the
-build stops on it. Mods marked client-only in their `.pw.toml` (`side`) stay
+packwiz records no download URL for a CurseForge mod, and the build stops on
+it; use the Modrinth one, or write the `.pw.toml` by hand with the file's
+CurseForge CDN URL. Mods marked client-only in their `.pw.toml` (`side`) stay
 out of the server, so the same pack can carry them for players.
 
 ## Add a server
@@ -60,20 +61,16 @@ address and the port instead; that skips the trip out to the VPS and back.
 
 `whitelist = true` in [`servers.nix`](servers.nix) lets in only the players in
 [`players.nix`](players.nix), and lazymc won't wake the server for anyone
-else. With it on and `players.nix` empty, nobody gets in.
+else. With it on and `players.nix` empty, nobody gets in. `op = true` makes
+them all operators too.
 
-## Permissions
+## city
 
-`city` has LuckPerms, which keeps its groups in the server's folder rather than
-here. Once it has started, let everyone use the build tools without op:
-
-```
-echo 'lp group default permission set worldedit.* true' > /run/minecraft/city.stdin
-echo 'lp group default permission set axiom.all true' > /run/minecraft/city.stdin
-```
-
-Axiom also needs its client mod on each player's game; WorldEdit needs nothing
-on the client.
+The server side of the
+[Block Railway Engineering](https://modrinth.com/modpack/block-railway-engineering)
+modpack, MTR_Only edition, with Terralith in place of its No Caves datapack:
+both rewrite the overworld's cave and terrain noise. Players join with that
+modpack, at the game version `pack.toml` names; Terralith is server-side only.
 
 ## Running them
 

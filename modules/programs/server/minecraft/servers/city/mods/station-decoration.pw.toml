@@ -1,0 +1,13 @@
+name = "Station Decoration"
+filename = "MSD-fabric-1.20.4-4.0.5-1.4.5.jar"
+side = "both"
+
+[download]
+url = "https://cdn.modrinth.com/data/AM3NyLOZ/versions/nMixopsa/MSD-fabric-1.20.4-4.0.5-1.4.5.jar"
+hash-format = "sha512"
+hash = "7d1e276f0c1fdca8c9ab0a7e133a76fde0c4b7b4845b5b945058565debaa8a4c85cb556bb226f7bc81ce3fa0300a48ff1237203c069cb78e1dbfe0e211a3171e"
+
+[update]
+[update.modrinth]
+mod-id = "AM3NyLOZ"
+version = "nMixopsa"

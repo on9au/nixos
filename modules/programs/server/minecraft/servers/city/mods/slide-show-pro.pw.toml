@@ -1,0 +1,13 @@
+name = "Slide Show Pro"
+filename = "slideshow_pro-fabric-1.20.4-1.1.0.jar"
+side = "both"
+
+[download]
+url = "https://cdn.modrinth.com/data/P6nYxysS/versions/GftOJDDv/slideshow_pro-fabric-1.20.4-1.1.0.jar"
+hash-format = "sha512"
+hash = "0e145bae7db66e8310756f1de3643624402144636e9e3e051738da8dc97cf9f65449eeb3eaec9023a21103aa09c8b9c6cf8131126e1b3d49cb3b48efb0c78f14"
+
+[update]
+[update.modrinth]
+mod-id = "P6nYxysS"
+version = "GftOJDDv"

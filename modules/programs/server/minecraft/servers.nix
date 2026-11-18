@@ -5,6 +5,8 @@
     port = 25566;
     memory = 4;
     whitelist = true;
+    # Everyone in players.nix is op: Axiom and WorldEdit need it.
+    op = true;
     # Gamerules are in servers/city/datapack.
     properties = {
       difficulty = "peaceful";
@@ -21,6 +23,7 @@
     memory = 4;
     # Only players.nix may join.
     whitelist = true;
+    op = false;
     properties = {
       difficulty = "normal";
       motd = "smp";

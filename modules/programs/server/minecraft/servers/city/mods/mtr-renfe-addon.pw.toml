@@ -1,0 +1,13 @@
+name = "MTR Renfe Addon"
+filename = "MTR-Renfe-Addon-fabric-4.0.2-V4.0.1+1.20.4.jar"
+side = "both"
+
+[download]
+url = "https://cdn.modrinth.com/data/gRwbkBPr/versions/4U9Gp8Ve/MTR-Renfe-Addon-fabric-4.0.2-V4.0.1%2B1.20.4.jar"
+hash-format = "sha512"
+hash = "427d3ee9a6b58502a51ccacde84ab9fab71983691bf456c08aed24908fc699555baa3a20e10266c6028afc63b8b9f31a3bff0c921be0da55c95deca5b5977324"
+
+[update]
+[update.modrinth]
+mod-id = "gRwbkBPr"
+version = "4U9Gp8Ve"
