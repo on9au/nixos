@@ -1,6 +1,11 @@
 hash-format = "sha256"
 
 [[files]]
+file = "mods/apollib.pw.toml"
+hash = "6c6936ed52e91a7ce23db61b8a8e272c9105022dd27a4abef061855a1428ba36"
+metafile = true
+
+[[files]]
 file = "mods/axiom.pw.toml"
 hash = "6e613b5ce41149a643c491da757a2f5cf7e7aea53f61a0d2c8a80a3bae6a821f"
 metafile = true
@@ -26,6 +31,11 @@ hash = "069d81cab53c0141459ad4d70bcf3e10f17652f24cc62d3b4a0fc2cd2b700871"
 metafile = true
 
 [[files]]
+file = "mods/jei.pw.toml"
+hash = "b5feaa9780859d8639ab92b3c529f2a1c61bc86ba70aa03d35ebe5c055129e8e"
+metafile = true
+
+[[files]]
 file = "mods/krypton.pw.toml"
 hash = "4d8432eed6984a86acf6c9f056755b3f9082eb8fcb5b3f37e96498e7871e40c9"
 metafile = true
@@ -43,6 +53,11 @@ metafile = true
 [[files]]
 file = "mods/luckperms.pw.toml"
 hash = "6ad4fe85740b1fa65e7190b3275dc467ea94c3184c9a657897a22d03484a1884"
+metafile = true
+
+[[files]]
+file = "mods/mezzconfig.pw.toml"
+hash = "b4eee8204d2dd73e626cec0c0687595ba40370ae95a40b56fc6874c951c05633"
 metafile = true
 
 [[files]]
@@ -67,7 +82,7 @@ metafile = true
 
 [[files]]
 file = "mods/tectonic.pw.toml"
-hash = "1fbc846f05a8ee7fee1f20d1715db11c186a9b21eeaf13300f55a924c298661e"
+hash = "c073e5bcc29d5cc3497cf5a478b47f46363133bfb097d60f0e00391410d226cf"
 metafile = true
 
 [[files]]

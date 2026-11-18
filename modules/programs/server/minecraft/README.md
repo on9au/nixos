@@ -69,7 +69,7 @@ here. Once it has started, let everyone use the build tools without op:
 
 ```
 echo 'lp group default permission set worldedit.* true' > /run/minecraft/city.stdin
-echo 'lp group default permission set axiom.* true' > /run/minecraft/city.stdin
+echo 'lp group default permission set axiom.all true' > /run/minecraft/city.stdin
 ```
 
 Axiom also needs its client mod on each player's game; WorldEdit needs nothing

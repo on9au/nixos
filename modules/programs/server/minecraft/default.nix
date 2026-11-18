@@ -108,7 +108,9 @@ in {
           }
           // server.properties;
         symlinks =
-          {mods = pkgs.linkFarmFromDrvs "mods" (mods name);}
+          # Each jar on its own, so mods/ stays writable: LuckPerms keeps its
+          # data in mods/luckperms.
+          lib.listToAttrs (map (mod: lib.nameValuePair "mods/${mod.name}" mod) (mods name))
           # servers/<name>/datapack, loaded into the world. The world picks up a
           # new pack by itself.
           // lib.optionalAttrs (builtins.pathExists ./servers/${name}/datapack) {

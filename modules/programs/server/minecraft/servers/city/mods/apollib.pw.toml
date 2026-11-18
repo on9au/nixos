@@ -1,0 +1,13 @@
+name = "Apollib"
+filename = "apollib-1.2.4-fabric-26.3.jar"
+side = "both"
+
+[download]
+url = "https://cdn.modrinth.com/data/VDI2Ytax/versions/oRDWLnuC/apollib-1.2.4-fabric-26.3.jar"
+hash-format = "sha512"
+hash = "bd9d68db967158976b614d94b585dd0526aede7a4c3f9cd6ca589a2592f5c7e2da231b5af5925eb423ec6f6fabe5b44807cb85555b7513bd394c9d60a98f5bd0"
+
+[update]
+[update.modrinth]
+mod-id = "VDI2Ytax"
+version = "oRDWLnuC"
