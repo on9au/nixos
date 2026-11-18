@@ -1,0 +1,13 @@
+name = "city"
+author = "on9au"
+version = "1.0.0"
+pack-format = "packwiz:1.1.0"
+
+[index]
+file = "index.toml"
+hash-format = "sha256"
+hash = "de68019767f890094cbdd5832d64fdb59e16f094a40b6ce5b501f6e2773a16af"
+
+[versions]
+fabric = "0.20.1"
+minecraft = "26.3"

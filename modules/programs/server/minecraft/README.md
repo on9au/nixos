@@ -9,7 +9,9 @@ the desktop over Tailscale ([The proxy itself](../../hosts/proxy/README.md#the-p
 
 Each server is an entry in [`servers.nix`](servers.nix) (port, heap,
 whitelist, `server.properties`) and a [packwiz](https://packwiz.infra.link/)
-pack in `servers/<name>/`, which holds its game version and mods. The memory
+pack in `servers/<name>/`, which holds its game version and mods. A
+`servers/<name>/datapack/`, if there, goes into the world; `city`'s sets its
+gamerules, and is left out of the pack by `.packwizignore`. The memory
 caps are in [`default.nix`](default.nix). The desktop has to be on: leave it in
 server mode (power menu) rather than shut down.
 
@@ -59,6 +61,19 @@ address and the port instead; that skips the trip out to the VPS and back.
 `whitelist = true` in [`servers.nix`](servers.nix) lets in only the players in
 [`players.nix`](players.nix), and lazymc won't wake the server for anyone
 else. With it on and `players.nix` empty, nobody gets in.
+
+## Permissions
+
+`city` has LuckPerms, which keeps its groups in the server's folder rather than
+here. Once it has started, let everyone use the build tools without op:
+
+```
+echo 'lp group default permission set worldedit.* true' > /run/minecraft/city.stdin
+echo 'lp group default permission set axiom.* true' > /run/minecraft/city.stdin
+```
+
+Axiom also needs its client mod on each player's game; WorldEdit needs nothing
+on the client.
 
 ## Running them
 

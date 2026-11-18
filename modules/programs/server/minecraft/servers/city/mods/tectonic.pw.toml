@@ -1,0 +1,13 @@
+name = "Tectonic"
+filename = "tectonic-3.1.0+beta2-fabric-26.3.jar"
+side = "both"
+
+[download]
+url = "https://cdn.modrinth.com/data/lWDHr9jE/versions/rKBGygwM/tectonic-3.1.0%2Bbeta2-fabric-26.3.jar"
+hash-format = "sha512"
+hash = "e91888863558781746b3708809ae09e67c14bec6cfefd633f1c9eaf2d19ad7dc9a4bcbab6ff25024e33741e8af51579ca0accbd92df66beb855060934f4820dc"
+
+[update]
+[update.modrinth]
+mod-id = "lWDHr9jE"
+version = "rKBGygwM"

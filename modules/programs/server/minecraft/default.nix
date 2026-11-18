@@ -107,7 +107,13 @@ in {
             white-list = server.whitelist;
           }
           // server.properties;
-        symlinks.mods = pkgs.linkFarmFromDrvs "mods" (mods name);
+        symlinks =
+          {mods = pkgs.linkFarmFromDrvs "mods" (mods name);}
+          # servers/<name>/datapack, loaded into the world. The world picks up a
+          # new pack by itself.
+          // lib.optionalAttrs (builtins.pathExists ./servers/${name}/datapack) {
+            "world/datapacks/${name}" = ./servers/${name}/datapack;
+          };
       })
       servers;
   };
