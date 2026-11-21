@@ -7,6 +7,48 @@ basically the main machine.
 - `GPU`: RX 9070 XT
 - `SSD`: KC3000 2048 GB
 
+## Disk and Windows
+
+```
+nvme0n1
+├─p1  2 GiB   ESP, shared with Windows
+├─p2          LUKS2 (FIDO2 + passphrase) → btrfs, subvolumes in hardware.nix
+└─            ~256 GiB for Windows
+```
+
+The Secure Boot db has Microsoft's 2011 and 2023 CAs (`sbctl` enrolled them),
+so Windows media boots without touching the keys, and sd-boot finds
+`bootmgfw.efi` on the shared ESP by itself.
+
+After installing Windows:
+
+- Put Linux Boot Manager first again (firmware or `efibootmgr -o`); Windows
+  takes the top spot.
+- Save or turn off BitLocker device encryption. If chainloading from sd-boot
+  sends it into recovery, the laptop's `reboot-for-bitlocker` in
+  [`laptop/default.nix`](../laptop/default.nix) is the fix.
+- Turn off Fast Startup.
+- Make Windows keep the RTC in UTC: `RealTimeIsUniversal` = 1 (DWORD) under
+  `HKLM\SYSTEM\CurrentControlSet\Control\TimeZoneInformation`.
+
+### Resizing p2
+
+Each layer must stay no bigger than the one under it (btrfs ≤ LUKS ≤ p2), so
+shrink past the target and grow back to fit. All online except the reboot:
+
+```sh
+sudo swapoff /swap/swapfile                  # btrfs can't move an active swapfile
+sudo btrfs filesystem resize -<S+44>G /
+sudo cryptsetup resize cryptroot --size $(( $(sudo blockdev --getsz /dev/mapper/cryptroot) - <S+24>*1024*1024*2 ))
+sudo parted /dev/nvme0n1 -- resizepart 2 -<F>GiB   # the -- stops parted reading -N as a flag
+reboot
+sudo cryptsetup resize cryptroot             # fills p2
+sudo btrfs filesystem resize max /
+```
+
+`<S>` is how many GiB p2 shrinks by, and `<F>` the free GiB after p2 once it
+has (the free space there now plus `<S>`). Swap comes back on at boot.
+
 ## Secrets
 
 [`secrets.yaml`](secrets.yaml); the workflow is in the

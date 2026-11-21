@@ -133,7 +133,7 @@ procedures and overviews:
 | topic | where |
 | --- | --- |
 | Conventions: layout, style, doc rules, temporary workarounds, checking a change | [`CONVENTIONS.md`](CONVENTIONS.md) |
-| Desktop: hardware, secrets, backups | [`hosts/desktop`](modules/hosts/desktop/README.md) |
+| Desktop: hardware, disk and Windows dual-boot, resizing, secrets, backups | [`hosts/desktop`](modules/hosts/desktop/README.md) |
 | Laptop: hardware | [`hosts/laptop`](modules/hosts/laptop/README.md) |
 | Laptop: the EndeavourOS → NixOS install, BitLocker, Secure Boot | [`hosts/laptop/install.md`](modules/hosts/laptop/install.md) |
 | Laptop: whole-machine NVMe freezes | [`hosts/laptop/nvme-vmd-stalls.md`](modules/hosts/laptop/nvme-vmd-stalls.md) |
