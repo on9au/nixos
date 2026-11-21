@@ -105,17 +105,6 @@
 
   swapDevices = [{device = "/swap/swapfile";}];
 
-  # lanzaboote ignores boot.loader.systemd-boot.* - it mkForce-disables that
-  # module and writes loader.conf from these settings instead. Setting
-  # `boot.loader.systemd-boot.rebootForBitlocker` here would silently do
-  # nothing, so the raw loader.conf key is what gets set.
-  #
-  # reboot-for-bitlocker makes sd-boot set EFI BootNext and reboot when the
-  # Windows entry is chosen, instead of chainloading it. Windows then boots as
-  # though it were booted directly, so its TPM measurements match what
-  # BitLocker sealed against and C:/G: do not drop into recovery.
-  boot.lanzaboote.settings.reboot-for-bitlocker = "yes";
-
   # The ESP is 420 MiB and shared with Windows + Dell, leaving roughly 310 MiB
   # for us. A signed UKI bundles kernel and initrd into one file, ~90 MiB here,
   # so the shared default of 10 would overrun the partition. Check

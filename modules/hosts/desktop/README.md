@@ -24,9 +24,7 @@ After installing Windows:
 
 - Put Linux Boot Manager first again (firmware or `efibootmgr -o`); Windows
   takes the top spot.
-- Save or turn off BitLocker device encryption. If chainloading from sd-boot
-  sends it into recovery, the laptop's `reboot-for-bitlocker` in
-  [`laptop/default.nix`](../laptop/default.nix) is the fix.
+- Save the BitLocker recovery key, or turn device encryption off.
 - Turn off Fast Startup.
 - Make Windows keep the RTC in UTC: `RealTimeIsUniversal` = 1 (DWORD) under
   `HKLM\SYSTEM\CurrentControlSet\Control\TimeZoneInformation`.
