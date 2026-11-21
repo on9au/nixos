@@ -11,7 +11,9 @@
     pkiBundle = "/var/lib/sbctl";
     configurationLimit = 10;
     settings = {
-      console-mode = "max";
+      # Not "max": on the desktop's ASUS firmware, Windows Boot Manager started
+      # from sd-boot in that mode goes black and drops back to the menu.
+      console-mode = "keep";
       # sd-boot sets EFI BootNext and reboots into Windows instead of
       # chainloading it, so the TPM measurements match what BitLocker sealed
       # against and Windows doesn't drop into recovery. Lanzaboote mkForce-
