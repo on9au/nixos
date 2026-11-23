@@ -5,6 +5,7 @@
     krita # drawing and painting, with the tablet
     reaper # audio recording and mixing
     uxplay # AirPlay receiver for mirroring an Apple device; run as `uxplay -p`
+    zenity # furnace's system file picker
   ];
 
   # screen and webcam recording
