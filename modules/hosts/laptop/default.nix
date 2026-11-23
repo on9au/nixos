@@ -60,6 +60,7 @@
     # Apps
     ../../programs/apps/actual.nix
     ../../programs/apps/discord.nix
+    ../../programs/apps/scrcpy
     ../../programs/apps/spotify.nix
     ../../programs/apps/winapps
     ../../programs/apps/wireshark.nix

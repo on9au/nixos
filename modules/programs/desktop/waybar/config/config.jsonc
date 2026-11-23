@@ -179,7 +179,7 @@
     },
     "on-click": "kdeconnect-app",
     "on-click-middle": "$HOME/.config/waybar/scripts/kdeconnect.sh clipboard",
-    "on-click-right": "$HOME/.config/waybar/scripts/kdeconnect.sh ring"
+    "on-click-right": "phone-mirror"
   },
   // "device" is not optional here. The laptop has TWO entries in
   // /sys/class/backlight -- intel_backlight (the panel) and nvidia_0 (the

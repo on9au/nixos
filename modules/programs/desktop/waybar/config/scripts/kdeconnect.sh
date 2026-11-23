@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # custom/kdeconnect -- the paired phone: whether it is reachable, and its
 # battery. Prints one JSON object per run; waybar re-runs it on the interval in
-# config.jsonc and on RTMIN+9, which the actions below raise so a ring or a
-# clipboard send is reflected immediately instead of waiting out the interval.
+# config.jsonc and on RTMIN+9, which the clipboard action below raises so a
+# send is reflected immediately instead of waiting out the interval.
 #
 # Talks to kdeconnectd over D-Bus rather than through kdeconnect-cli, which can
 # list and pair devices but has no way to read a battery. gdbus rather than
@@ -111,7 +111,7 @@ status() {
 		fi
 	done
 
-	tooltip+="left: open KDE Connect\\nmiddle: send clipboard\\nright: ring the phone"
+	tooltip+="left: open KDE Connect\\nmiddle: send clipboard\\nright: mirror the phone"
 
 	printf '{"text":"%s","alt":"%s","class":[%s],"tooltip":"%s"}\n' \
 		"$text" "$alt" "$classes" "$tooltip"
@@ -121,11 +121,6 @@ case "${1:-status}" in
 status)
 	status
 	;;
-ring)
-	id=$(target) && [ -n "$id" ] &&
-		call "$root/devices/$id/findmyphone" "$bus.device.findmyphone.ring" >/dev/null
-	refresh
-	;;
 clipboard)
 	# Push what is on the clipboard now. KDE Connect can sync automatically,
 	# but that is off by default on the phone side and this is the explicit
@@ -134,7 +129,7 @@ clipboard)
 	refresh
 	;;
 *)
-	echo "usage: kdeconnect.sh [status|ring|clipboard]" >&2
+	echo "usage: kdeconnect.sh [status|clipboard]" >&2
 	exit 2
 	;;
 esac

@@ -63,6 +63,7 @@
     ../../programs/apps/creative.nix
     ../../programs/apps/discord.nix
     ../../programs/apps/everyday.nix
+    ../../programs/apps/scrcpy
     ../../programs/apps/spotify.nix
     ../../programs/apps/winapps
     ../../programs/apps/wireshark.nix

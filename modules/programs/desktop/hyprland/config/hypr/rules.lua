@@ -68,6 +68,16 @@ hl.window_rule({
     move  = "monitor_w-680 monitor_h-400",
 })
 
+-- scrcpy (phone-mirror): a phone-shaped window, like macOS's iPhone Mirroring.
+-- Tiled, it would be stretched and letterboxed. The class is the nix
+-- wrapper's.
+hl.window_rule({
+    name              = "phone-mirror",
+    match             = { class = "^\\.scrcpy-wrapped$" },
+    float             = true,
+    keep_aspect_ratio = true,
+})
+
 -- Steam's little popups tile badly. Listed explicitly rather than using a
 -- negative lookahead, which the RE2 engine Hyprland matches with rejects.
 hl.window_rule({
