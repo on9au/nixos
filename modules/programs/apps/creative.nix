@@ -1,5 +1,6 @@
 {pkgs, ...}: {
   environment.systemPackages = with pkgs; [
+    furnace # chiptune tracker
     godot-mono # game dev with C#
     krita # drawing and painting, with the tablet
     reaper # audio recording and mixing
