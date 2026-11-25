@@ -148,6 +148,7 @@ LAPTOP-ON9AU)
 # Steam renders at the native 3840x2400 and stays sharp but draws its UI at
 # 1:1, so it needs telling to scale itself by the same 2 the panel uses.
     export STEAM_FORCE_DESKTOPUI_SCALING=2
+    export AVALONIA_GLOBAL_SCALE_FACTOR=2
     ;;
 *)
 # Single-GPU machine: no AQ_DRM_DEVICES needed, aquamarine picks the only card.
@@ -157,5 +158,8 @@ LAPTOP-ON9AU)
 # and stays sharp, but draws its UI at 1:1 and so comes out small -- this tells
 # it to scale itself, matching the 1.25 scale of the primary monitor.
     export STEAM_FORCE_DESKTOPUI_SCALING=1.25
+
+# Avalonia apps (OpenUtau) are X11-only as well, and come out small the same way.
+    export AVALONIA_GLOBAL_SCALE_FACTOR=1.25
     ;;
 esac
